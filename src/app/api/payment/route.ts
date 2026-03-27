@@ -3,14 +3,18 @@ import crypto from "crypto";
 
 export async function POST(req: Request) {
   try {
-    const { amount, transactionId, merchantId, saltKey, saltIndex } = await req.json();
+    const { amount, transactionId, merchantId, saltKey, saltIndex, auditUrl } = await req.json();
+
+    const returnUrl = auditUrl
+      ? `${process.env.NEXTAUTH_URL}/audit?url=${encodeURIComponent(auditUrl)}&payment=success`
+      : `${process.env.NEXTAUTH_URL}/payment/callback`;
 
     const payload = {
       merchantId: merchantId || process.env.PHONEPE_MERCHANT_ID,
       merchantTransactionId: transactionId,
       merchantUserId: "MUID" + Date.now(),
       amount: amount * 100, // Amount in paise
-      redirectUrl: `${process.env.NEXTAUTH_URL}/payment/callback`,
+      redirectUrl: returnUrl,
       redirectMode: "POST",
       callbackUrl: `${process.env.NEXTAUTH_URL}/api/payment/callback`,
       paymentInstrument: {

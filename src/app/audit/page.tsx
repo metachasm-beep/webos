@@ -20,10 +20,15 @@ import {
 } from "lucide-react";
 
 import { MatrixTooltip } from "@/components/MatrixTooltip";
+import { PaywallModal } from "@/components/PaywallModal";
+
+const CACHE_KEY = (url: string) => `audit_cache_${encodeURIComponent(url)}`;
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 function AuditContent() {
   const searchParams = useSearchParams();
   const url = searchParams.get("url") || "your-website.com";
+  const paymentSuccess = searchParams.get("payment") === "success";
   
   const [stage, setStage] = useState<"loading" | "report">("loading");
   const [progress, setProgress] = useState(0);
@@ -33,6 +38,7 @@ function AuditContent() {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const tasks = [
     "Checking SEO metadata...",
@@ -54,7 +60,11 @@ function AuditContent() {
         headers: { "Content-Type": "application/json" }
       });
       const data = await resp.json();
-      setAiSummary(data.summary);
+      if (data.error) {
+        setAiSummary("AI summary unavailable: " + data.error + ". Check your COHERE_API_KEY.");
+      } else {
+        setAiSummary(data.summary || "No summary returned.");
+      }
     } catch (e) {
       setAiSummary("Couldn't load the AI summary right now. Check the scores above for the full picture.");
     } finally {
@@ -62,17 +72,43 @@ function AuditContent() {
     }
   };
 
+  const handleGeneratePdf = async () => {
+    if (isGeneratingPdf || !auditData) return;
+    setIsGeneratingPdf(true);
+    try {
+      const result = await createPdfReport(url, auditData);
+      if (result.status === "Provisioned" && result.downloadUrl) {
+        window.open(result.downloadUrl, "_blank");
+      } else {
+        alert(result.message || "PDF generation failed. Please try again.");
+      }
+    } catch (e) {
+      alert("PDF generation failed. Please try again.");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
 
     async function startAudit() {
-      // Custom GA4 Telemetry: Audit Discovery
-      if (typeof window !== "undefined" && (window as any).gtag) {
-        (window as any).gtag('event', 'audit_discovery', {
-          event_category: 'Protocol',
-          event_label: url,
-        });
-      }
+      // Check localStorage cache first
+      try {
+        const cached = localStorage.getItem(CACHE_KEY(url));
+        if (cached) {
+          const { data, timestamp } = JSON.parse(cached);
+          if (Date.now() - timestamp < CACHE_TTL_MS) {
+            if (isMounted) {
+              setAuditData(data);
+              setProgress(100);
+              setCurrentTask("Loaded from cache.");
+              setTimeout(() => setStage("report"), 400);
+            }
+            return;
+          }
+        }
+      } catch (_) { /* ignore parse errors */ }
 
       const progressInterval = setInterval(() => {
         setProgress(prev => (prev < 90 ? prev + (90 - prev) * 0.1 : prev));
@@ -84,25 +120,21 @@ function AuditContent() {
         const result = await runAuditAction(url);
         if (isMounted) {
           if (result.success) {
-            // Custom GA4 Telemetry: Neural Synthesis Success
-            if (typeof window !== "undefined" && (window as any).gtag) {
-              (window as any).gtag('event', 'neural_synthesis_complete', {
-                event_category: 'Synthesis',
-                event_label: url,
-                value: Math.round(result.metrics?.performance || 0),
-              });
-            }
+            // Persist to cache
+            try {
+              localStorage.setItem(CACHE_KEY(url), JSON.stringify({ data: result, timestamp: Date.now() }));
+            } catch (_) { /* storage full — ignore */ }
 
             setAuditData(result);
             setProgress(100);
-            setCurrentTask("Synthesis Complete.");
+            setCurrentTask("Audit complete.");
             setTimeout(() => setStage("report"), 1000);
           } else {
-            setError(result.error);
+            setError(result.error || "Audit failed. Please try again.");
           }
         }
       } catch (err: any) {
-        if (isMounted) setError(err.message || "Connection to matrix lost.");
+        if (isMounted) setError(err.message || "Something went wrong. Please try again.");
       } finally {
         clearInterval(progressInterval);
       }
@@ -111,6 +143,13 @@ function AuditContent() {
     startAudit();
     return () => { isMounted = false; };
   }, [url]);
+
+  // Auto-generate PDF after successful payment return
+  useEffect(() => {
+    if (paymentSuccess && auditData) {
+      handleGeneratePdf();
+    }
+  }, [paymentSuccess, auditData]);
 
   if (error) {
     return (
@@ -166,7 +205,8 @@ function AuditContent() {
   const scores = auditData?.metrics || { performance: 84, seo: 92, accessibility: 100, bestPractices: 85 };
 
   return (
-    <main className="flex-1 pb-32 pt-32">
+    <>
+      <main className="flex-1 pb-32 pt-32">
       <div className="container px-4">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -219,27 +259,13 @@ function AuditContent() {
                 <Zap className="ml-3 h-4 w-4" />
               </Button>
               <Button 
-                onClick={async () => {
-                  if (isGeneratingPdf) return;
-                  setIsGeneratingPdf(true);
-                  try {
-                    const result = await createPdfReport(url, auditData);
-                    if (result.status === "Provisioned" && result.downloadUrl) {
-                      window.open(result.downloadUrl, "_blank");
-                    }
-                  } catch (e) {
-                    alert("PDF generation failed. Please try again.");
-                  } finally {
-                    setIsGeneratingPdf(false);
-                  }
-                }}
-                disabled={isGeneratingPdf}
+                onClick={() => setShowPaywall(true)}
                 size="lg" 
                 variant="outline" 
-                className="rounded-full px-10 h-16 border-white/10 hover:bg-white/5 text-muted-foreground group font-bold uppercase tracking-widest text-xs"
+                className="rounded-full px-10 h-16 border-white/10 hover:bg-primary/5 hover:border-primary/30 hover:text-primary text-muted-foreground group font-bold uppercase tracking-widest text-xs transition-all"
               >
                 {isGeneratingPdf ? "Generating PDF..." : "Download Report"}
-                <ArrowRight className="ml-3 h-4 w-4 opacity-30" />
+                <ArrowRight className="ml-3 h-4 w-4 opacity-30 group-hover:opacity-100" />
               </Button>
             </div>
           </div>
@@ -401,6 +427,9 @@ function AuditContent() {
         </div>
       </div>
     </main>
+
+    <PaywallModal open={showPaywall} onClose={() => setShowPaywall(false)} auditUrl={url} />
+    </>
   );
 }
 
