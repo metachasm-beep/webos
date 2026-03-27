@@ -51,6 +51,12 @@ export async function fetchPageSpeedData(url: string) {
         const parsed = JSON.parse(body);
         if (parsed.error?.message) errMsg = parsed.error.message;
       } catch (e) {}
+
+      // Google returns a generic 500 if the site is localhost, unreachable, or blocks bots
+      if (response.status === 500 && errMsg.includes("Unable to process request")) {
+        errMsg = "The site is unreachable by Google's servers. Ensure the URL is public, not a localhost/private address, and doesn't explicitly block Googlebot.";
+      }
+
       throw new Error(`PageSpeed API Error (${response.status}): ${errMsg}`);
     }
 
