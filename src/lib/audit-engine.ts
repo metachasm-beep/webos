@@ -400,7 +400,7 @@ export async function fetchCarbonMetrics(url: string) {
 }
 
 export async function checkSafeBrowsing(url: string) {
-  const apiKey = process.env.PAGESPEED_API_KEY;
+  const apiKey = process.env.SAFE_BROWSING_API_KEY || process.env.PAGESPEED_API_KEY;
   if (!apiKey) return { status: "Unknown", message: "API key missing" };
 
   try {

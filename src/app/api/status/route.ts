@@ -48,7 +48,7 @@ async function checkApi2Pdf() {
 }
 
 async function checkSafeBrowsing() {
-  const key = process.env.PAGESPEED_API_KEY;
+  const key = process.env.SAFE_BROWSING_API_KEY || process.env.PAGESPEED_API_KEY;
   if (!key) return { ok: false, label: "No API key" };
   try {
     const r = await fetch(`https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${key}`, {
