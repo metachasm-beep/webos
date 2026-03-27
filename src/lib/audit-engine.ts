@@ -29,10 +29,9 @@ export async function fetchPageSpeedData(url: string) {
     normalizedUrl = `https://${normalizedUrl}`;
   }
 
-  // If no API key, return realistic mock data so the UI still works
+  // If no API key, throw error so user can debug
   if (!apiKey) {
-    console.warn("[audit-engine] PAGESPEED_API_KEY not set — using demo data");
-    return MOCK_DATA;
+    throw new Error("PAGESPEED_API_KEY is missing. Please add it to your environment variables to enable real audits.");
   }
 
   try {
@@ -47,15 +46,18 @@ export async function fetchPageSpeedData(url: string) {
 
     if (!response.ok) {
       const body = await response.text();
-      console.error("[audit-engine] PageSpeed error:", response.status, body);
-      // Fall back to mock rather than crashing
-      return MOCK_DATA;
+      let errMsg = response.statusText;
+      try {
+        const parsed = JSON.parse(body);
+        if (parsed.error?.message) errMsg = parsed.error.message;
+      } catch (e) {}
+      throw new Error(`PageSpeed API Error (${response.status}): ${errMsg}`);
     }
 
-    return response.json();
-  } catch (error) {
+    return await response.json();
+  } catch (error: any) {
     console.error("[audit-engine] PageSpeed fetch failed:", error);
-    return MOCK_DATA;
+    throw new Error(`Failed to run PageSpeed audit: ${error.message || "Unknown communication error"}`);
   }
 }
 
@@ -277,6 +279,22 @@ export async function createPdfReport(url: string, data: any) {
             <div class="metric-row">
               <span class="metric-key">Cumulative Layout Shift</span>
               <span class="metric-val">${getDisp("cumulative-layout-shift") === "N/A" ? getDisp("cls") : getDisp("cumulative-layout-shift")}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">Server Response Time</span>
+              <span class="metric-val">${getDisp("server-response-time")}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">Total Page Weight</span>
+              <span class="metric-val">${getDisp("total-byte-weight")}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">DOM Size</span>
+              <span class="metric-val">${getDisp("dom-size")}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">JS Execution Time</span>
+              <span class="metric-val">${getDisp("bootup-time")}</span>
             </div>
           </div>
         </div>
