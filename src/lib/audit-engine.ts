@@ -132,6 +132,7 @@ export async function createPdfReport(url: string, data: any) {
 
     const logoUrl = `https://logo.clearbit.com/${getHostnameInner(url)}?size=128`;
     const carbon = data?.carbon;
+    const security = data?.security;
 
     const html = `
     <!DOCTYPE html>
@@ -325,6 +326,26 @@ export async function createPdfReport(url: string, data: any) {
           </div>
         </div>
 
+        ${security ? `
+        <div class="section">
+          <div class="section-title">Security Protocol</div>
+          <div class="metrics-grid">
+            <div class="metric-row">
+              <span class="metric-key">Google Safe Browsing</span>
+              <span class="metric-val" style="color: ${security.status === 'Clear' ? '#22c55e' : '#ef4444'}">
+                ${security.status === 'Clear' ? 'Verified Safe' : 'Threat Detected'}
+              </span>
+            </div>
+            ${security.threats ? `
+            <div class="metric-row">
+              <span class="metric-key">Detected Issues</span>
+              <span class="metric-val">${security.threats.join(', ')}</span>
+            </div>
+            ` : ''}
+          </div>
+        </div>
+        ` : ''}
+
         ${carbon ? `
         <div class="section">
           <div class="section-title">Environmental Impact</div>
@@ -375,6 +396,39 @@ export async function fetchCarbonMetrics(url: string) {
   } catch (error) {
     console.error("[audit-engine] Carbon fetch failed:", error);
     return null;
+  }
+}
+
+export async function checkSafeBrowsing(url: string) {
+  const apiKey = process.env.PAGESPEED_API_KEY;
+  if (!apiKey) return { status: "Unknown", message: "API key missing" };
+
+  try {
+    const response = await fetch(`https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        client: { clientId: "turtlelabs-growth-matrix", clientVersion: "1.0.0" },
+        threatInfo: {
+          threatTypes: ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE", "POTENTIALLY_HARMFUL_APPLICATION"],
+          platformTypes: ["ANY_PLATFORM"],
+          threatEntryTypes: ["URL"],
+          threatEntries: [{ url: normalizeUrl(url) }],
+        },
+      }),
+    });
+
+    if (!response.ok) return { status: "Unknown", message: `Error ${response.status}` };
+    const data = await response.json();
+
+    // If matches exist, it's unsafe. Otherwise it's empty/clear.
+    if (data.matches && data.matches.length > 0) {
+      return { status: "Unsafe", threats: data.matches.map((m: any) => m.threatType) };
+    }
+    return { status: "Clear" };
+  } catch (error) {
+    console.error("[audit-engine] Safe Browsing failed:", error);
+    return { status: "Unknown", message: "Timeout" };
   }
 }
 

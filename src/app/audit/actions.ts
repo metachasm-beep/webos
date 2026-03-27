@@ -1,12 +1,15 @@
 "use server";
 
-import { fetchPageSpeedData, generateAuditSummary, createPdfReport as createPdfReportEngine, fetchCarbonMetrics } from "@/lib/audit-engine";
+import { fetchPageSpeedData, generateAuditSummary, createPdfReport as createPdfReportEngine, fetchCarbonMetrics, checkSafeBrowsing } from "@/lib/audit-engine";
 
 export async function runAuditAction(url: string) {
   try {
     const data = await fetchPageSpeedData(url);
     const summary = await generateAuditSummary(url, data);
-    const carbonData = await fetchCarbonMetrics(url);
+    const [carbonData, securityData] = await Promise.all([
+      fetchCarbonMetrics(url),
+      checkSafeBrowsing(url)
+    ]);
     
     return {
       success: true,
@@ -21,6 +24,7 @@ export async function runAuditAction(url: string) {
       },
       summary,
       carbon: carbonData,
+      security: securityData,
     };
   } catch (error: any) {
     console.error("Audit failed:", error);

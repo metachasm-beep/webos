@@ -47,11 +47,36 @@ async function checkApi2Pdf() {
   }
 }
 
+async function checkSafeBrowsing() {
+  const key = process.env.PAGESPEED_API_KEY;
+  if (!key) return { ok: false, label: "No API key" };
+  try {
+    const r = await fetch(`https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${key}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        client: { clientId: "status-check", clientVersion: "1.0.0" },
+        threatInfo: {
+          threatTypes: ["MALWARE"],
+          platformTypes: ["ANY_PLATFORM"],
+          threatEntryTypes: ["URL"],
+          threatEntries: [{ url: "https://google.com" }],
+        },
+      }),
+      signal: AbortSignal.timeout(6000),
+    });
+    return r.ok ? { ok: true, label: "Connected" } : { ok: false, label: `Error ${r.status}` };
+  } catch {
+    return { ok: false, label: "Timeout" };
+  }
+}
+
 export async function GET() {
-  const [pageSpeed, cohere, api2pdf] = await Promise.all([
+  const [pageSpeed, cohere, api2pdf, safeBrowsing] = await Promise.all([
     checkPageSpeed(),
     checkCohere(),
     checkApi2Pdf(),
+    checkSafeBrowsing(),
   ]);
 
   return NextResponse.json({
@@ -59,6 +84,7 @@ export async function GET() {
       { name: "PageSpeed API", ...pageSpeed, description: "Google Lighthouse audits" },
       { name: "Cohere AI", ...cohere, description: "AI summary generation" },
       { name: "API2PDF", ...api2pdf, description: "PDF report generation" },
+      { name: "Safe Browsing", ...safeBrowsing, description: "Security threat detection" },
     ],
   });
 }

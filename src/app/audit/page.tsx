@@ -410,6 +410,39 @@ function AuditContent() {
                     Carbon Metrics Unavailable
                  </div>
                )}
+
+               {auditData?.security && (
+                 <div className="glass-card p-6 border-white/5 relative overflow-hidden group hover:bg-white/5 transition-all">
+                    <div className="absolute top-0 right-0 p-6 opacity-10">
+                       <ShieldCheck className={`h-24 w-24 ${auditData.security.status === 'Clear' ? 'text-green-500' : 'text-red-500'}`} />
+                    </div>
+                    
+                    <div className="flex gap-4 items-start relative z-10">
+                      <div className="p-3 bg-white/5 rounded-2xl">
+                        <ShieldCheck className={`h-6 w-6 ${auditData.security.status === 'Clear' ? 'text-green-500' : 'text-red-500'}`} />
+                      </div>
+                      <div>
+                        <h4 className="font-heading font-bold text-xl mb-1">Security Audit</h4>
+                        <p className="text-xs text-muted-foreground font-body leading-relaxed max-w-[200px]">
+                          Google Safe Browsing threat detection protocol.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-8 flex items-end justify-between relative z-10">
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Network Status</p>
+                        <p className={`text-xs ${auditData.security.status === 'Clear' ? 'text-green-400' : 'text-red-400 font-bold'}`}>
+                          {auditData.security.status === 'Clear' ? 'Security Clearance: Verified' : `Threat Detected: ${auditData.security.threats?.join(', ') || 'Unsafe'}`}
+                        </p>
+                      </div>
+                      
+                      <div className={`text-5xl font-heading font-black italic tracking-tighter ${auditData.security.status === 'Clear' ? 'text-green-500' : 'text-red-500'} text-glow-soft`}>
+                        {auditData.security.status === 'Clear' ? "OK" : "!!!"}
+                      </div>
+                    </div>
+                 </div>
+               )}
             </div>
 
             <h3 className="font-heading italic text-3xl font-bold underline decoration-primary/20 decoration-4 underline-offset-8 mb-8 mt-12">Issues Found</h3>
