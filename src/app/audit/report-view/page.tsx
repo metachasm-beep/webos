@@ -1,0 +1,104 @@
+"use client";
+
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { fetchPageSpeedData, generateAuditSummary } from "@/lib/audit-engine";
+
+function ReportContent() {
+  const searchParams = useSearchParams();
+  const url = searchParams.get("url");
+  const [data, setData] = useState<any>(null);
+
+  useEffect(() => {
+    if (url) {
+      fetchPageSpeedData(url).then(async (metrics) => {
+        const summary = await generateAuditSummary(url, metrics);
+        setData({ metrics, summary });
+      });
+    }
+  }, [url]);
+
+  if (!data) return <div className="p-20 text-center font-body text-muted-foreground uppercase tracking-widest animate-pulse transition-all duration-1000">Synthesizing Protocol...</div>;
+
+  const { metrics, summary } = data;
+  const scores = {
+    performance: metrics.lighthouseResult.categories.performance.score * 100,
+    seo: metrics.lighthouseResult.categories.seo.score * 100,
+    accessibility: metrics.lighthouseResult.categories.accessibility.score * 100,
+  };
+
+  return (
+    <div className="bg-white text-black p-16 font-body max-w-4xl mx-auto shadow-2xl my-20 rounded-lg">
+      <div className="border-b-2 border-black/5 pb-12 mb-12 flex justify-between items-end">
+        <div>
+          <h1 className="text-4xl font-heading font-bold italic tracking-tighter uppercase leading-none">WebOS <span className="text-primary">Matrix</span></h1>
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground mt-2">Professional Performance Audit</p>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em]">{new Date().toLocaleDateString()}</p>
+          <p className="text-[10px] text-muted-foreground break-all max-w-[200px] mt-1">{url}</p>
+        </div>
+      </div>
+
+      <section className="grid grid-cols-3 gap-8 mb-16">
+        {[
+          { label: "Performance", score: scores.performance },
+          { label: "SEO Intelligence", score: scores.seo },
+          { label: "Accessibility", score: scores.accessibility }
+        ].map((item, i) => (
+          <div key={i} className="border border-black/5 p-8 rounded-2xl text-center hover:bg-black/[0.02] transition-colors">
+            <div className="text-4xl font-heading font-bold italic mb-2">{Math.round(item.score)}%</div>
+            <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{item.label}</div>
+          </div>
+        ))}
+      </section>
+
+      <section className="space-y-8 mb-16">
+        <h2 className="text-xs font-bold uppercase tracking-[0.3em] border-l-4 border-primary pl-4">Neural Synthesis</h2>
+        <p className="text-sm leading-relaxed italic text-black/80">{summary}</p>
+      </section>
+
+      <section className="space-y-8">
+        <h2 className="text-xs font-bold uppercase tracking-[0.3em] border-l-4 border-black/20 pl-4">Infrastructure Insights</h2>
+        <div className="grid grid-cols-2 gap-x-12 gap-y-4">
+           {metrics.lighthouseResult.audits['first-contentful-paint'] && (
+             <div className="flex justify-between text-[11px] border-b border-black/5 py-2">
+                <span className="text-muted-foreground uppercase tracking-widest">First Contentful Paint</span>
+                <span className="font-bold">{metrics.lighthouseResult.audits['first-contentful-paint'].displayValue}</span>
+             </div>
+           )}
+           {metrics.lighthouseResult.audits['interactive'] && (
+             <div className="flex justify-between text-[11px] border-b border-black/5 py-2">
+                <span className="text-muted-foreground uppercase tracking-widest">Time to Interactive</span>
+                <span className="font-bold">{metrics.lighthouseResult.audits['interactive'].displayValue}</span>
+             </div>
+           )}
+           {metrics.lighthouseResult.audits['speed-index'] && (
+             <div className="flex justify-between text-[11px] border-b border-black/5 py-2">
+                <span className="text-muted-foreground uppercase tracking-widest">Speed Index</span>
+                <span className="font-bold">{metrics.lighthouseResult.audits['speed-index'].displayValue}</span>
+             </div>
+           )}
+           {metrics.lighthouseResult.audits['total-blocking-time'] && (
+             <div className="flex justify-between text-[11px] border-b border-black/5 py-2">
+                <span className="text-muted-foreground uppercase tracking-widest">Total Blocking Time</span>
+                <span className="font-bold">{metrics.lighthouseResult.audits['total-blocking-time'].displayValue}</span>
+             </div>
+           )}
+        </div>
+      </section>
+
+      <footer className="mt-32 pt-12 border-t border-black/5 text-center">
+        <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-muted-foreground">Generated via WebOS distributed edge protocols</p>
+      </footer>
+    </div>
+  );
+}
+
+export default function ReportView() {
+  return (
+    <Suspense fallback={<div className="p-20 text-center font-body text-muted-foreground uppercase tracking-widest animate-pulse">Initializing Synthesis Matrix...</div>}>
+      <ReportContent />
+    </Suspense>
+  );
+}

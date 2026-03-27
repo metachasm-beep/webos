@@ -6,7 +6,7 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { runAuditAction } from "./actions";
+import { runAuditAction, createPdfReport } from "./actions";
 import { 
   CheckCircle2, 
   AlertCircle, 
@@ -30,6 +30,7 @@ function AuditContent() {
   const [currentTask, setCurrentTask] = useState("Initializing neural link...");
   const [auditData, setAuditData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const tasks = [
     "Neural SEO metadata scan...",
@@ -145,9 +146,30 @@ function AuditContent() {
               <p className="text-muted-foreground max-w-lg mx-auto font-body">The future of high-performance interfaces starts here. Neural components synthesized for distributed edge protocols.</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" variant="outline" className="rounded-full px-10 h-16 border-white/10 hover:bg-white/5 text-muted-foreground group font-bold uppercase tracking-widest text-xs">
-                Symphony Report
-                <ArrowRight className="ml-3 h-4 w-4 opacity-30" />
+              <Button 
+                onClick={async () => {
+                  if (isGeneratingPdf) return;
+                  setIsGeneratingPdf(true);
+                  try {
+                    const result = await createPdfReport(url, auditData);
+                    if (result.status === "Provisioned" && result.downloadUrl) {
+                      window.open(result.downloadUrl, "_blank");
+                    } else {
+                      alert(result.message);
+                    }
+                  } catch (e) {
+                    alert("Document synthesis failed. Protocol integrity compromised.");
+                  } finally {
+                    setIsGeneratingPdf(false);
+                  }
+                }}
+                disabled={isGeneratingPdf}
+                size="lg" 
+                variant="outline" 
+                className="rounded-full px-10 h-16 border-white/10 hover:bg-white/5 text-muted-foreground group font-bold uppercase tracking-widest text-xs disabled:opacity-50"
+              >
+                {isGeneratingPdf ? "Synthesizing..." : "Symphony Report"}
+                {!isGeneratingPdf && <ArrowRight className="ml-3 h-4 w-4 opacity-30" />}
               </Button>
               <Button size="lg" className="rounded-full px-10 h-16 bg-primary hover:bg-primary/80 text-white shadow-2xl shadow-primary/30 group font-bold uppercase tracking-widest text-xs">
                 Fix Decouplings

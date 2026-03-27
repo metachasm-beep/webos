@@ -55,9 +55,27 @@ export async function generateAuditSummary(url: string, metrics: any) {
 }
 
 export async function createPdfReport(url: string, data: any) {
-  const apiKey = process.env.PDFMONKEY_API_KEY;
-  if (!apiKey) return { status: "Error", message: "Document generation requires PDFMonkey configuration." };
+  const apiKey = process.env.API2PDF_API_KEY;
+  if (!apiKey) return { status: "Error", message: "Document generation requires API2PDF authorization." };
 
-  // Placeholder for PDFMonkey synthesis
-  return { status: "Provisioned", downloadUrl: "#" };
+  try {
+    const response = await fetch("https://v2.api2pdf.com/chrome/pdf/url", {
+      method: "POST",
+      headers: {
+        "Authorization": apiKey,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        url: `${process.env.NEXTAUTH_URL}/audit/report-view?url=${encodeURIComponent(url)}`,
+        inline: true,
+        fileName: `WebOS_Performance_Matrix_${new URL(url).hostname}.pdf`
+      })
+    });
+
+    if (!response.ok) throw new Error(`Document synthesis failed: ${response.status}`);
+    const result = await response.json();
+    return { status: "Provisioned", downloadUrl: result.FileUrl };
+  } catch (error) {
+    return { status: "Error", message: "Document synthesis offline. Telemetry integrity maintained." };
+  }
 }

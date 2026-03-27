@@ -1,6 +1,6 @@
 "use server";
 
-import { fetchPageSpeedData, generateAuditSummary } from "@/lib/audit-engine";
+import { fetchPageSpeedData, generateAuditSummary, createPdfReport as createPdfReportEngine } from "@/lib/audit-engine";
 
 export async function runAuditAction(url: string) {
   try {
@@ -24,4 +24,8 @@ export async function runAuditAction(url: string) {
       error: error.message || "An unexpected error occurred during synthesis.",
     };
   }
+}
+
+export async function createPdfReport(url: string, data: any) {
+  return await createPdfReportEngine(url, data);
 }
