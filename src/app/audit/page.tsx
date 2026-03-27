@@ -46,6 +46,14 @@ function AuditContent() {
     let isMounted = true;
 
     async function startAudit() {
+      // Custom GA4 Telemetry: Audit Discovery
+      if (typeof window !== "undefined" && (window as any).gtag) {
+        (window as any).gtag('event', 'audit_discovery', {
+          event_category: 'Protocol',
+          event_label: url,
+        });
+      }
+
       // Simulate progress while waiting for real results
       const progressInterval = setInterval(() => {
         setProgress(prev => (prev < 90 ? prev + (90 - prev) * 0.1 : prev));
@@ -57,6 +65,15 @@ function AuditContent() {
         const result = await runAuditAction(url);
         if (isMounted) {
           if (result.success) {
+            // Custom GA4 Telemetry: Neural Synthesis Success
+            if (typeof window !== "undefined" && (window as any).gtag) {
+              (window as any).gtag('event', 'neural_synthesis_complete', {
+                event_category: 'Synthesis',
+                event_label: url,
+                value: Math.round(result.metrics?.performance || 0),
+              });
+            }
+
             setAuditData(result);
             setProgress(100);
             setCurrentTask("Synthesis Complete.");
@@ -149,6 +166,15 @@ function AuditContent() {
               <Button 
                 onClick={async () => {
                   if (isGeneratingPdf) return;
+                  
+                  // Custom GA4 Telemetry: PDF Synthesis Intent
+                  if (typeof window !== "undefined" && (window as any).gtag) {
+                    (window as any).gtag('event', 'pdf_synthesis_trigger', {
+                      event_category: 'Document',
+                      event_label: url,
+                    });
+                  }
+
                   setIsGeneratingPdf(true);
                   try {
                     const result = await createPdfReport(url, auditData);
@@ -171,7 +197,18 @@ function AuditContent() {
                 {isGeneratingPdf ? "Synthesizing..." : "Symphony Report"}
                 {!isGeneratingPdf && <ArrowRight className="ml-3 h-4 w-4 opacity-30" />}
               </Button>
-              <Button size="lg" className="rounded-full px-10 h-16 bg-primary hover:bg-primary/80 text-white shadow-2xl shadow-primary/30 group font-bold uppercase tracking-widest text-xs">
+              <Button 
+                onClick={() => {
+                  if (typeof window !== "undefined" && (window as any).gtag) {
+                    (window as any).gtag('event', 'remediation_trigger', {
+                      event_category: 'Protocol',
+                      event_label: url,
+                    });
+                  }
+                }}
+                size="lg" 
+                className="rounded-full px-10 h-16 bg-primary hover:bg-primary/80 text-white shadow-2xl shadow-primary/30 group font-bold uppercase tracking-widest text-xs"
+              >
                 Fix Decouplings
                 <ArrowRight className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
