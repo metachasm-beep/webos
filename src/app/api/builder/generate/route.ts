@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     `;
 
     const response = await cohere.generate({
-      model: "command-r-plus",
+      model: "command-r7b-12-2024",
       prompt: systemPrompt,
       maxTokens: 500,
       temperature: 0.4,

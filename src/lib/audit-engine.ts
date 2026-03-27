@@ -81,7 +81,7 @@ export async function generateAuditSummary(url: string, metrics: any) {
 
   try {
     const response = await cohere.generate({
-      model: "command-r-plus",
+      model: "command-r7b-12-2024",
       prompt,
       maxTokens: 200,
       temperature: 0.4,

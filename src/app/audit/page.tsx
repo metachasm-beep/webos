@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { runAuditAction, createPdfReport } from "./actions";
+import { runAuditAction } from "./actions";
 import { 
   CheckCircle2, 
   AlertCircle, 
@@ -72,21 +72,9 @@ function AuditContent() {
     }
   };
 
-  const handleGeneratePdf = async () => {
-    if (isGeneratingPdf || !auditData) return;
-    setIsGeneratingPdf(true);
-    try {
-      const result = await createPdfReport(url, auditData);
-      if (result.status === "Provisioned" && result.downloadUrl) {
-        window.open(result.downloadUrl, "_blank");
-      } else {
-        alert(result.message || "PDF generation failed. Please try again.");
-      }
-    } catch (e) {
-      alert("PDF generation failed. Please try again.");
-    } finally {
-      setIsGeneratingPdf(false);
-    }
+  const handleGeneratePdf = () => {
+    // Opens the printable report-view page — user can Ctrl+P / Cmd+P to save as PDF
+    window.open(`/audit/report-view?url=${encodeURIComponent(url)}`, "_blank");
   };
 
   useEffect(() => {
@@ -144,11 +132,42 @@ function AuditContent() {
     return () => { isMounted = false; };
   }, [url]);
 
-  // Auto-generate PDF after successful payment return
+  // After PhonePe redirect: verify payment, then open report
   useEffect(() => {
-    if (paymentSuccess && auditData) {
-      handleGeneratePdf();
+    if (!paymentSuccess || !auditData) return;
+
+    async function verifyAndDownload() {
+      const savedTxn = localStorage.getItem("pending_payment_txn");
+      if (!savedTxn) {
+        // No transaction to verify — skip
+        return;
+      }
+
+      try {
+        setIsGeneratingPdf(true);
+        const resp = await fetch("/api/payment/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ transactionId: savedTxn }),
+        });
+        const data = await resp.json();
+
+        if (data.success) {
+          // Payment confirmed — open the report
+          localStorage.removeItem("pending_payment_txn");
+          localStorage.removeItem("pending_payment_url");
+          handleGeneratePdf();
+        } else {
+          alert("Payment not confirmed yet: " + (data.message || "Please try again."));
+        }
+      } catch (e) {
+        alert("Couldn't verify payment. Please contact support.");
+      } finally {
+        setIsGeneratingPdf(false);
+      }
     }
+
+    verifyAndDownload();
   }, [paymentSuccess, auditData]);
 
   if (error) {

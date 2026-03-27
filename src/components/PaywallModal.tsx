@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { X, FileText, CheckCircle2, Zap, Lock, Shield } from "lucide-react";
+import { X, FileText, CheckCircle2, Lock, Shield } from "lucide-react";
 
 interface PaywallModalProps {
   open: boolean;
@@ -21,13 +21,16 @@ export function PaywallModal({ open, onClose, auditUrl }: PaywallModalProps) {
     try {
       const transactionId = "TXN_" + Date.now();
 
+      // Save transaction ID so we can verify it after redirect
+      localStorage.setItem("pending_payment_txn", transactionId);
+      localStorage.setItem("pending_payment_url", auditUrl);
+
       const resp = await fetch("/api/payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: 299,
           transactionId,
-          // redirectUrl is set server-side but we pass the audit url as metadata
           auditUrl,
         }),
       });
@@ -35,18 +38,17 @@ export function PaywallModal({ open, onClose, auditUrl }: PaywallModalProps) {
       const data = await resp.json();
 
       if (data?.data?.instrumentResponse?.redirectInfo?.url) {
-        // PhonePe returns a redirect URL
+        // PhonePe returns a redirect URL — go to payment page
         window.location.href = data.data.instrumentResponse.redirectInfo.url;
       } else if (data?.error) {
         setError("Payment gateway error: " + data.error);
+        setLoading(false);
       } else {
-        // Fallback: no gateway configured — simulate success for dev
-        setError(null);
-        window.location.href = `/audit?url=${encodeURIComponent(auditUrl)}&payment=success`;
+        setError("Payment gateway is not configured. Contact support.");
+        setLoading(false);
       }
     } catch (e: any) {
       setError("Something went wrong. Please try again.");
-    } finally {
       setLoading(false);
     }
   };
@@ -81,7 +83,7 @@ export function PaywallModal({ open, onClose, auditUrl }: PaywallModalProps) {
             </button>
 
             <div className="relative z-10 space-y-8 p-10">
-              {/* Icon + Title */}
+              {/* Title */}
               <div className="space-y-3">
                 <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
                   <FileText className="h-7 w-7 text-primary" />
