@@ -39,7 +39,7 @@ export async function fetchPageSpeedData(url: string) {
       `https://www.googleapis.com/pagespeedonline/v5/runPagespeed` +
       `?url=${encodeURIComponent(normalizedUrl)}` +
       `&key=${apiKey}` +
-      `&category=ACCESSIBILITY&category=BEST_PRACTICES&category=PERFORMANCE&category=SEO` +
+      `&category=accessibility&category=best-practices&category=performance&category=seo` +
       `&strategy=mobile`;
 
     const response = await fetch(endpoint, { next: { revalidate: 0 } });
