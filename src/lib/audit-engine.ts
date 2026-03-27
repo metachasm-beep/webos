@@ -87,8 +87,9 @@ export async function generateAuditSummary(url: string, metrics: any) {
       temperature: 0.4,
     });
     return response.generations[0].text.trim();
-  } catch (error) {
-    return "We couldn't generate a summary right now. Check your scores above for a full picture of your site's health.";
+  } catch (error: any) {
+    console.error("Cohere Engine Error:", error);
+    return `Summary generation failed: ${error?.message || "Unknown error"}. Check your Cohere API key permissions or model access.`;
   }
 }
 
@@ -104,6 +105,7 @@ export async function createPdfReport(url: string, data: any) {
     const perf = Math.round(metrics?.performance ?? 0);
     const seo = Math.round(metrics?.seo ?? 0);
     const a11y = Math.round(metrics?.accessibility ?? 0);
+    const bp = Math.round(metrics?.bestPractices ?? 0);
     
     // Extract audits if passed directly or via lighthouseResult
     const audits = metrics?.lighthouseResult?.audits || metrics || {};
@@ -144,7 +146,7 @@ export async function createPdfReport(url: string, data: any) {
           .meta strong { display: block; color: #374151; font-size: 11px; margin-bottom: 4px; }
           .scores {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 20px;
             margin-bottom: 40px;
           }
@@ -229,6 +231,10 @@ export async function createPdfReport(url: string, data: any) {
           <div class="score-card">
             <div class="score-num" style="color: ${scoreColor(perf)}">${perf}</div>
             <div class="score-label">Performance</div>
+          </div>
+          <div class="score-card">
+            <div class="score-num" style="color: ${scoreColor(bp)}">${bp}</div>
+            <div class="score-label">Best Practices</div>
           </div>
           <div class="score-card">
             <div class="score-num" style="color: ${scoreColor(seo)}">${seo}</div>

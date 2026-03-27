@@ -11,7 +11,7 @@ export async function POST(req: Request) {
 
     if (!process.env.COHERE_API_KEY) {
       return NextResponse.json({ 
-        summary: "Neural synthesis currently decoupled. AI Core requires infrastructure alignment (COHERE_API_KEY)." 
+        summary: "Summary is unavailable. Please set the COHERE_API_KEY." 
       });
     }
 
@@ -37,8 +37,11 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ summary: response.generations[0].text.trim() });
-  } catch (error) {
+  } catch (error: any) {
     console.error("AI Synthesis Error:", error);
-    return NextResponse.json({ error: "Neural Synthesis Timeout" }, { status: 500 });
+    return NextResponse.json(
+      { error: error?.message || "Failed to connect to Cohere API" }, 
+      { status: 500 }
+    );
   }
 }
