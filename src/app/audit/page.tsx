@@ -27,7 +27,7 @@ function AuditContent() {
   
   const [stage, setStage] = useState<"loading" | "report">("loading");
   const [progress, setProgress] = useState(0);
-  const [currentTask, setCurrentTask] = useState("Initializing neural link...");
+  const [currentTask, setCurrentTask] = useState("Starting audit...");
   const [auditData, setAuditData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -35,13 +35,13 @@ function AuditContent() {
   const [isSummarizing, setIsSummarizing] = useState(false);
 
   const tasks = [
-    "Neural SEO metadata scan...",
-    "Bento performance heuristics...",
-    "Quantum mobile responsiveness...",
-    "Blockchain security audit...",
-    "Accessibility matrix check...",
-    "User experience synaptic analysis...",
-    "Synthesizing growth report..."
+    "Checking SEO metadata...",
+    "Testing page speed...",
+    "Checking mobile responsiveness...",
+    "Reviewing security headers...",
+    "Testing accessibility...",
+    "Analysing user experience...",
+    "Generating your report..."
   ];
 
   const handleAiSynthesis = async () => {
@@ -56,7 +56,7 @@ function AuditContent() {
       const data = await resp.json();
       setAiSummary(data.summary);
     } catch (e) {
-      setAiSummary("Neural Synthesis Timeout. Infrastructure decoupling detected.");
+      setAiSummary("Couldn't load the AI summary right now. Check the scores above for the full picture.");
     } finally {
       setIsSummarizing(false);
     }
@@ -117,10 +117,10 @@ function AuditContent() {
       <main className="flex-1 flex items-center justify-center p-6 mt-20">
         <div className="max-w-md glass-card border-red-500/20 text-center space-y-6">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto" />
-          <h2 className="text-2xl font-heading font-bold italic">Neural Decoupling</h2>
+          <h2 className="text-2xl font-heading font-bold italic">Audit Failed</h2>
           <p className="text-muted-foreground text-sm font-body">{error}</p>
           <Button onClick={() => window.location.reload()} variant="outline" className="rounded-full border-white/10 hover:bg-white/5">
-            Reset Matrix
+            Try Again
           </Button>
         </div>
       </main>
@@ -147,6 +147,7 @@ function AuditContent() {
             <div className="space-y-2">
               <h2 className="text-3xl font-heading font-bold tracking-tight italic">Scanning <span className="text-primary">{url}</span></h2>
               <p className="text-primary text-[10px] font-bold uppercase tracking-[0.3em] animate-pulse">{currentTask}</p>
+              <p className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold">This usually takes 10–15 seconds</p>
             </div>
             <div className="glass rounded-full p-1 border-white/5 overflow-hidden h-3">
                <motion.div 
@@ -174,7 +175,7 @@ function AuditContent() {
         >
           <div className="flex items-center gap-3 text-primary font-bold text-xs uppercase tracking-[0.3em]">
             <Globe className="h-4 w-4" />
-            TurtleLabs Matrix Analysis for {url}
+            Website Audit Report for {url}
           </div>
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-12">
             <div className="space-y-4">
@@ -194,18 +195,13 @@ function AuditContent() {
                         </div>
                         <div className="flex items-center gap-3 mb-4">
                            <div className="h-1 w-8 bg-primary rounded-full" />
-                           <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Neural Synthesis</span>
+                           <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">AI Summary</span>
                         </div>
-                        <p className="text-sm font-body italic leading-relaxed text-foreground/80">{aiSummary}</p>
+                        <p className="text-sm font-body leading-relaxed text-foreground/80">{aiSummary}</p>
                      </motion.div>
                    ) : (
                      <motion.div key="placeholder" className="space-y-4">
-                        <p className="text-muted-foreground font-body leading-relaxed max-w-lg">The enterprise matrix has synthesized your performance footprint. Deploy high-fidelity optimizations to resolve decouplings.</p>
-                        <div className="flex items-center gap-2 pt-4 opacity-30">
-                           <div className="h-[1px] flex-1 bg-white/10" />
-                           <span className="text-[8px] font-bold uppercase tracking-widest">Protocol Staged</span>
-                           <div className="h-[1px] flex-1 bg-white/10" />
-                        </div>
+                        <p className="text-muted-foreground font-body leading-relaxed max-w-lg">Your audit is complete. Click "Get AI Summary" for a plain-English breakdown of your results.</p>
                      </motion.div>
                    )}
                  </AnimatePresence>
@@ -219,7 +215,7 @@ function AuditContent() {
                 variant="outline"
                 className="rounded-full px-10 h-16 border-primary/20 hover:bg-primary/5 text-primary group font-bold uppercase tracking-widest text-xs disabled:opacity-50"
               >
-                {isSummarizing ? "Synthesizing..." : "Neural Synthesis"}
+                {isSummarizing ? "Generating..." : "Get AI Summary"}
                 <Zap className="ml-3 h-4 w-4" />
               </Button>
               <Button 
@@ -232,7 +228,7 @@ function AuditContent() {
                       window.open(result.downloadUrl, "_blank");
                     }
                   } catch (e) {
-                    alert("Document synthesis failed.");
+                    alert("PDF generation failed. Please try again.");
                   } finally {
                     setIsGeneratingPdf(false);
                   }
@@ -242,7 +238,7 @@ function AuditContent() {
                 variant="outline" 
                 className="rounded-full px-10 h-16 border-white/10 hover:bg-white/5 text-muted-foreground group font-bold uppercase tracking-widest text-xs"
               >
-                {isGeneratingPdf ? "Synthesizing..." : "Symphony Report"}
+                {isGeneratingPdf ? "Generating PDF..." : "Download Report"}
                 <ArrowRight className="ml-3 h-4 w-4 opacity-30" />
               </Button>
             </div>
@@ -254,42 +250,42 @@ function AuditContent() {
             { 
               label: "Performance", 
               score: scores.performance, 
-              status: scores.performance > 90 ? "Optimal" : "Leakage", 
+              status: scores.performance > 90 ? "Great" : "Needs Work", 
               icon: Zap, 
               color: "text-orange-500", 
               type: "performance" as const,
-              desc: "Total Speed Index and Cumulative Layout Shift analysis.",
-              narrative: "SYNAPTIC_STABILITY: High-frequency layout oscillation detected. Calibrate hydration velocity to minimize cumulative shift vectors."
+              desc: "How fast your page loads and responds. Affects user experience and Google rankings.",
+              narrative: "A low score usually means images aren't compressed, JavaScript is blocking the page, or your server is slow. Fixing these can cut load time in half."
             },
             { 
               label: "SEO", 
               score: scores.seo, 
-              status: scores.seo > 90 ? "Stable" : "Fix Required", 
+              status: scores.seo > 90 ? "Great" : "Fix Required", 
               icon: Fingerprint, 
               color: "text-accent", 
               type: "seo" as const,
-              desc: "Meta-vector crawlability and fragmented keyword density.",
-              narrative: "VECTOR_FRAGMENTATION: Semantic decoupling in core keyword density nodes. Synchronize meta-layers with crawler heuristics."
+              desc: "How well search engines can find and rank your site.",
+              narrative: "Missing meta descriptions, broken links, or missing alt text are the most common culprits. These are quick wins that can significantly improve your Google visibility."
             },
             { 
-              label: "Security", 
+              label: "Best Practices", 
               score: scores.bestPractices, 
-              status: "High", 
+              status: scores.bestPractices > 90 ? "Great" : "Review", 
               icon: ShieldCheck, 
               color: "text-green-500", 
               type: "security" as const,
-              desc: "Encryption protocol verification and header hardening.",
-              narrative: "ENCRYPTION_LAYER_ALPHA: Header hardening protocols active. Minimal entropy detected in cross-origin resource sharing paths."
+              desc: "Whether your site follows modern web standards and security practices.",
+              narrative: "This checks for HTTPS, secure cookie flags, outdated libraries, and browser console errors. Most issues here are a quick fix."
             },
             { 
-              label: "UX Synapse", 
+              label: "Accessibility", 
               score: scores.accessibility, 
-              status: "Fluid", 
+              status: scores.accessibility > 90 ? "Great" : "Improve", 
               icon: Activity, 
               color: "text-primary", 
               type: "ux" as const,
-              desc: "Interaction latency and neural accessibility mapping.",
-              narrative: "INTERACTION_LATENCY_OMEGA: Interaction nexus verified. Accessibility synaptic paths show zero fragmentation across all node types."
+              desc: "How easy your site is to use for people with disabilities.",
+              narrative: "Missing ARIA labels, low contrast text, and keyboard navigation issues are the most common problems. Fixing these also improves SEO."
             }
           ].map((stat, i) => (
             <motion.div
@@ -335,9 +331,9 @@ function AuditContent() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { label: "LCP", sub: "Hydration Velocity", value: scores.lcp || "0.8s", impact: "Visual Load" },
-              { label: "FID", sub: "Interaction Latency", value: scores.fid || "12ms", impact: "Input Responsivity" },
-              { label: "CLS", sub: "Synaptic Stability", value: scores.cls || "0.01", impact: "Layout Consistency" }
+              { label: "LCP", sub: "Largest Contentful Paint", value: scores.lcp || "0.8s", impact: "Time to show main content" },
+              { label: "FID", sub: "First Input Delay", value: scores.fid || "12ms", impact: "Response to first click" },
+              { label: "CLS", sub: "Layout Shift Score", value: scores.cls || "0.01", impact: "Visual stability" }
             ].map((v, i) => (
               <div key={i} className="glass border border-white/5 p-8 rounded-3xl flex items-center justify-between group hover:bg-white/5 transition-all">
                 <div className="space-y-1">
@@ -353,11 +349,11 @@ function AuditContent() {
 
         <div className="grid lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2 space-y-8">
-            <h3 className="font-heading italic text-3xl font-bold underline decoration-primary/20 decoration-4 underline-offset-8 mb-8">System Decouplings</h3>
+            <h3 className="font-heading italic text-3xl font-bold underline decoration-primary/20 decoration-4 underline-offset-8 mb-8">Issues Found</h3>
             <div className="space-y-4">
               {[
-                { title: "Asset Hydration Lag", desc: "Delayed first meaningful paint is causing user friction.", impact: "High", icon: AlertCircle },
-                { title: "Fragmented Meta Vectors", desc: "Semantic disconnect detected in core keywords.", impact: "Medium", icon: Activity }
+                { title: "Slow initial load", desc: "Your page takes too long to show meaningful content, which increases bounce rate.", impact: "High", icon: AlertCircle },
+                { title: "Missing SEO metadata", desc: "Some pages are missing page titles or descriptions, reducing search engine visibility.", impact: "Medium", icon: Activity }
               ].map((rec, i) => (
                 <div key={i} className="group glass-card p-6 flex items-start justify-between gap-6 cursor-pointer hover:bg-white/5 transition-all">
                   <div className="flex gap-6">
@@ -379,15 +375,15 @@ function AuditContent() {
             <div className="glass-card bg-primary text-primary-foreground border-none relative overflow-hidden p-10 space-y-8">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16" />
               <div className="space-y-4 relative z-10">
-                <h3 className="text-4xl font-heading font-bold italic">WebOS <span className="text-glow-soft">Matrix</span></h3>
-                <p className="text-primary-foreground/70 text-sm font-body italic leading-relaxed">Upgrade to the high-availability neural optimization protocol for distributed remediation.</p>
+                <h3 className="text-4xl font-heading font-bold italic">TurtleLabs <span className="text-glow-soft">Pro</span></h3>
+                <p className="text-primary-foreground/70 text-sm font-body leading-relaxed">Get continuous monitoring, automated fixes, and priority support — all in one dashboard.</p>
               </div>
               <ul className="space-y-4 relative z-10">
                 {[
-                  "Quantum Real-Time Audits",
-                  "AI Synaptic Remediator",
-                  "Global Edge Shield",
-                  "Advanced SEO Vectoring"
+                  "Unlimited real-time audits",
+                  "AI-powered fix suggestions",
+                  "Security monitoring",
+                  "Advanced SEO reporting"
                 ].map((item, i) => (
                   <li key={i} className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest">
                     <div className="h-4 w-4 rounded-full bg-white/20 flex items-center justify-center">
@@ -398,7 +394,7 @@ function AuditContent() {
                 ))}
               </ul>
               <Button className="w-full h-14 bg-white text-black hover:bg-white/90 rounded-2xl font-bold uppercase tracking-[0.2em] text-[10px] shadow-2xl relative z-10">
-                Initiate Upgrade
+                Upgrade Now
               </Button>
             </div>
           </div>

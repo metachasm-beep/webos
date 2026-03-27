@@ -16,28 +16,24 @@ export async function POST(req: Request) {
     }
 
     const prompt = `
-    [SYSTEM PROTOCOL: HIGH-FIDELITY MATRIX SYNTHESIS]
-    [OBJECTIVE: ANALYZE ENTERPRISE FOOTPRINT FOR ${url}]
+    You are a professional web performance consultant writing a brief audit summary for a client.
+    Write 3 clear, friendly sentences about the following website: ${url}
 
-    METRICS EXTRACTED:
-    - CLS (Cumulative Layout Shift): ${metrics.performance > 90 ? '0.01' : '0.24'} (SYNAPTIC_STABILITY)
-    - LCP (Largest Contentful Paint): ${metrics.performance > 90 ? '0.8s' : '3.4s'} (HYDRATION_VELOCITY)
-    - FID (First Input Delay): ${metrics.performance > 90 ? '12ms' : '154ms'} (INTERACTION_LATENCY)
-    - SEO VECTORING: ${metrics.seo}%
-    - ACCESSIBILITY_SYNAPSE: ${metrics.accessibility}%
-    - SECURITY_PROTOCOL: ${metrics.bestPractices}%
+    Scores (out of 100):
+    - Performance: ${metrics.performance}
+    - SEO: ${metrics.seo}
+    - Accessibility: ${metrics.accessibility}
+    - Best Practices: ${metrics.bestPractices}
 
-    TASK: Provide a highly technical, logic-driven synthesis for a high-end enterprise audience. 
-    Use a professional and cinematic tone. 
-    Terminology: 'Neural Lag', 'Protocol Synchronicity', 'Distributed Edge', 'Hydration Bottleneck', 'Vector Fragmentation'.
-    Maximum 3 sentences. No generic advice. Focus on the 'Zero-Dummy' performance narrative.
+    Focus on: what's performing well, what needs the most improvement, and one actionable next step.
+    Keep it simple, direct, and professional. No jargon or sci-fi terms.
     `;
 
     const response = await cohere.generate({
       model: "command-r-plus",
       prompt: prompt,
       maxTokens: 300,
-      temperature: 0.3,
+      temperature: 0.4,
     });
 
     return NextResponse.json({ summary: response.generations[0].text.trim() });
