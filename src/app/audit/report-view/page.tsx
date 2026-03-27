@@ -1,12 +1,14 @@
 import { fetchPageSpeedData, generateAuditSummary } from "@/lib/audit-engine";
 
 interface Props {
-  searchParams: { url?: string };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 // Server component — fully rendered HTML when API2PDF's headless Chrome arrives
 export default async function ReportView({ searchParams }: Props) {
-  const url = searchParams.url || "";
+  const params = await searchParams;
+  const urlParams = params.url;
+  const url = Array.isArray(urlParams) ? urlParams[0] : urlParams || "";
 
   if (!url) {
     return (
