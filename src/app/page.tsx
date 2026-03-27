@@ -7,14 +7,15 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { NeuralBackground } from "@/components/NeuralBackground";
+import { Canvas } from "@react-three/fiber";
+import { NeuralCore } from "@/components/NeuralCore";
 import { 
   ArrowRight, 
   BarChart3, 
   Globe, 
   Zap, 
   Sparkles, 
-  Layers, 
-  Shield, 
   Smartphone,
   ChevronDown
 } from "lucide-react";
@@ -23,7 +24,11 @@ export default function Home() {
   const [url, setUrl] = useState("");
   const router = useRouter();
   const { scrollYProgress } = useScroll();
+  
+  // Hero animations
   const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.8]);
+  const heroRotate = useTransform(scrollYProgress, [0, 0.2], [0, 5]);
 
   const handleAudit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,76 +38,87 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen relative">
+    <div className="flex flex-col min-h-screen relative overflow-x-hidden">
       <Navbar />
-      <div className="mesh-gradient" />
-
+      <NeuralBackground />
+      
       <main className="flex-1">
-        {/* Refined Hero Section */}
+        {/* Cinematic Hero Section */}
         <section className="relative min-h-screen flex items-center justify-center pt-20">
           <div className="container px-4">
-            <div className="text-center space-y-12 max-w-5xl mx-auto">
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="inline-flex items-center gap-3 px-6 py-2 rounded-full glass border-white/10 text-primary text-[11px] font-bold uppercase tracking-[0.3em] mx-auto"
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <motion.div 
+                style={{ opacity, scale: heroScale, rotateX: heroRotate }}
+                className="text-left space-y-12 max-w-2xl"
               >
-                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-ping" />
-                Evolution of Web Performance
-              </motion.div>
-              
-              <div className="space-y-6">
-                <motion.h1 
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-                  className="text-6xl md:text-9xl font-heading font-bold leading-[0.9] tracking-tighter"
-                >
-                  AUDIT. BUILD. <br />
-                  <span className="text-glow-soft">DOMINATE.</span>
-                </motion.h1>
+                <div className="space-y-6">
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="inline-flex items-center gap-3 px-6 py-2 rounded-full glass border-white/10 text-primary text-[11px] font-bold uppercase tracking-[0.3em]"
+                  >
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary animate-ping" />
+                    Distributed Edge Protocols Active
+                  </motion.div>
+                  
+                  <motion.h1 
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+                    className="text-7xl md:text-9xl font-heading font-bold leading-[0.9] tracking-tighter"
+                  >
+                    MATRIX <br />
+                    <span className="text-glow-soft">SYNTHESIS</span>
+                  </motion.h1>
 
-                <motion.p 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5, duration: 1 }}
-                  className="text-lg md:text-2xl text-muted-foreground font-body max-w-3xl mx-auto leading-relaxed tracking-tight"
+                  <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 1 }}
+                    className="text-lg md:text-xl text-muted-foreground font-body max-w-xl leading-relaxed tracking-tight"
+                  >
+                    Synchronize your enterprise footprint with the world's most elegant performance matrix. 
+                    Neural heuristics designed for the high-end digital frontier.
+                  </motion.p>
+                </div>
+
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8 }}
+                  className="max-w-xl"
                 >
-                  The world's most elegant performance matrix for high-performance businesses. 
-                  Synchronize your digital footprint with AI-driven heuristics.
-                </motion.p>
-              </div>
+                  <form onSubmit={handleAudit} className="group relative">
+                    <div className="absolute -inset-4 bg-primary/5 rounded-[40px] blur-2xl group-hover:bg-primary/10 transition-all duration-700" />
+                    <div className="relative glass rounded-[32px] p-2 flex items-center gap-2 border-white/10 overflow-hidden">
+                      <div className="pl-6 flex items-center gap-3 border-r border-white/10 pr-6 group-focus-within:border-primary/30 transition-colors">
+                        <Globe className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <Input 
+                        placeholder="https://your-enterprise.com" 
+                        className="border-none bg-transparent focus-visible:ring-0 text-foreground h-14 shadow-none placeholder:text-muted-foreground/30 text-lg font-body"
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                      />
+                      <Button type="submit" className="rounded-2xl px-10 h-14 bg-primary hover:bg-primary/80 transition-all gap-3 shadow-2xl shadow-primary/20 font-bold uppercase tracking-widest text-xs">
+                        Audit
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </form>
+                </motion.div>
+              </motion.div>
 
               <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 }}
-                className="max-w-2xl mx-auto pt-8"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 1.5, delay: 0.2 }}
+                className="relative h-[600px] hidden lg:block cursor-grab active:cursor-grabbing"
               >
-                <form onSubmit={handleAudit} className="group relative">
-                  <div className="absolute -inset-4 bg-primary/5 rounded-[40px] blur-2xl group-hover:bg-primary/10 transition-all duration-700" />
-                  <div className="relative glass rounded-[32px] p-2 flex items-center gap-2 border-white/10 overflow-hidden">
-                    <div className="pl-6 flex items-center gap-3 border-r border-white/10 pr-6 group-focus-within:border-primary/30 transition-colors">
-                      <Globe className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">https://</span>
-                    </div>
-                    <Input 
-                      placeholder="Enter domain for deep synthesis" 
-                      className="border-none bg-transparent focus-visible:ring-0 text-foreground h-14 shadow-none placeholder:text-muted-foreground/30 text-lg font-body"
-                      value={url}
-                      onChange={(e) => setUrl(e.target.value)}
-                    />
-                    <Button type="submit" className="rounded-2xl px-10 h-14 bg-primary hover:bg-primary/80 transition-all gap-3 shadow-2xl shadow-primary/20 font-bold uppercase tracking-widest text-xs">
-                      Run Audit
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </form>
-                <div className="mt-6 flex justify-center gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">
-                   <span>PageSpeed V5 Protocol</span>
-                   <span>Cohere Neural Synthesis</span>
-                   <span>Edge Infrastructure</span>
-                </div>
+                <div className="absolute inset-0 bg-primary/10 blur-[120px] rounded-full animate-pulse" />
+                <Canvas>
+                  <NeuralCore />
+                </Canvas>
               </motion.div>
             </div>
           </div>
@@ -113,16 +129,22 @@ export default function Home() {
             transition={{ duration: 2, repeat: Infinity }}
             className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground/30"
           >
-             <span className="text-[9px] uppercase tracking-[0.3em] font-bold">Discover</span>
+             <span className="text-[9px] uppercase tracking-[0.3em] font-bold">Initialize Sequence</span>
              <ChevronDown className="h-4 w-4" />
           </motion.div>
         </section>
 
-        {/* Refined Bento Showcase */}
+        {/* Cinematic Bento Showcase */}
         <section id="features" className="py-32 relative">
           <div className="container px-4">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-auto">
-              <div className="md:col-span-8 glass-card group cursor-pointer hover:border-primary/40 transition-all duration-500 overflow-hidden relative">
+              <motion.div 
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+                className="md:col-span-8 glass-card group cursor-pointer hover:border-primary/40 transition-all duration-500 overflow-hidden relative"
+              >
                  <div className="absolute top-0 right-0 p-8">
                     <Sparkles className="h-10 w-10 text-primary animate-pulse" />
                  </div>
@@ -136,9 +158,15 @@ export default function Home() {
                     </Button>
                  </div>
                  <div className="mt-12 h-64 glass-dark rounded-t-3xl border-t border-x border-white/10 translate-y-8 group-hover:translate-y-4 transition-transform duration-700" />
-              </div>
+              </motion.div>
 
-              <div className="md:col-span-4 glass-card group cursor-pointer hover:border-accent/40 transition-all duration-500 flex flex-col justify-between">
+              <motion.div 
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="md:col-span-4 glass-card group cursor-pointer hover:border-accent/40 transition-all duration-500 flex flex-col justify-between"
+              >
                  <div className="space-y-6">
                     <div className="h-14 w-14 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
                        <BarChart3 className="h-8 w-8" />
@@ -158,15 +186,27 @@ export default function Home() {
                        <div className="text-2xl font-bold">84</div>
                     </div>
                  </div>
-              </div>
+              </motion.div>
 
-              <div className="md:col-span-4 glass-card group cursor-pointer hover:border-white/20 transition-all duration-500 flex flex-col gap-6">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="md:col-span-4 glass-card group cursor-pointer hover:border-white/20 transition-all duration-500 flex flex-col gap-6"
+              >
                  <Smartphone className="h-10 w-10 text-white/30" />
                  <h4 className="text-2xl font-heading font-bold italic">Global Edge</h4>
                  <p className="text-muted-foreground text-sm font-body">Sub-second latency distribution across a high-availability mesh network. Optimized for zero fragmentation.</p>
-              </div>
+              </motion.div>
 
-              <div className="md:col-span-8 glass-card border-none bg-primary text-primary-foreground relative overflow-hidden group">
+              <motion.div 
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+                className="md:col-span-8 glass-card border-none bg-primary text-primary-foreground relative overflow-hidden group"
+              >
                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
                  <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 h-full">
                     <div className="space-y-4 text-center md:text-left">
@@ -177,7 +217,7 @@ export default function Home() {
                        Initiate Sequence
                     </Button>
                  </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </section>

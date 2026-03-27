@@ -27,6 +27,7 @@ export const viewport = {
 };
 
 import { AuthProvider } from "@/components/AuthProvider";
+import { SmoothScroll } from "@/components/SmoothScroll";
 import Script from "next/script";
 
 export default function RootLayout({
@@ -53,7 +54,9 @@ export default function RootLayout({
           </>
         )}
         <AuthProvider>
-          {children}
+          <SmoothScroll>
+            {children}
+          </SmoothScroll>
         </AuthProvider>
       </body>
     </html>

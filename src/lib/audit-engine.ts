@@ -8,7 +8,13 @@ export async function fetchPageSpeedData(url: string) {
   const apiKey = process.env.PAGESPEED_API_KEY;
   if (!apiKey) throw new Error("Synthesis infrastructure unconfigured.");
 
-  const endpoint = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&key=${apiKey}&category=ACCESSIBILITY&category=BEST_PRACTICES&category=PERFORMANCE&category=PWA&category=SEO&strategy=mobile`;
+  // Normalize URL protocol
+  let normalizedUrl = url;
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    normalizedUrl = `https://${url}`;
+  }
+
+  const endpoint = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(normalizedUrl)}&key=${apiKey}&category=ACCESSIBILITY&category=BEST_PRACTICES&category=PERFORMANCE&category=PWA&category=SEO&strategy=mobile`;
   
   const response = await fetch(endpoint);
   if (!response.ok) throw new Error(`Synthesis Protocol failure: ${response.status}`);
