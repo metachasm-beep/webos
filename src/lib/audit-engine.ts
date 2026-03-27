@@ -80,13 +80,13 @@ export async function generateAuditSummary(url: string, metrics: any) {
   `;
 
   try {
-    const response = await cohere.generate({
+    const response = await cohere.chat({
       model: "command-r7b-12-2024",
-      prompt,
+      message: prompt,
       maxTokens: 200,
       temperature: 0.4,
     });
-    return response.generations[0].text.trim();
+    return response.text.trim();
   } catch (error: any) {
     console.error("Cohere Engine Error:", error);
     return `Summary generation failed: ${error?.message || "Unknown error"}. Check your Cohere API key permissions or model access.`;

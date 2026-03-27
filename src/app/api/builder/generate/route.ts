@@ -11,12 +11,12 @@ export async function POST(req: Request) {
 
     if (!process.env.COHERE_API_KEY) {
       return NextResponse.json({ 
-        error: "Neural synthesis currently decoupled. AI Core requires authorization." 
+        error: "AI Builder requires COHERE_API_KEY authorization." 
       });
     }
 
     const systemPrompt = `
-    [SYSTEM PROTOCOL: NEURAL NODE GENESIS]
+    [SYSTEM PROTOCOL: LANDING PAGE BUILDER]
     [OBJECTIVE: SYNTHESIZE HIGH-CONVERSION LANDING PAGE SECTION]
 
     INPUT PROMPT: ${prompt}
@@ -35,25 +35,24 @@ export async function POST(req: Request) {
 
     RULES:
     1. Response must be valid JSON only.
-    2. Tone: Professional, high-end, cinematic.
-    3. Phrasing: Use 'Matrix', 'Protocol', 'Synthesis', 'Edge'.
+    2. Tone: Professional, high-end, modern.
     `;
 
-    const response = await cohere.generate({
+    const response = await cohere.chat({
       model: "command-r7b-12-2024",
-      prompt: systemPrompt,
+      message: systemPrompt,
       maxTokens: 500,
       temperature: 0.4,
     });
 
-    const text = response.generations[0].text;
+    const text = response.text;
     const jsonStart = text.indexOf('{');
     const jsonEnd = text.lastIndexOf('}') + 1;
     const jsonStr = text.substring(jsonStart, jsonEnd);
     
     return NextResponse.json(JSON.parse(jsonStr));
-  } catch (error) {
-    console.error("Node Genesis Error:", error);
-    return NextResponse.json({ error: "Neural Synthesis Timeout" }, { status: 500 });
+  } catch (error: any) {
+    console.error("Builder Error:", error);
+    return NextResponse.json({ error: error?.message || "Failed to generate component" }, { status: 500 });
   }
 }

@@ -29,14 +29,14 @@ export async function POST(req: Request) {
     Keep it simple, direct, and professional. No jargon or sci-fi terms.
     `;
 
-    const response = await cohere.generate({
+    const response = await cohere.chat({
       model: "command-r7b-12-2024",
-      prompt: prompt,
+      message: prompt,
       maxTokens: 300,
       temperature: 0.4,
     });
 
-    return NextResponse.json({ summary: response.generations[0].text.trim() });
+    return NextResponse.json({ summary: response.text.trim() });
   } catch (error: any) {
     console.error("AI Synthesis Error:", error);
     return NextResponse.json(
