@@ -6,24 +6,19 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { runAuditAction, createPdfReport } from "./actions";
-import { 
-  CheckCircle2, 
-  AlertCircle, 
-  Cpu,
-  Fingerprint,
-  Zap,
-  ShieldCheck,
-  Activity,
-  ChevronRight,
-  ArrowRight,
-  Globe
-} from "lucide-react";
-
 import { MatrixTooltip } from "@/components/MatrixTooltip";
 import { ApiStatusPanel } from "@/components/ApiStatusPanel";
+import { SslLabsScanner } from "@/components/SslLabsScanner";
+import { Leaf, ShieldCheck, Zap, Globe, ArrowRight, Activity, AlertCircle, ChevronRight, CheckCircle2, Cpu, Fingerprint } from "lucide-react";
 
 const CACHE_KEY = (url: string) => `audit_cache_${encodeURIComponent(url)}`;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+const getHostname = (link: string) => {
+  try {
+    return /^https?:\/\//i.test(link) ? new URL(link).hostname : new URL(`https://${link}`).hostname;
+  } catch(e) { return link; }
+};
 
 function AuditContent() {
   const searchParams = useSearchParams();
@@ -211,7 +206,17 @@ function AuditContent() {
           </div>
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-12">
             <div className="space-y-4">
-              <h1 className="text-6xl md:text-9xl font-heading font-bold italic tracking-tighter">Score: <span className="text-glow-soft text-primary">{Math.round(scores.performance)}</span></h1>
+              <div className="flex items-center gap-6">
+                <img 
+                  src={`https://logo.clearbit.com/${getHostname(url)}?size=128`} 
+                  alt="Logo"
+                  className="w-20 h-20 rounded-3xl bg-white/5 object-cover shadow-2xl border border-white/10"
+                  onError={(e) => (e.currentTarget.style.display = 'none')}
+                />
+                <h1 className="text-6xl md:text-9xl font-heading font-bold italic tracking-tighter">
+                  Score: <span className="text-glow-soft text-primary">{Math.round(scores.performance)}</span>
+                </h1>
+              </div>
               <div className="max-w-xl">
                  <AnimatePresence mode="wait">
                    {aiSummary ? (
@@ -367,7 +372,47 @@ function AuditContent() {
 
         <div className="grid lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2 space-y-8">
-            <h3 className="font-heading italic text-3xl font-bold underline decoration-primary/20 decoration-4 underline-offset-8 mb-8">Issues Found</h3>
+            <h3 className="font-heading italic text-3xl font-bold underline decoration-primary/20 decoration-4 underline-offset-8 mb-8">Deep Metrics</h3>
+            <div className="grid sm:grid-cols-2 gap-4">
+               <SslLabsScanner url={url} />
+
+               {auditData?.carbon ? (
+                 <div className="glass-card p-6 border-white/5 relative overflow-hidden group hover:bg-white/5 transition-all">
+                    <div className="absolute top-0 right-0 p-6 opacity-10">
+                       <Leaf className="h-24 w-24 text-green-500" />
+                    </div>
+                    
+                    <div className="flex gap-4 items-start relative z-10">
+                      <div className="p-3 bg-white/5 rounded-2xl">
+                        <Leaf className="h-6 w-6 text-green-500" />
+                      </div>
+                      <div>
+                        <h4 className="font-heading font-bold text-xl mb-1 text-green-500">Eco-Impact</h4>
+                        <p className="text-xs text-muted-foreground font-body leading-relaxed max-w-[200px]">
+                          Website Carbon Footprint & Energy Grid analysis.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-8 flex items-end justify-between relative z-10">
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Cleaner Than</p>
+                        <p className="text-xs text-green-400">{(auditData.carbon.cleanerThan * 100).toFixed(0)}% of tested sites</p>
+                      </div>
+                      
+                      <div className="text-5xl font-heading font-black italic tracking-tighter text-green-500 text-glow-soft">
+                        {auditData.carbon.green ? "A+" : "C"}
+                      </div>
+                    </div>
+                 </div>
+               ) : (
+                 <div className="glass-card p-6 border-white/5 flex items-center justify-center text-xs text-muted-foreground uppercase tracking-widest font-bold">
+                    Carbon Metrics Unavailable
+                 </div>
+               )}
+            </div>
+
+            <h3 className="font-heading italic text-3xl font-bold underline decoration-primary/20 decoration-4 underline-offset-8 mb-8 mt-12">Issues Found</h3>
             <div className="space-y-4">
               {[
                 { title: "Slow initial load", desc: "Your page takes too long to show meaningful content, which increases bounce rate.", impact: "High", icon: AlertCircle },

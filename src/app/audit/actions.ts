@@ -1,11 +1,12 @@
 "use server";
 
-import { fetchPageSpeedData, generateAuditSummary, createPdfReport as createPdfReportEngine } from "@/lib/audit-engine";
+import { fetchPageSpeedData, generateAuditSummary, createPdfReport as createPdfReportEngine, fetchCarbonMetrics } from "@/lib/audit-engine";
 
 export async function runAuditAction(url: string) {
   try {
     const data = await fetchPageSpeedData(url);
     const summary = await generateAuditSummary(url, data);
+    const carbonData = await fetchCarbonMetrics(url);
     
     return {
       success: true,
@@ -19,6 +20,7 @@ export async function runAuditAction(url: string) {
         cls: data.lighthouseResult.audits["cumulative-layout-shift"].displayValue,
       },
       summary,
+      carbon: carbonData,
     };
   } catch (error: any) {
     console.error("Audit failed:", error);
