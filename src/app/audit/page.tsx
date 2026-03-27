@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { runAuditAction } from "./actions";
+import { runAuditAction, createPdfReport } from "./actions";
 import { 
   CheckCircle2, 
   AlertCircle, 
@@ -70,9 +70,21 @@ function AuditContent() {
     }
   };
 
-  const handleGeneratePdf = () => {
-    // Opens the printable report-view page — user can Ctrl+P / Cmd+P to save as PDF
-    window.open(`/audit/report-view?url=${encodeURIComponent(url)}`, "_blank");
+  const handleGeneratePdf = async () => {
+    if (isGeneratingPdf || !auditData) return;
+    setIsGeneratingPdf(true);
+    try {
+      const result = await createPdfReport(url, auditData);
+      if (result.status === "Provisioned" && result.downloadUrl) {
+        window.open(result.downloadUrl, "_blank");
+      } else {
+        alert(result.message || "PDF generation is currently unavailable. Please check your API2PDF_API_KEY.");
+      }
+    } catch (e) {
+      alert("Something went wrong while generating the report via API.");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   useEffect(() => {
