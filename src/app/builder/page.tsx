@@ -105,7 +105,7 @@ export default function BuilderPage() {
               <div className="p-12 text-center space-y-8 mt-20">
                  <div className="h-1 w-20 bg-primary mx-auto rounded-full" />
                  <h2 className="text-6xl font-heading font-bold italic">Boutique SaaS</h2>
-                 <p className="text-muted-foreground max-w-lg mx-auto font-body">The future of high-performance interfaces starts here. Neural components synthesized for the Vercel Edge.</p>
+                 <p className="text-muted-foreground max-w-lg mx-auto font-body">The future of high-performance interfaces starts here. Neural components synthesized for distributed edge protocols.</p>
                  <div className="flex justify-center gap-4 pt-6">
                     <div className="h-12 w-40 glass border-white/10 rounded-2xl" />
                     <div className="h-12 w-12 glass border-white/10 rounded-2xl" />

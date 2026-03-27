@@ -144,10 +144,16 @@ function AuditContent() {
               <h1 className="text-6xl md:text-9xl font-heading font-bold italic tracking-tighter">Score: <span className="text-glow-soft text-primary">{Math.round(scores.performance)}</span></h1>
               <p className="text-muted-foreground max-w-lg mx-auto font-body">The future of high-performance interfaces starts here. Neural components synthesized for distributed edge protocols.</p>
             </div>
-            <Button size="lg" className="rounded-full px-10 h-16 bg-primary hover:bg-primary/80 text-white shadow-2xl shadow-primary/30 group font-bold uppercase tracking-widest text-xs">
-              Fix Decouplings
-              <ArrowRight className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button size="lg" variant="outline" className="rounded-full px-10 h-16 border-white/10 hover:bg-white/5 text-muted-foreground group font-bold uppercase tracking-widest text-xs">
+                Symphony Report
+                <ArrowRight className="ml-3 h-4 w-4 opacity-30" />
+              </Button>
+              <Button size="lg" className="rounded-full px-10 h-16 bg-primary hover:bg-primary/80 text-white shadow-2xl shadow-primary/30 group font-bold uppercase tracking-widest text-xs">
+                Fix Decouplings
+                <ArrowRight className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </div>
           </div>
         </motion.div>
 
