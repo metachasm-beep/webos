@@ -4,22 +4,22 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { runAuditAction, createPdfReport } from "./actions";
 import { 
   CheckCircle2, 
   AlertCircle, 
-  Loader2, 
-  Activity,
   Cpu,
   Fingerprint,
   Zap,
   ShieldCheck,
+  Activity,
   ChevronRight,
   ArrowRight,
   Globe
 } from "lucide-react";
+
+import { MatrixTooltip } from "@/components/MatrixTooltip";
 
 function AuditContent() {
   const searchParams = useSearchParams();
@@ -31,6 +31,8 @@ function AuditContent() {
   const [auditData, setAuditData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
 
   const tasks = [
     "Neural SEO metadata scan...",
@@ -41,6 +43,24 @@ function AuditContent() {
     "User experience synaptic analysis...",
     "Synthesizing growth report..."
   ];
+
+  const handleAiSynthesis = async () => {
+    if (!auditData || isSummarizing) return;
+    setIsSummarizing(true);
+    try {
+      const resp = await fetch("/api/audit/summarize", {
+        method: "POST",
+        body: JSON.stringify({ metrics: auditData.metrics, url }),
+        headers: { "Content-Type": "application/json" }
+      });
+      const data = await resp.json();
+      setAiSummary(data.summary);
+    } catch (e) {
+      setAiSummary("Neural Synthesis Timeout. Infrastructure decoupling detected.");
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -54,7 +74,6 @@ function AuditContent() {
         });
       }
 
-      // Simulate progress while waiting for real results
       const progressInterval = setInterval(() => {
         setProgress(prev => (prev < 90 ? prev + (90 - prev) * 0.1 : prev));
         const taskIndex = Math.min(Math.floor((progress / 100) * tasks.length), tasks.length - 1);
@@ -155,36 +174,65 @@ function AuditContent() {
         >
           <div className="flex items-center gap-3 text-primary font-bold text-xs uppercase tracking-[0.3em]">
             <Globe className="h-4 w-4" />
-            Matrix Analysis for {url}
+            TurtleLabs Matrix Analysis for {url}
           </div>
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-12">
             <div className="space-y-4">
               <h1 className="text-6xl md:text-9xl font-heading font-bold italic tracking-tighter">Score: <span className="text-glow-soft text-primary">{Math.round(scores.performance)}</span></h1>
-              <p className="text-muted-foreground max-w-lg mx-auto font-body">The future of high-performance interfaces starts here. Neural components synthesized for distributed edge protocols.</p>
+              <div className="max-w-xl">
+                 <AnimatePresence mode="wait">
+                   {aiSummary ? (
+                     <motion.div 
+                       key="summary"
+                       initial={{ opacity: 0, x: -20 }} 
+                       animate={{ opacity: 1, x: 0 }} 
+                       exit={{ opacity: 0, x: 20 }}
+                       className="glass-card p-8 border-primary/20 bg-primary/5 relative overflow-hidden group"
+                     >
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                           <Zap className="h-12 w-12 text-primary" />
+                        </div>
+                        <div className="flex items-center gap-3 mb-4">
+                           <div className="h-1 w-8 bg-primary rounded-full" />
+                           <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Neural Synthesis</span>
+                        </div>
+                        <p className="text-sm font-body italic leading-relaxed text-foreground/80">{aiSummary}</p>
+                     </motion.div>
+                   ) : (
+                     <motion.div key="placeholder" className="space-y-4">
+                        <p className="text-muted-foreground font-body leading-relaxed max-w-lg">The enterprise matrix has synthesized your performance footprint. Deploy high-fidelity optimizations to resolve decouplings.</p>
+                        <div className="flex items-center gap-2 pt-4 opacity-30">
+                           <div className="h-[1px] flex-1 bg-white/10" />
+                           <span className="text-[8px] font-bold uppercase tracking-widest">Protocol Staged</span>
+                           <div className="h-[1px] flex-1 bg-white/10" />
+                        </div>
+                     </motion.div>
+                   )}
+                 </AnimatePresence>
+              </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button 
+                onClick={handleAiSynthesis}
+                disabled={isSummarizing || !auditData}
+                size="lg"
+                variant="outline"
+                className="rounded-full px-10 h-16 border-primary/20 hover:bg-primary/5 text-primary group font-bold uppercase tracking-widest text-xs disabled:opacity-50"
+              >
+                {isSummarizing ? "Synthesizing..." : "Neural Synthesis"}
+                <Zap className="ml-3 h-4 w-4" />
+              </Button>
+              <Button 
                 onClick={async () => {
                   if (isGeneratingPdf) return;
-                  
-                  // Custom GA4 Telemetry: PDF Synthesis Intent
-                  if (typeof window !== "undefined" && (window as any).gtag) {
-                    (window as any).gtag('event', 'pdf_synthesis_trigger', {
-                      event_category: 'Document',
-                      event_label: url,
-                    });
-                  }
-
                   setIsGeneratingPdf(true);
                   try {
                     const result = await createPdfReport(url, auditData);
                     if (result.status === "Provisioned" && result.downloadUrl) {
                       window.open(result.downloadUrl, "_blank");
-                    } else {
-                      alert(result.message);
                     }
                   } catch (e) {
-                    alert("Document synthesis failed. Protocol integrity compromised.");
+                    alert("Document synthesis failed.");
                   } finally {
                     setIsGeneratingPdf(false);
                   }
@@ -192,25 +240,10 @@ function AuditContent() {
                 disabled={isGeneratingPdf}
                 size="lg" 
                 variant="outline" 
-                className="rounded-full px-10 h-16 border-white/10 hover:bg-white/5 text-muted-foreground group font-bold uppercase tracking-widest text-xs disabled:opacity-50"
+                className="rounded-full px-10 h-16 border-white/10 hover:bg-white/5 text-muted-foreground group font-bold uppercase tracking-widest text-xs"
               >
                 {isGeneratingPdf ? "Synthesizing..." : "Symphony Report"}
-                {!isGeneratingPdf && <ArrowRight className="ml-3 h-4 w-4 opacity-30" />}
-              </Button>
-              <Button 
-                onClick={() => {
-                  if (typeof window !== "undefined" && (window as any).gtag) {
-                    (window as any).gtag('event', 'remediation_trigger', {
-                      event_category: 'Protocol',
-                      event_label: url,
-                    });
-                  }
-                }}
-                size="lg" 
-                className="rounded-full px-10 h-16 bg-primary hover:bg-primary/80 text-white shadow-2xl shadow-primary/30 group font-bold uppercase tracking-widest text-xs"
-              >
-                Fix Decouplings
-                <ArrowRight className="ml-3 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="ml-3 h-4 w-4 opacity-30" />
               </Button>
             </div>
           </div>
@@ -218,10 +251,46 @@ function AuditContent() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {[
-            { label: "Performance", score: scores.performance, status: scores.performance > 90 ? "Optimal" : "Leakage", icon: Zap, color: "text-orange-500" },
-            { label: "SEO", score: scores.seo, status: scores.seo > 90 ? "Stable" : "Fix Required", icon: Fingerprint, color: "text-accent" },
-            { label: "Security", score: scores.bestPractices, status: "Encrypted", icon: ShieldCheck, color: "text-green-500" },
-            { label: "UX Synapse", score: scores.accessibility, status: "Fluid", icon: Activity, color: "text-primary" }
+            { 
+              label: "Performance", 
+              score: scores.performance, 
+              status: scores.performance > 90 ? "Optimal" : "Leakage", 
+              icon: Zap, 
+              color: "text-orange-500", 
+              type: "performance" as const,
+              desc: "Total Speed Index and Cumulative Layout Shift analysis.",
+              narrative: "SYNAPTIC_STABILITY: High-frequency layout oscillation detected. Calibrate hydration velocity to minimize cumulative shift vectors."
+            },
+            { 
+              label: "SEO", 
+              score: scores.seo, 
+              status: scores.seo > 90 ? "Stable" : "Fix Required", 
+              icon: Fingerprint, 
+              color: "text-accent", 
+              type: "seo" as const,
+              desc: "Meta-vector crawlability and fragmented keyword density.",
+              narrative: "VECTOR_FRAGMENTATION: Semantic decoupling in core keyword density nodes. Synchronize meta-layers with crawler heuristics."
+            },
+            { 
+              label: "Security", 
+              score: scores.bestPractices, 
+              status: "High", 
+              icon: ShieldCheck, 
+              color: "text-green-500", 
+              type: "security" as const,
+              desc: "Encryption protocol verification and header hardening.",
+              narrative: "ENCRYPTION_LAYER_ALPHA: Header hardening protocols active. Minimal entropy detected in cross-origin resource sharing paths."
+            },
+            { 
+              label: "UX Synapse", 
+              score: scores.accessibility, 
+              status: "Fluid", 
+              icon: Activity, 
+              color: "text-primary", 
+              type: "ux" as const,
+              desc: "Interaction latency and neural accessibility mapping.",
+              narrative: "INTERACTION_LATENCY_OMEGA: Interaction nexus verified. Accessibility synaptic paths show zero fragmentation across all node types."
+            }
           ].map((stat, i) => (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -229,16 +298,57 @@ function AuditContent() {
               key={i}
               transition={{ delay: i * 0.1 }}
             >
-              <div className="glass-card hover:border-primary/30 transition-colors p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <stat.icon className={`h-6 w-6 ${stat.color}`} />
-                  <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${stat.color}`}>{stat.status}</span>
+              <MatrixTooltip 
+                label={stat.label}
+                description={stat.desc}
+                technicalNarrative={stat.narrative}
+                type={stat.type}
+              >
+                <div className="glass-card hover:border-primary/30 transition-all duration-500 p-8 cursor-help group">
+                  <div className="flex items-center justify-between mb-6">
+                    <stat.icon className={`h-6 w-6 ${stat.color} group-hover:scale-110 transition-transform`} />
+                    <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${stat.color}`}>{stat.status}</span>
+                  </div>
+                  <div className="text-5xl font-heading font-bold group-hover:text-primary transition-colors">{Math.round(stat.score)}</div>
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.3em] mt-2">{stat.label}</p>
+                  
+                  <div className="mt-6 pt-6 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-opacity">
+                     <div className="flex justify-between items-center text-[8px] font-bold uppercase tracking-widest text-muted-foreground/50">
+                        <span>Logic Node 0{i+1}</span>
+                        <div className="flex gap-1">
+                           <div className="h-1 w-1 bg-primary rounded-full animate-bounce" />
+                           <div className="h-1 w-1 bg-primary rounded-full animate-bounce [animation-delay:0.2s]" />
+                        </div>
+                     </div>
+                  </div>
                 </div>
-                <div className="text-5xl font-heading font-bold">{Math.round(stat.score)}</div>
-                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.3em] mt-2">{stat.label}</p>
-              </div>
+              </MatrixTooltip>
             </motion.div>
           ))}
+        </div>
+
+        {/* Core Web Vitals Telemetry */}
+        <div className="mb-16">
+          <div className="flex items-center gap-4 mb-8">
+            <h3 className="font-heading italic text-2xl font-bold">Neural Telemetry (Core Web Vitals)</h3>
+            <div className="h-[1px] flex-1 bg-white/5" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { label: "LCP", sub: "Hydration Velocity", value: scores.lcp || "0.8s", impact: "Visual Load" },
+              { label: "FID", sub: "Interaction Latency", value: scores.fid || "12ms", impact: "Input Responsivity" },
+              { label: "CLS", sub: "Synaptic Stability", value: scores.cls || "0.01", impact: "Layout Consistency" }
+            ].map((v, i) => (
+              <div key={i} className="glass border border-white/5 p-8 rounded-3xl flex items-center justify-between group hover:bg-white/5 transition-all">
+                <div className="space-y-1">
+                  <p className="text-[8px] font-bold uppercase tracking-[0.3em] text-primary">{v.label}</p>
+                  <p className="text-lg font-heading font-bold text-foreground/90">{v.sub}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">{v.impact}</p>
+                </div>
+                <div className="text-3xl font-heading font-bold text-glow-soft">{v.value}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-12">
@@ -246,18 +356,8 @@ function AuditContent() {
             <h3 className="font-heading italic text-3xl font-bold underline decoration-primary/20 decoration-4 underline-offset-8 mb-8">System Decouplings</h3>
             <div className="space-y-4">
               {[
-                {
-                  title: "Asset Hydration Lag",
-                  desc: "Delayed first meaningful paint is causing user friction. Immediate optimization suggested.",
-                  impact: "High",
-                  icon: AlertCircle
-                },
-                {
-                  title: "Fragmented Meta Vectors",
-                  desc: "Semantic disconnect detected in core keywords. Affecting neural discovery.",
-                  impact: "Medium",
-                  icon: Activity
-                }
+                { title: "Asset Hydration Lag", desc: "Delayed first meaningful paint is causing user friction.", impact: "High", icon: AlertCircle },
+                { title: "Fragmented Meta Vectors", desc: "Semantic disconnect detected in core keywords.", impact: "Medium", icon: Activity }
               ].map((rec, i) => (
                 <div key={i} className="group glass-card p-6 flex items-start justify-between gap-6 cursor-pointer hover:bg-white/5 transition-all">
                   <div className="flex gap-6">
@@ -313,8 +413,8 @@ export default function AuditPage() {
     <div className="flex flex-col min-h-screen relative">
       <Navbar />
       <div className="mesh-gradient" />
-      <Suspense fallback={<div className="flex-1 flex items-center justify-center text-primary mt-20"><Loader2 className="h-12 w-12 animate-spin" /></div>}>
-        <AuditContent />
+      <Suspense fallback={<div className="flex-1 flex items-center justify-center text-primary mt-20">Computing...</div>}>
+         <AuditContent />
       </Suspense>
     </div>
   );

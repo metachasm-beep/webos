@@ -17,7 +17,32 @@ import {
   Trash2
 } from "lucide-react";
 
+import { useState } from "react";
+
 export default function BuilderPage() {
+  const [prompt, setPrompt] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [nodes, setNodes] = useState<any[]>([]);
+
+  const handleGenerate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!prompt || isGenerating) return;
+    setIsGenerating(true);
+    try {
+      const resp = await fetch("/api/builder/generate", {
+        method: "POST",
+        body: JSON.stringify({ prompt }),
+        headers: { "Content-Type": "application/json" }
+      });
+      const newNode = await resp.json();
+      setNodes([newNode, ...nodes]);
+      setPrompt("");
+    } catch (e) {
+      console.error("Genesis Protocol Failure.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
   return (
     <div className="flex flex-col h-screen overflow-hidden relative">
       <Navbar />
@@ -33,24 +58,23 @@ export default function BuilderPage() {
           
           <div className="flex-1 overflow-y-auto p-6 space-y-8">
             <div className="space-y-4">
-              <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">Structural Units</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { icon: Layout, label: "Bento Block" },
-                  { icon: Layers, label: "Glass Panel" },
-                  { icon: Maximize2, label: "Hero Node" },
-                  { icon: Plus, label: "Empty Space" }
-                ].map((item, i) => (
-                  <motion.div
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    key={i}
-                    className="glass-dark border border-white/5 p-4 rounded-2xl flex flex-col items-center gap-3 cursor-grab group hover:border-primary/30 transition-colors"
-                  >
-                    <item.icon className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{item.label}</span>
-                  </motion.div>
-                ))}
-              </div>
+              <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">Genesis Protocol</h3>
+              <form onSubmit={handleGenerate} className="space-y-3">
+                <textarea 
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder="Describe your enterprise node..."
+                  className="w-full h-32 glass-dark border border-white/10 rounded-2xl p-4 text-xs font-body focus:border-primary/50 outline-none transition-colors"
+                />
+                <Button 
+                  type="submit" 
+                  disabled={isGenerating}
+                  className="w-full rounded-xl bg-primary text-white text-[10px] font-bold uppercase tracking-widest h-12 shadow-2xl shadow-primary/20"
+                >
+                  {isGenerating ? "Synthesizing..." : "Initialize Genesis"}
+                  <Sparkles className="ml-2 h-4 w-4" />
+                </Button>
+              </form>
             </div>
 
             <div className="space-y-4">
@@ -96,22 +120,51 @@ export default function BuilderPage() {
             </div>
 
             {/* Simulated Glass Website Section */}
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="glass-card min-h-[600px] relative overflow-hidden group border-white/10"
-            >
-              <div className="absolute inset-0 bg-primary/5 -z-10 group-hover:bg-primary/10 transition-colors" />
-              <div className="p-12 text-center space-y-8 mt-20">
-                 <div className="h-1 w-20 bg-primary mx-auto rounded-full" />
-                 <h2 className="text-6xl font-heading font-bold italic">Boutique SaaS</h2>
-                 <p className="text-muted-foreground max-w-lg mx-auto font-body">The future of high-performance interfaces starts here. Neural components synthesized for distributed edge protocols.</p>
-                 <div className="flex justify-center gap-4 pt-6">
-                    <div className="h-12 w-40 glass border-white/10 rounded-2xl" />
-                    <div className="h-12 w-12 glass border-white/10 rounded-2xl" />
-                 </div>
-              </div>
-            </motion.div>
+            <div className="space-y-12">
+              {nodes.length === 0 ? (
+                <motion.div 
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="glass-card min-h-[400px] flex flex-col items-center justify-center text-center p-12 space-y-6"
+                >
+                  <div className="h-20 w-20 rounded-full border border-dashed border-white/10 flex items-center justify-center">
+                    <Plus className="h-8 w-8 text-muted-foreground/30" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-heading font-bold italic">Canvas Empty</h3>
+                    <p className="text-muted-foreground text-sm max-w-xs mx-auto">Initialize the Genesis Protocol to synthesize high-conversion nodes.</p>
+                  </div>
+                </motion.div>
+              ) : (
+                nodes.map((node, i) => (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    key={i}
+                    className={`glass-card p-12 relative overflow-hidden group border-white/10 ${node.visualData?.variant === 'neon' ? 'shadow-[0_0_50px_rgba(59,130,246,0.1)]' : ''}`}
+                  >
+                    <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" className="h-8 w-8 p-0 rounded-full text-red-500 hover:bg-red-500/10" onClick={() => setNodes(nodes.filter((_, idx) => idx !== i))}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="space-y-6 relative z-10">
+                      <div className="flex items-center gap-4">
+                        <div className="h-1 w-12 bg-primary rounded-full" />
+                        <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">{node.type} node</span>
+                      </div>
+                      <h2 className="text-5xl font-heading font-bold italic tracking-tight">{node.heading}</h2>
+                      <p className="text-muted-foreground max-w-xl font-body leading-relaxed">{node.subheading}</p>
+                      <Button className="rounded-full px-10 h-14 bg-primary text-white font-bold uppercase tracking-widest text-[10px] shadow-2xl shadow-primary/20">
+                        {node.ctaText}
+                        <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
+                  </motion.div>
+                ))
+              )}
+            </div>
           </div>
         </main>
 

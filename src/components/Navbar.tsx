@@ -20,7 +20,7 @@ export function Navbar() {
           <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center group-hover:rotate-12 transition-all shadow-[0_0_20px_rgba(59,130,246,0.4)]">
             <Zap className="h-6 w-6 text-primary-foreground fill-current" />
           </div>
-          <span className="text-2xl font-heading font-bold tracking-tight text-glow-soft">Web<span className="text-primary italic">OS</span></span>
+          <span className="text-2xl font-heading font-bold tracking-tight text-glow-soft">TurtleLabs <span className="text-primary italic">WebOS</span></span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-10">

@@ -14,6 +14,9 @@ export async function runAuditAction(url: string) {
         seo: data.lighthouseResult.categories.seo.score * 100,
         accessibility: data.lighthouseResult.categories.accessibility.score * 100,
         bestPractices: data.lighthouseResult.categories["best-practices"].score * 100,
+        lcp: data.lighthouseResult.audits["largest-contentful-paint"].displayValue,
+        fid: data.lighthouseResult.audits["max-potential-fid"]?.displayValue || "N/A",
+        cls: data.lighthouseResult.audits["cumulative-layout-shift"].displayValue,
       },
       summary,
     };

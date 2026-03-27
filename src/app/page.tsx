@@ -10,6 +10,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { NeuralBackground } from "@/components/NeuralBackground";
 import { Canvas } from "@react-three/fiber";
 import { NeuralCore } from "@/components/NeuralCore";
+import { ContactForm } from "@/components/ContactForm";
 import { 
   ArrowRight, 
   BarChart3, 
@@ -67,8 +68,8 @@ export default function Home() {
                     transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
                     className="text-7xl md:text-9xl font-heading font-bold leading-[0.9] tracking-tighter"
                   >
-                    MATRIX <br />
-                    <span className="text-glow-soft">SYNTHESIS</span>
+                    AUDIT. BUILD. <br />
+                    <span className="text-glow-soft text-primary">DOMINATE.</span>
                   </motion.h1>
 
                   <motion.p 
@@ -221,38 +222,52 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* TurtleLabs Contact Synthesis */}
+        <section id="contact" className="py-32 relative">
+          <div className="container px-4">
+             <ContactForm />
+          </div>
+        </section>
       </main>
 
       <footer className="py-20 border-t border-white/5 relative bg-background/50 backdrop-blur-3xl">
         <div className="container px-4">
            <div className="flex flex-col md:flex-row justify-between items-center gap-12">
               <div className="space-y-4 text-center md:text-left">
-                <div className="flex items-center justify-center md:justify-start gap-3">
-                   <Zap className="h-6 w-6 text-primary" />
-                   <span className="text-2xl font-heading font-bold text-glow-soft">WebOS</span>
+                <div className="flex items-center justify-center md:justify-start gap-4">
+                   <div className="h-10 w-10 bg-primary/20 rounded-xl flex items-center justify-center">
+                      <Zap className="h-6 w-6 text-primary" />
+                   </div>
+                   <span className="text-2xl font-heading font-bold text-glow-soft">TurtleLabs <span className="text-primary italic">WebOS</span></span>
                 </div>
-                <p className="text-xs text-muted-foreground uppercase tracking-[0.2em] font-bold">The Business Growth Matrix</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-bold">The Business Growth Matrix</p>
+                <div className="space-y-1 pt-4">
+                   <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-bold">Inquiries</p>
+                   <p className="text-sm font-heading font-bold">[email protected]</p>
+                   <p className="text-sm font-heading font-bold">+91 6309052625</p>
+                </div>
               </div>
               
               <div className="flex gap-12">
                  <div className="space-y-4">
                     <h5 className="text-[10px] uppercase tracking-widest font-bold text-primary">Protocol</h5>
                     <ul className="space-y-2 text-xs text-muted-foreground font-body">
-                       <li><Link href="#" className="hover:text-white transition-colors">Documentation</Link></li>
+                       <li><Link href="https://www.turtlelabs.co.in" className="hover:text-white transition-colors">Official Portal</Link></li>
                        <li><Link href="#" className="hover:text-white transition-colors">API Layers</Link></li>
                     </ul>
                  </div>
                  <div className="space-y-4">
                     <h5 className="text-[10px] uppercase tracking-widest font-bold text-primary">Network</h5>
                     <ul className="space-y-2 text-xs text-muted-foreground font-body">
-                       <li><Link href="#" className="hover:text-white transition-colors">GitHub</Link></li>
-                       <li><Link href="#" className="hover:text-white transition-colors">Twitter X</Link></li>
+                       <li><Link href="https://twitter.com/turtlelabsindia" className="hover:text-white transition-colors">Twitter X</Link></li>
+                       <li><Link href="https://www.instagram.com/turtlelabs/" className="hover:text-white transition-colors">Instagram</Link></li>
                     </ul>
                  </div>
               </div>
            </div>
            <div className="mt-20 pt-8 border-t border-white/5 text-[9px] text-center text-muted-foreground/30 uppercase tracking-[0.4em] font-bold">
-              © 2026 WebOS High Performance Matrix. Fragmented in Silence.
+              © 2026 TurtleLabs High Performance Matrix. Fragmented in Silence.
            </div>
         </div>
       </footer>

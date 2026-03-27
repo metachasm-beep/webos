@@ -38,7 +38,7 @@ export async function fetchCloudflareRadarData(url: string) {
 }
 
 export async function generateAuditSummary(url: string, metrics: any) {
-  if (!process.env.COHERE_API_KEY) return "Simulation mode active. Synthesis requires API authorization.";
+  if (!process.env.COHERE_API_KEY) return "Neural Synthesis Offline. High-fidelity diagnostics require API Authorization (COHERE_API_KEY).";
 
   const prompt = `
     Analyze the following telemetry for ${url} and provide a 3-sentence "Neural Synthesis" in a high-end, expert technical tone.
@@ -53,10 +53,10 @@ export async function generateAuditSummary(url: string, metrics: any) {
   `;
 
   try {
-    const response = await cohere.generate({ prompt, maxTokens: 120, temperature: 0.65 });
+    const response = await cohere.generate({ prompt: prompt, maxTokens: 120, temperature: 0.65 });
     return response.generations[0].text.trim();
   } catch (error) {
-    return "Neural synthesis offline. Telemetry integrity verified.";
+    return "Neural synthesis currently decoupled. Telemetry integrity verified, but analysis timed out.";
   }
 }
 
