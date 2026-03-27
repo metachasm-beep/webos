@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { motion } from "framer-motion";
 import { 
   ChevronLeft, 
   Layers, 
@@ -22,169 +23,199 @@ import {
   Wand2,
   Undo2,
   Redo2,
-  CheckCircle2
+  CheckCircle2,
+  Moon,
+  Box,
+  Layout as LayoutIcon,
+  Sparkles
 } from "lucide-react";
 
 export default function BuilderPage() {
   const [activeTab, setActiveTab] = useState("elements");
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-screen overflow-hidden bg-background">
       <Navbar />
       
-      {/* Builder Toolbar */}
-      <div className="h-14 border-b bg-background flex items-center justify-between px-4 shrink-0">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Separator orientation="vertical" className="h-4" />
-          <div className="flex items-center gap-1">
-             <Button variant="ghost" size="icon" className="h-8 w-8"><Undo2 className="h-4 w-4" /></Button>
-             <Button variant="ghost" size="icon" className="h-8 w-8"><Redo2 className="h-4 w-4" /></Button>
+      {/* Futuristic Builder Toolbar */}
+      <div className="h-16 border-b border-white/5 glass px-6 flex items-center justify-between mt-20 shrink-0">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="h-9 w-9 glass-dark border-white/5 hover:bg-white/10">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Separator orientation="vertical" className="h-6 bg-white/10" />
           </div>
-          <Separator orientation="vertical" className="h-4" />
-          <div className="flex items-center gap-2 bg-muted/50 rounded-md px-2 py-1">
-             <span className="text-xs font-medium text-muted-foreground">Draft:</span>
-             <span className="text-xs font-bold">Main Landing Page</span>
+          <div className="flex items-center gap-1.5 glass-dark rounded-full p-1 border-white/5">
+             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"><Undo2 className="h-3.5 w-3.5" /></Button>
+             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"><Redo2 className="h-3.5 w-3.5" /></Button>
+          </div>
+          <div className="flex items-center gap-3">
+             <div className="h-2 w-2 rounded-full bg-accent animate-pulse shadow-[0_0_10px_oklch(var(--accent))]" />
+             <span className="text-xs font-heading font-bold tracking-wider uppercase">V0.2 Alpha</span>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button variant="ghost" className="gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-white">
             <Wand2 className="h-4 w-4 text-primary" />
-            AI Remix
+            Neural AI
           </Button>
-          <Button variant="outline" size="sm" className="gap-2 text-primary border-primary/20 hover:bg-primary/5">
+          <Separator orientation="vertical" className="h-6 bg-white/10" />
+          <Button variant="ghost" size="sm" className="gap-2 text-primary hover:bg-primary/5 rounded-full border border-primary/20">
             <Eye className="h-4 w-4" />
             Preview
           </Button>
-          <Button size="sm" className="gap-2 shadow-lg shadow-primary/20 px-6">
+          <Button size="sm" className="gap-2 bg-primary text-white rounded-full px-6 shadow-xl shadow-primary/20 hover:bg-primary/80">
             <Rocket className="h-4 w-4" />
-            Publish
+            Deploy Edge
           </Button>
         </div>
       </div>
 
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar - Elements/Components */}
-        <aside className="w-72 border-r bg-background flex flex-col shrink-0">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full rounded-none h-12 grid grid-cols-2 bg-transparent border-b">
-              <TabsTrigger value="elements" className="rounded-none data-[state=active]:bg-primary/5 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-none">Elements</TabsTrigger>
-              <TabsTrigger value="pages" className="rounded-none data-[state=active]:bg-primary/5 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-none">Pages</TabsTrigger>
+        <aside className="w-80 border-r border-white/5 glass flex flex-col shrink-0">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
+            <TabsList className="w-full rounded-none h-14 grid grid-cols-2 glass-dark border-b border-white/5">
+              <TabsTrigger value="elements" className="rounded-none font-heading font-bold tracking-widest text-[10px] uppercase data-[state=active]:bg-primary/5 data-[state=active]:text-primary transition-all">Matrix</TabsTrigger>
+              <TabsTrigger value="pages" className="rounded-none font-heading font-bold tracking-widest text-[10px] uppercase data-[state=active]:bg-primary/5 data-[state=active]:text-primary transition-all">Nodes</TabsTrigger>
             </TabsList>
             
-            <ScrollArea className="flex-1 p-4">
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Basic Elements</h4>
-                  <div className="grid grid-cols-2 gap-2">
+            <ScrollArea className="flex-1">
+              <div className="p-6 space-y-10">
+                <section>
+                  <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-6">Primitive Elements</h4>
+                  <div className="grid grid-cols-2 gap-3">
                     {[
-                      { icon: Type, label: "Text" },
-                      { icon: ImageIcon, label: "Image" },
-                      { icon: Plus, label: "Button" },
-                      { icon: Square, label: "Container" }
+                      { icon: Type, label: "Typography" },
+                      { icon: ImageIcon, label: "Visuals" },
+                      { icon: MousePointer2, label: "Triggers" },
+                      { icon: Box, label: "Cortex" }
                     ].map((el, i) => (
-                      <Card key={i} className="group hover:border-primary/50 transition-colors cursor-pointer border-dashed">
-                        <CardContent className="p-3 flex flex-col items-center justify-center gap-2">
-                          <el.icon className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
-                          <span className="text-[10px] font-medium">{el.label}</span>
-                        </CardContent>
-                      </Card>
+                      <motion.div 
+                        whileHover={{ y: -2 }}
+                        key={i} 
+                        className="glass-dark border border-white/5 hover:border-primary/40 transition-colors p-4 rounded-2xl flex flex-col items-center justify-center gap-3 cursor-grab group active:cursor-grabbing"
+                      >
+                         <el.icon className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                         <span className="text-[10px] font-bold uppercase tracking-widest">{el.label}</span>
+                      </motion.div>
                     ))}
                   </div>
-                </div>
+                </section>
 
-                <div>
-                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Sections</h4>
-                  <div className="space-y-2">
-                    {["Hero Section", "Features Grid", "Pricing Table", "Testimonials"].map((sec, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 rounded-md border border-dashed bg-muted/20 hover:bg-muted/40 cursor-pointer text-xs font-medium">
-                        {sec}
-                        <Plus className="h-3 w-3 text-muted-foreground" />
+                <section>
+                  <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-6">Structural Layouts</h4>
+                  <div className="space-y-3">
+                    {[
+                      { label: "Bento Hero", icon: Sparkles },
+                      { label: "Feature Grid", icon: LayoutIcon },
+                      { icon: Layers, label: "Layered Stack" }
+                    ].map((sec, i) => (
+                      <div key={i} className="flex items-center justify-between p-4 rounded-2xl glass-dark border border-white/5 hover:border-primary/20 cursor-pointer group transition-all">
+                        <div className="flex items-center gap-3">
+                           <sec.icon className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+                           <span className="text-xs font-bold uppercase tracking-widest">{sec.label}</span>
+                        </div>
+                        <Plus className="h-3 w-3 text-muted-foreground group-hover:rotate-90 transition-transform" />
                       </div>
                     ))}
                   </div>
-                </div>
+                </section>
               </div>
             </ScrollArea>
           </Tabs>
         </aside>
 
         {/* Builder Canvas */}
-        <main className="flex-1 bg-muted/30 overflow-auto p-12">
-          <div className="max-w-[1000px] mx-auto min-h-[1200px] bg-background shadow-2xl rounded-sm ring-1 ring-black/5 flex flex-col items-center justify-center border-dashed border-2 border-muted relative group">
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center space-y-4 opacity-40 group-hover:opacity-100 transition-opacity">
-                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <Wand2 className="h-8 w-8 text-primary" />
+        <main className="flex-1 bg-black p-12 overflow-auto relative">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.05)_0%,transparent_70%)]" />
+          
+          <div className="max-w-[1000px] mx-auto min-h-[1400px] glass border-white/5 rounded-[40px] shadow-[0_0_100px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center relative group overflow-hidden">
+             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+             
+             <motion.div 
+                initial={{ opacity: 0.3 }}
+                whileHover={{ opacity: 1 }}
+                className="text-center space-y-8 relative z-10 p-12"
+             >
+                <div className="h-24 w-24 rounded-full glass-dark flex items-center justify-center mx-auto mb-4 border-2 border-primary/20 relative">
+                  <Wand2 className="h-10 w-10 text-primary animate-pulse" />
+                  <div className="absolute inset-0 rounded-full border border-primary/20 animate-ping" />
                 </div>
-                <h2 className="text-2xl font-heading font-bold">Start Building with AI</h2>
-                <p className="text-muted-foreground max-w-xs mx-auto text-sm italic">"Generate a modern SaaS landing page for an AI productivity tool with a hero section and a pricing table."</p>
-                <div className="flex items-center gap-2 max-w-sm mx-auto">
-                   <Input placeholder="Describe your landing page..." className="h-11 shadow-sm" />
-                   <Button size="icon" className="h-11 w-11 shrink-0"><CheckCircle2 className="h-5 w-5" /></Button>
+                <div className="space-y-2">
+                  <h2 className="text-4xl font-heading font-bold italic">Neural Canvas</h2>
+                  <p className="text-muted-foreground max-w-sm mx-auto text-sm font-body italic">"Design a futuristic SaaS landing page template with glassmorphism effects and deep space black theme."</p>
                 </div>
-             </div>
+                <div className="flex items-center gap-3 max-w-md mx-auto">
+                   <Input 
+                      placeholder="Describe the syntax of your vision..." 
+                      className="h-14 glass-dark border-white/10 rounded-full px-8 text-sm focus-visible:ring-primary/20" 
+                   />
+                   <Button size="icon" className="h-14 w-14 rounded-full bg-primary hover:bg-primary/80 shrink-0 shadow-2xl shadow-primary/30">
+                      <CheckCircle2 className="h-6 w-6" />
+                   </Button>
+                </div>
+             </motion.div>
           </div>
         </main>
 
         {/* Right Sidebar - Properties/Settings */}
-        <aside className="w-80 border-l bg-background shrink-0 overflow-y-auto">
-          <div className="p-4 border-b flex items-center justify-between">
-            <h4 className="text-sm font-bold flex items-center gap-2">
-              <Settings2 className="h-4 w-4" />
-              Properties
+        <aside className="w-80 border-l border-white/5 glass shrink-0 overflow-y-auto hidden xl:flex flex-col">
+          <div className="h-14 px-6 border-b border-white/5 flex items-center justify-between">
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-3">
+              <Settings2 className="h-4 w-4 text-primary" />
+              Matrix Config
             </h4>
-            <div className="flex items-center gap-1">
-               <Button variant="ghost" size="icon" className="h-7 w-7"><MousePointer2 className="h-3 w-3" /></Button>
-               <Button variant="ghost" size="icon" className="h-7 w-7"><Layers className="h-3 w-3" /></Button>
-            </div>
           </div>
           
-          <div className="p-6 space-y-8">
-            <div className="space-y-4">
-              <h5 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Layout</h5>
+          <div className="p-8 space-y-12">
+            <div className="space-y-6">
+              <h5 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center justify-between">
+                Spatial Vectors
+                <Layers className="h-3 w-3" />
+              </h5>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground/60">Width</label>
-                  <Input defaultValue="100%" className="h-8 text-xs font-medium" />
+                <div className="space-y-2">
+                  <label className="text-[9px] uppercase font-bold text-muted-foreground/50 tracking-widest">Dimension-X</label>
+                  <Input defaultValue="100%" className="h-10 glass-dark border-white/5 text-[10px] font-mono" />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground/60">Height</label>
-                  <Input defaultValue="Auto" className="h-8 text-xs font-medium" />
+                <div className="space-y-2">
+                  <label className="text-[9px] uppercase font-bold text-muted-foreground/50 tracking-widest">Dimension-Y</label>
+                  <Input defaultValue="Auto" className="h-10 glass-dark border-white/5 text-[10px] font-mono" />
                 </div>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <h5 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Colors</h5>
-              <div className="flex items-center justify-between p-2 rounded-md border bg-muted/10">
-                <div className="flex items-center gap-3">
-                  <div className="h-6 w-6 rounded bg-primary border shadow-sm" />
-                  <span className="text-xs font-medium">Primary</span>
-                </div>
-                <span className="text-[10px] font-mono font-medium text-muted-foreground">#2563EB</span>
-              </div>
-              <div className="flex items-center justify-between p-2 rounded-md border bg-muted/10">
-                <div className="flex items-center gap-3">
-                  <div className="h-6 w-6 rounded bg-background border shadow-sm" />
-                  <span className="text-xs font-medium">Background</span>
-                </div>
-                <span className="text-[10px] font-mono font-medium text-muted-foreground">#F8FAFC</span>
+            <div className="space-y-6">
+              <h5 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center justify-between">
+                Chroma Matrix
+                <Moon className="h-3 w-3" />
+              </h5>
+              <div className="space-y-3">
+                {[
+                  { label: "Core Primary", hex: "#3B82F6", color: "bg-primary" },
+                  { label: "Matrix Dark", hex: "#0B0B10", color: "bg-black" },
+                  { label: "Cyber Mint", hex: "#10B981", color: "bg-accent" }
+                ].map((c, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-2xl glass-dark border border-white/5">
+                    <div className="flex items-center gap-4">
+                      <div className={`h-8 w-8 rounded-xl ${c.color} border border-white/10 shadow-lg`} />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">{c.label}</span>
+                    </div>
+                    <span className="text-[9px] font-mono font-bold text-muted-foreground">{c.hex}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="space-y-4">
-              <h5 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Spacing</h5>
-              <div className="p-4 rounded-lg border bg-muted/5 flex items-center justify-center">
-                <div className="w-full aspect-square border-2 border-dashed rounded-sm border-primary/20 relative flex items-center justify-center p-6">
-                   <div className="absolute top-1 left-1/2 -translate-x-1/2 text-[8px] font-bold text-primary/40 tracking-tighter uppercase">Padding</div>
-                   <div className="w-full h-full border-2 rounded-sm border-primary/40 flex items-center justify-center p-6">
-                      <div className="text-[8px] font-bold text-primary/60 tracking-tighter uppercase">Content</div>
-                   </div>
-                </div>
-              </div>
+            <div className="glass-dark rounded-3xl p-6 border border-white/5 space-y-4">
+               <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Edge Sync</span>
+                  <div className="h-2 w-2 rounded-full bg-accent animate-ping" />
+               </div>
+               <p className="text-[10px] text-muted-foreground leading-relaxed">System is synced with Vercel Edge network. All changes will be optimized in real-time.</p>
             </div>
           </div>
         </aside>
