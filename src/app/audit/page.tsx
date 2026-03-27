@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 
 import { MatrixTooltip } from "@/components/MatrixTooltip";
-import { PaywallModal } from "@/components/PaywallModal";
 
 const CACHE_KEY = (url: string) => `audit_cache_${encodeURIComponent(url)}`;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -38,7 +37,6 @@ function AuditContent() {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [isSummarizing, setIsSummarizing] = useState(false);
-  const [showPaywall, setShowPaywall] = useState(false);
 
   const tasks = [
     "Checking SEO metadata...",
@@ -131,44 +129,6 @@ function AuditContent() {
     startAudit();
     return () => { isMounted = false; };
   }, [url]);
-
-  // After PhonePe redirect: verify payment, then open report
-  useEffect(() => {
-    if (!paymentSuccess || !auditData) return;
-
-    async function verifyAndDownload() {
-      const savedTxn = localStorage.getItem("pending_payment_txn");
-      if (!savedTxn) {
-        // No transaction to verify — skip
-        return;
-      }
-
-      try {
-        setIsGeneratingPdf(true);
-        const resp = await fetch("/api/payment/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ transactionId: savedTxn }),
-        });
-        const data = await resp.json();
-
-        if (data.success) {
-          // Payment confirmed — open the report
-          localStorage.removeItem("pending_payment_txn");
-          localStorage.removeItem("pending_payment_url");
-          handleGeneratePdf();
-        } else {
-          alert("Payment not confirmed yet: " + (data.message || "Please try again."));
-        }
-      } catch (e) {
-        alert("Couldn't verify payment. Please contact support.");
-      } finally {
-        setIsGeneratingPdf(false);
-      }
-    }
-
-    verifyAndDownload();
-  }, [paymentSuccess, auditData]);
 
   if (error) {
     return (
@@ -278,7 +238,7 @@ function AuditContent() {
                 <Zap className="ml-3 h-4 w-4" />
               </Button>
               <Button 
-                onClick={() => setShowPaywall(true)}
+                onClick={handleGeneratePdf}
                 size="lg" 
                 variant="outline" 
                 className="rounded-full px-10 h-16 border-white/10 hover:bg-primary/5 hover:border-primary/30 hover:text-primary text-muted-foreground group font-bold uppercase tracking-widest text-xs transition-all"
@@ -446,8 +406,6 @@ function AuditContent() {
         </div>
       </div>
     </main>
-
-    <PaywallModal open={showPaywall} onClose={() => setShowPaywall(false)} auditUrl={url} />
     </>
   );
 }
