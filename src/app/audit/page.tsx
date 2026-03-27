@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 import { MatrixTooltip } from "@/components/MatrixTooltip";
+import { ApiStatusPanel } from "@/components/ApiStatusPanel";
 
 const CACHE_KEY = (url: string) => `audit_cache_${encodeURIComponent(url)}`;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -389,6 +390,8 @@ function AuditContent() {
           </div>
 
           <div className="space-y-8">
+            <ApiStatusPanel />
+
             <div className="glass-card bg-primary text-primary-foreground border-none relative overflow-hidden p-10 space-y-8">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16" />
               <div className="space-y-4 relative z-10">
