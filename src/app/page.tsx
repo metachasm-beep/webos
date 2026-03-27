@@ -6,24 +6,24 @@ import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { 
   ArrowRight, 
   BarChart3, 
   Globe, 
   Zap, 
-  CheckCircle2, 
   Sparkles, 
   Layers, 
   Shield, 
   Smartphone,
-  MousePointer2
+  ChevronDown
 } from "lucide-react";
 
 export default function Home() {
   const [url, setUrl] = useState("");
   const router = useRouter();
+  const { scrollYProgress } = useScroll();
+  const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
   const handleAudit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,206 +32,188 @@ export default function Home() {
     }
   };
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const item = {
-    hidden: { y: 20, opacity: 0 },
-    show: { y: 0, opacity: 1 }
-  };
-
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen relative">
       <Navbar />
+      <div className="mesh-gradient" />
 
-      <main className="flex-1 pt-32">
-        {/* Futuristic Hero Section */}
-        <section className="relative py-20 overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[120px] -z-10" />
-          
+      <main className="flex-1">
+        {/* Refined Hero Section */}
+        <section className="relative min-h-screen flex items-center justify-center pt-20">
           <div className="container px-4">
-            <div className="text-center space-y-8 max-w-4xl mx-auto">
+            <div className="text-center space-y-12 max-w-5xl mx-auto">
               <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass border-primary/20 text-primary text-xs font-bold uppercase tracking-wider mx-auto"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="inline-flex items-center gap-3 px-6 py-2 rounded-full glass border-white/10 text-primary text-[11px] font-bold uppercase tracking-[0.3em] mx-auto"
               >
-                <Sparkles className="h-3.5 w-3.5" />
-                Next-Gen Business Intelligence
+                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-ping" />
+                Evolution of Web Performance
               </motion.div>
               
-              <motion.h1 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="text-5xl md:text-7xl font-heading font-bold"
-              >
-                Build. Audit. <span className="text-primary italic">Grow.</span><br />
-                Everything with <span className="text-glow">WebOS</span>
-              </motion.h1>
+              <div className="space-y-6">
+                <motion.h1 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+                  className="text-6xl md:text-9xl font-heading font-bold leading-[0.9] tracking-tighter"
+                >
+                  AUDIT. BUILD. <br />
+                  <span className="text-glow-soft">DOMINATE.</span>
+                </motion.h1>
 
-              <motion.p 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="text-xl text-muted-foreground font-body max-w-2xl mx-auto leading-relaxed"
-              >
-                Transform your business with our AI-powered growth engine. Get deep audits, 
-                high-conversion landing pages, and real-time performance tracking in one elegant platform.
-              </motion.p>
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5, duration: 1 }}
+                  className="text-lg md:text-2xl text-muted-foreground font-body max-w-3xl mx-auto leading-relaxed tracking-tight"
+                >
+                  The world's most elegant growth engine for high-performance businesses. 
+                  Synchronize your digital footprint with AI-driven heuristics.
+                </motion.p>
+              </div>
 
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="max-w-xl mx-auto"
+                transition={{ delay: 0.8 }}
+                className="max-w-2xl mx-auto pt-8"
               >
-                <form onSubmit={handleAudit} className="relative group">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
-                  <div className="relative flex p-1.5 rounded-full glass items-center gap-2 border-white/10">
-                    <div className="pl-4 flex items-center gap-2 text-muted-foreground shrink-0 border-r border-white/5 pr-4 hidden sm:flex">
-                      <Globe className="h-4 w-4" />
-                      <span className="text-xs font-bold uppercase">https://</span>
+                <form onSubmit={handleAudit} className="group relative">
+                  <div className="absolute -inset-4 bg-primary/5 rounded-[40px] blur-2xl group-hover:bg-primary/10 transition-all duration-700" />
+                  <div className="relative glass rounded-[32px] p-2 flex items-center gap-2 border-white/10 overflow-hidden">
+                    <div className="pl-6 flex items-center gap-3 border-r border-white/10 pr-6 group-focus-within:border-primary/30 transition-colors">
+                      <Globe className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">https://</span>
                     </div>
                     <Input 
-                      placeholder="Enter your website URL" 
-                      className="border-none bg-transparent focus-visible:ring-0 text-foreground h-12 shadow-none placeholder:text-muted-foreground/50"
+                      placeholder="Enter domain for deep synthesis" 
+                      className="border-none bg-transparent focus-visible:ring-0 text-foreground h-14 shadow-none placeholder:text-muted-foreground/30 text-lg font-body"
                       value={url}
                       onChange={(e) => setUrl(e.target.value)}
                     />
-                    <Button type="submit" className="rounded-full px-8 h-12 bg-primary hover:bg-primary/80 transition-all gap-2 shadow-xl shadow-primary/20">
-                      Audit
+                    <Button type="submit" className="rounded-2xl px-10 h-14 bg-primary hover:bg-primary/80 transition-all gap-3 shadow-2xl shadow-primary/20 font-bold uppercase tracking-widest text-xs">
+                      Run Audit
                       <ArrowRight className="h-4 w-4" />
                     </Button>
                   </div>
                 </form>
-                <p className="mt-4 text-xs text-muted-foreground">No credit card required • Instant AI Analysis</p>
+                <div className="mt-6 flex justify-center gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">
+                   <span>PageSpeed V5</span>
+                   <span>Cohere AI Synthesis</span>
+                   <span>Vercel Edge</span>
+                </div>
               </motion.div>
             </div>
           </div>
+
+          <motion.div 
+            style={{ opacity }}
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground/30"
+          >
+             <span className="text-[9px] uppercase tracking-[0.3em] font-bold">Discover</span>
+             <ChevronDown className="h-4 w-4" />
+          </motion.div>
         </section>
 
-        {/* Bento Grid Features */}
-        <section id="features" className="py-24">
+        {/* Refined Bento Showcase */}
+        <section id="features" className="py-32 relative">
           <div className="container px-4">
-            <div className="text-center mb-16 space-y-4">
-              <h2 className="text-3xl md:text-5xl font-heading font-bold">The Core Engine</h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">Precision tools designed to accelerate your digital growth through advanced heuristics and AI.</p>
-            </div>
-
-            <motion.div 
-              variants={container}
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true }}
-              className="grid gap-6 md:grid-cols-6 md:grid-rows-2 h-auto"
-            >
-              <motion.div variants={item} className="md:col-span-3 glass rounded-3xl p-8 flex flex-col justify-between group cursor-pointer hover:border-primary/30 transition-all">
-                <div className="space-y-4">
-                  <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                    <Sparkles className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-2xl font-heading font-bold">AI Page Generator</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">Describe your business and watch WebOS craft a high-converting landing page in seconds, optimized for your specific niche.</p>
-                </div>
-                <div className="mt-8 aspect-video glass-dark rounded-xl border border-white/5 p-4 overflow-hidden relative">
-                   <div className="absolute top-4 left-4 flex gap-2">
-                      <div className="h-2 w-2 rounded-full bg-red-500/50" />
-                      <div className="h-2 w-2 rounded-full bg-yellow-500/50" />
-                      <div className="h-2 w-2 rounded-full bg-green-500/50" />
-                   </div>
-                   <div className="mt-6 space-y-2 opacity-50">
-                      <div className="h-4 w-3/4 bg-white/5 rounded" />
-                      <div className="h-4 w-1/2 bg-white/5 rounded" />
-                   </div>
-                </div>
-              </motion.div>
-
-              <motion.div variants={item} className="md:col-span-3 glass rounded-3xl p-8 group cursor-pointer hover:border-primary/30 transition-all">
-                 <div className="h-full flex flex-col justify-between">
-                    <div className="space-y-4">
-                      <div className="h-12 w-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent group-hover:scale-110 transition-transform">
-                        <BarChart3 className="h-6 w-6" />
-                      </div>
-                      <h3 className="text-2xl font-heading font-bold">Deep Audit Dashboard</h3>
-                      <p className="text-muted-foreground text-sm leading-relaxed">Our 7-layer scanning engine analyzes everything from core web vitals to semantic SEO and conversion heuristics.</p>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-auto">
+              <div className="md:col-span-8 glass-card group cursor-pointer hover:border-primary/40 transition-all duration-500 overflow-hidden relative">
+                 <div className="absolute top-0 right-0 p-8">
+                    <Sparkles className="h-10 w-10 text-primary animate-pulse" />
+                 </div>
+                 <div className="space-y-6 relative z-10">
+                    <div className="space-y-2">
+                       <h3 className="text-4xl font-heading font-bold italic underline decoration-primary/30 decoration-4 underline-offset-8">Neural Builder</h3>
+                       <p className="text-muted-foreground max-w-sm text-lg font-body leading-relaxed">Synthesis of design and code. Generate high-conversion nodes via natural language protocols.</p>
                     </div>
-                    <div className="mt-8 grid grid-cols-2 gap-4">
-                       <div className="glass-dark p-4 rounded-2xl">
-                          <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">SEO</div>
-                          <div className="text-2xl font-bold text-primary">98%</div>
-                       </div>
-                       <div className="glass-dark p-4 rounded-2xl">
-                          <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">UX</div>
-                          <div className="text-2xl font-bold text-accent">84%</div>
-                       </div>
+                    <Button variant="ghost" className="gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary hover:bg-primary/5 p-0">
+                       Explore Module <ArrowRight className="h-3 w-3" />
+                    </Button>
+                 </div>
+                 <div className="mt-12 h-64 glass-dark rounded-t-3xl border-t border-x border-white/10 translate-y-8 group-hover:translate-y-4 transition-transform duration-700" />
+              </div>
+
+              <div className="md:col-span-4 glass-card group cursor-pointer hover:border-accent/40 transition-all duration-500 flex flex-col justify-between">
+                 <div className="space-y-6">
+                    <div className="h-14 w-14 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
+                       <BarChart3 className="h-8 w-8" />
+                    </div>
+                    <div className="space-y-2">
+                       <h3 className="text-3xl font-heading font-bold italic">Deep Insight</h3>
+                       <p className="text-muted-foreground text-sm leading-relaxed">7-layer forensic scan of your digital environment. Real-time PageSpeed integration.</p>
                     </div>
                  </div>
-              </motion.div>
+                 <div className="pt-8 grid grid-cols-2 gap-3">
+                    <div className="glass-dark p-4 rounded-2xl text-center">
+                       <div className="text-[10px] font-bold text-accent uppercase tracking-widest">SEO</div>
+                       <div className="text-2xl font-bold">98</div>
+                    </div>
+                    <div className="glass-dark p-4 rounded-2xl text-center">
+                       <div className="text-[10px] font-bold text-primary uppercase tracking-widest">UX</div>
+                       <div className="text-2xl font-bold">84</div>
+                    </div>
+                 </div>
+              </div>
 
-              <motion.div variants={item} className="md:col-span-2 glass rounded-3xl p-8 group cursor-pointer hover:border-primary/30 transition-all">
-                <div className="space-y-4">
-                  <Layers className="h-8 w-8 text-primary/60" />
-                  <h3 className="text-xl font-heading font-bold">Bento Layouts</h3>
-                  <p className="text-muted-foreground text-xs leading-relaxed">Modern design patterns that make your content pop and convert.</p>
-                </div>
-              </motion.div>
+              <div className="md:col-span-4 glass-card group cursor-pointer hover:border-white/20 transition-all duration-500 flex flex-col gap-6">
+                 <Smartphone className="h-10 w-10 text-white/30" />
+                 <h4 className="text-2xl font-heading font-bold italic">Mobile Edge</h4>
+                 <p className="text-muted-foreground text-sm font-body">Sub-second load times on the Vercel Edge network. Optimized for zero fragmentation.</p>
+              </div>
 
-              <motion.div variants={item} className="md:col-span-2 glass rounded-3xl p-8 group cursor-pointer hover:border-primary/30 transition-all">
-                <div className="space-y-4">
-                  <Shield className="h-8 w-8 text-accent/60" />
-                  <h3 className="text-xl font-heading font-bold">Secure Hosting</h3>
-                  <p className="text-muted-foreground text-xs leading-relaxed">Enterprise-grade security on the edge for every page you build.</p>
-                </div>
-              </motion.div>
-
-              <motion.div variants={item} className="md:col-span-2 glass rounded-3xl p-8 group cursor-pointer hover:border-primary/30 transition-all">
-                <div className="space-y-4">
-                  <Smartphone className="h-8 w-8 text-white/40" />
-                  <h3 className="text-xl font-heading font-bold">Mobile First</h3>
-                  <p className="text-muted-foreground text-xs leading-relaxed">Pixel-perfect responsiveness across all devices and resolutions.</p>
-                </div>
-              </motion.div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-24 relative overflow-hidden">
-          <div className="container px-4 text-center">
-            <div className="glass rounded-[40px] py-20 px-8 relative overflow-hidden">
-               <div className="absolute inset-0 bg-primary/5 -z-10" />
-               <div className="max-w-2xl mx-auto space-y-8">
-                  <h2 className="text-4xl md:text-5xl font-heading font-bold">Ready to outgrow the competition?</h2>
-                  <p className="text-muted-foreground text-lg">Join 2,000+ businesses using WebOS to dominate their market with AI-powered agility.</p>
-                  <Button size="lg" className="rounded-full px-12 h-14 bg-white text-black hover:bg-white/90 shadow-2xl transition-all font-bold">
-                    Launch Your Engine
-                  </Button>
-               </div>
+              <div className="md:col-span-8 glass-card border-none bg-primary text-primary-foreground relative overflow-hidden group">
+                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+                 <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 h-full">
+                    <div className="space-y-4 text-center md:text-left">
+                       <h3 className="text-4xl font-heading font-bold italic">Ready to accelerate?</h3>
+                       <p className="text-primary-foreground/70 max-w-sm">Synchronize your business with the WebOS growth matrix today.</p>
+                    </div>
+                    <Button size="lg" className="rounded-full px-12 h-16 bg-white text-black hover:bg-white/90 shadow-2xl transition-all font-bold uppercase tracking-widest text-xs">
+                       Initiate Sequence
+                    </Button>
+                 </div>
+              </div>
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="py-12 border-t border-white/5">
-        <div className="container px-4 flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-primary" />
-            <span className="font-heading font-bold text-glow">WebOS</span>
-          </div>
-          <div className="flex gap-8 text-sm text-muted-foreground">
-             <Link href="#" className="hover:text-primary transition-colors">Twitter</Link>
-             <Link href="#" className="hover:text-primary transition-colors">GitHub</Link>
-             <Link href="#" className="hover:text-primary transition-colors">Docs</Link>
-          </div>
-          <p className="text-xs text-muted-foreground">© 2026 WebOS Business Growth Engine. All rights reserved.</p>
+      <footer className="py-20 border-t border-white/5 relative bg-background/50 backdrop-blur-3xl">
+        <div className="container px-4">
+           <div className="flex flex-col md:flex-row justify-between items-center gap-12">
+              <div className="space-y-4 text-center md:text-left">
+                <div className="flex items-center justify-center md:justify-start gap-3">
+                   <Zap className="h-6 w-6 text-primary" />
+                   <span className="text-2xl font-heading font-bold text-glow-soft">WebOS</span>
+                </div>
+                <p className="text-xs text-muted-foreground uppercase tracking-[0.2em] font-bold">The Business Growth Matrix</p>
+              </div>
+              
+              <div className="flex gap-12">
+                 <div className="space-y-4">
+                    <h5 className="text-[10px] uppercase tracking-widest font-bold text-primary">Protocol</h5>
+                    <ul className="space-y-2 text-xs text-muted-foreground font-body">
+                       <li><Link href="#" className="hover:text-white transition-colors">Documentation</Link></li>
+                       <li><Link href="#" className="hover:text-white transition-colors">API Layers</Link></li>
+                    </ul>
+                 </div>
+                 <div className="space-y-4">
+                    <h5 className="text-[10px] uppercase tracking-widest font-bold text-primary">Network</h5>
+                    <ul className="space-y-2 text-xs text-muted-foreground font-body">
+                       <li><Link href="#" className="hover:text-white transition-colors">GitHub</Link></li>
+                       <li><Link href="#" className="hover:text-white transition-colors">Twitter X</Link></li>
+                    </ul>
+                 </div>
+              </div>
+           </div>
+           <div className="mt-20 pt-8 border-t border-white/5 text-[9px] text-center text-muted-foreground/30 uppercase tracking-[0.4em] font-bold">
+              © 2026 WebOS High Performance Matrix. Fragmented in Silence.
+           </div>
         </div>
       </footer>
     </div>

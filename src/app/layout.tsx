@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   description: "AI-powered web optimization and landing page builder for high-performance businesses.",
 };
 
+import { AuthProvider } from "@/components/AuthProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,7 +29,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${cormorant.variable} ${montserrat.variable} antialiased`}>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
