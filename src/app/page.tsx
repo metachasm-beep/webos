@@ -68,7 +68,7 @@ export default function Home() {
                   transition={{ delay: 0.5, duration: 1 }}
                   className="text-lg md:text-2xl text-muted-foreground font-body max-w-3xl mx-auto leading-relaxed tracking-tight"
                 >
-                  The world's most elegant growth engine for high-performance businesses. 
+                  The world's most elegant performance matrix for high-performance businesses. 
                   Synchronize your digital footprint with AI-driven heuristics.
                 </motion.p>
               </div>
@@ -99,9 +99,9 @@ export default function Home() {
                   </div>
                 </form>
                 <div className="mt-6 flex justify-center gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">
-                   <span>PageSpeed V5</span>
-                   <span>Cohere AI Synthesis</span>
-                   <span>Vercel Edge</span>
+                   <span>PageSpeed V5 Protocol</span>
+                   <span>Cohere Neural Synthesis</span>
+                   <span>Edge Infrastructure</span>
                 </div>
               </motion.div>
             </div>
@@ -162,8 +162,8 @@ export default function Home() {
 
               <div className="md:col-span-4 glass-card group cursor-pointer hover:border-white/20 transition-all duration-500 flex flex-col gap-6">
                  <Smartphone className="h-10 w-10 text-white/30" />
-                 <h4 className="text-2xl font-heading font-bold italic">Mobile Edge</h4>
-                 <p className="text-muted-foreground text-sm font-body">Sub-second load times on the Vercel Edge network. Optimized for zero fragmentation.</p>
+                 <h4 className="text-2xl font-heading font-bold italic">Global Edge</h4>
+                 <p className="text-muted-foreground text-sm font-body">Sub-second latency distribution across a high-availability mesh network. Optimized for zero fragmentation.</p>
               </div>
 
               <div className="md:col-span-8 glass-card border-none bg-primary text-primary-foreground relative overflow-hidden group">

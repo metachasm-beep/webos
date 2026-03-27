@@ -142,7 +142,7 @@ function AuditContent() {
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-12">
             <div className="space-y-4">
               <h1 className="text-6xl md:text-9xl font-heading font-bold italic tracking-tighter">Score: <span className="text-glow-soft text-primary">{Math.round(scores.performance)}</span></h1>
-              <p className="text-muted-foreground max-w-2xl font-body text-lg leading-relaxed">{auditData?.summary || "Neural scan complete. System integrity verified across 4 core modules."}</p>
+              <p className="text-muted-foreground max-w-lg mx-auto font-body">The future of high-performance interfaces starts here. Neural components synthesized for distributed edge protocols.</p>
             </div>
             <Button size="lg" className="rounded-full px-10 h-16 bg-primary hover:bg-primary/80 text-white shadow-2xl shadow-primary/30 group font-bold uppercase tracking-widest text-xs">
               Fix Decouplings
@@ -215,7 +215,7 @@ function AuditContent() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16" />
               <div className="space-y-4 relative z-10">
                 <h3 className="text-4xl font-heading font-bold italic">WebOS <span className="text-glow-soft">Matrix</span></h3>
-                <p className="text-primary-foreground/70 text-sm font-body italic leading-relaxed">Upgrade to the full neural optimization protocol for sub-second remediation.</p>
+                <p className="text-primary-foreground/70 text-sm font-body italic leading-relaxed">Upgrade to the high-availability neural optimization protocol for distributed remediation.</p>
               </div>
               <ul className="space-y-4 relative z-10">
                 {[
