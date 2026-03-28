@@ -17,10 +17,14 @@ import {
   Trash2
 } from "lucide-react";
 
+import { RenderNode } from "@/components/BuilderComponents";
 import { useState } from "react";
 
 export default function BuilderPage() {
   const [prompt, setPrompt] = useState("");
+  const [style, setStyle] = useState("dark-saas");
+  const [framework, setFramework] = useState("PAS");
+  const [targetAudience, setTargetAudience] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [nodes, setNodes] = useState<any[]>([]);
 
@@ -31,10 +35,16 @@ export default function BuilderPage() {
     try {
       const resp = await fetch("/api/builder/generate", {
         method: "POST",
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ 
+          prompt, 
+          style, 
+          framework,
+          targetAudience
+        }),
         headers: { "Content-Type": "application/json" }
       });
       const newNode = await resp.json();
+      console.log("SYNTHESIS_PAYLOAD:", newNode);
       setNodes([newNode, ...nodes]);
       setPrompt("");
     } catch (e) {
@@ -63,9 +73,47 @@ export default function BuilderPage() {
                 <textarea 
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="Describe your enterprise node..."
+                  placeholder="Describe your enterprise node (e.g., 'Cloud Security for Fintech')..."
                   className="w-full h-32 glass-dark border border-white/10 rounded-2xl p-4 text-xs font-body focus:border-primary/50 outline-none transition-colors"
                 />
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="text-[8px] font-bold text-muted-foreground uppercase px-2">Framework</label>
+                    <select 
+                      value={framework} 
+                      onChange={(e) => setFramework(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] outline-none"
+                    >
+                      <option value="PAS">PAS (Problem)</option>
+                      <option value="AIDA">AIDA (Sales)</option>
+                      <option value="BAB">BAB (Bridge)</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[8px] font-bold text-muted-foreground uppercase px-2">Style</label>
+                    <select 
+                      value={style} 
+                      onChange={(e) => setStyle(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] outline-none"
+                    >
+                      <option value="dark-saas">Dark SaaS</option>
+                      <option value="clean-minimal">Minimal</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[8px] font-bold text-muted-foreground uppercase px-2">Audience Intelligence</label>
+                  <input 
+                    type="text"
+                    value={targetAudience}
+                    onChange={(e) => setTargetAudience(e.target.value)}
+                    placeholder="e.g., CTOs, Growth Marketers"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] outline-none"
+                  />
+                </div>
+
                 <Button 
                   type="submit" 
                   disabled={isGenerating}
@@ -137,31 +185,14 @@ export default function BuilderPage() {
                 </motion.div>
               ) : (
                 nodes.map((node, i) => (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    key={i}
-                    className={`glass-card p-12 relative overflow-hidden group border-white/10 ${node.visualData?.variant === 'neon' ? 'shadow-[0_0_50px_rgba(59,130,246,0.1)]' : ''}`}
-                  >
-                    <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" className="h-8 w-8 p-0 rounded-full text-red-500 hover:bg-red-500/10" onClick={() => setNodes(nodes.filter((_, idx) => idx !== i))}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                  <div key={i} className="relative group">
+                    <div className="absolute -left-12 top-0 h-full flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                       <Button variant="ghost" className="h-8 w-8 p-0 text-red-500" onClick={() => setNodes(nodes.filter((_, idx) => idx !== i))}>
+                         <Trash2 className="h-4 w-4" />
+                       </Button>
                     </div>
-                    <div className="space-y-6 relative z-10">
-                      <div className="flex items-center gap-4">
-                        <div className="h-1 w-12 bg-primary rounded-full" />
-                        <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">{node.type} node</span>
-                      </div>
-                      <h2 className="text-5xl font-heading font-bold italic tracking-tight">{node.heading}</h2>
-                      <p className="text-muted-foreground max-w-xl font-body leading-relaxed">{node.subheading}</p>
-                      <Button className="rounded-full px-10 h-14 bg-primary text-white font-bold uppercase tracking-widest text-[10px] shadow-2xl shadow-primary/20">
-                        {node.ctaText}
-                        <ChevronRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
-                  </motion.div>
+                    <RenderNode node={node} />
+                  </div>
                 ))
               )}
             </div>
