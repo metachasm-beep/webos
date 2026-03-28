@@ -35,14 +35,14 @@ function BrandMarquee() {
       <div className="absolute left-0 inset-y-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
       <div className="absolute right-0 inset-y-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
       <motion.div
-        className="flex gap-16 w-max"
-        animate={{ x: [0, -50 * BRANDS.length * 4] }}
-        transition={{ repeat: Infinity, duration: 18, ease: "linear" }}
+        className="flex gap-24 w-max items-center"
+        animate={{ x: [0, -60 * BRANDS.length * 4] }}
+        transition={{ repeat: Infinity, duration: 45, ease: "linear" }}
       >
         {items.map((brand, i) => (
           <span
             key={i}
-            className="text-[11px] font-bold uppercase tracking-[0.4em] text-muted-foreground/30 hover:text-muted-foreground transition-colors whitespace-nowrap"
+            className="text-[18px] md:text-[22px] font-heading font-black uppercase tracking-[0.5em] text-white/10 hover:text-primary/40 transition-all duration-500 whitespace-nowrap italic"
           >
             {brand}
           </span>
@@ -329,7 +329,7 @@ export default function Home() {
               <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-bold">Audit. Build. Dominate.</p>
               <div className="space-y-1 pt-4">
                 <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-bold">Contact</p>
-                <p className="text-sm font-heading font-bold">[email protected]</p>
+                <p className="text-sm font-heading font-bold">info@turtlelabs.co.in</p>
                 <p className="text-sm font-heading font-bold">+91 6309052625</p>
               </div>
             </div>

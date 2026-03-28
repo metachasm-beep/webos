@@ -43,7 +43,7 @@ export function ContactForm() {
             </div>
             <div className="space-y-1">
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Protocol Email</p>
-              <p className="font-heading font-bold">[email protected]</p>
+              <p className="font-heading font-bold">info@turtlelabs.co.in</p>
             </div>
           </div>
 
