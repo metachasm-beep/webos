@@ -10,8 +10,8 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: "Cormorant", serif;
-  --font-body: "Montserrat", sans-serif;
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
   
   --color-primary: oklch(0.65 0.2 250); /* Refined sapphire */
   --color-secondary: oklch(0.5 0.05 250);
