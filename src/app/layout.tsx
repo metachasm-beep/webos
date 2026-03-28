@@ -1,17 +1,41 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Montserrat } from "next/font/google";
+import { Cormorant_Garamond, Montserrat, Space_Grotesk, Outfit, Playfair_Display, Lato } from "next/font/google";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
-  variable: "--font-heading",
+  variable: "--font-heading-classic",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
 
 const montserrat = Montserrat({
-  variable: "--font-body",
+  variable: "--font-body-classic",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
+});
+
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-heading-modern",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const outfit = Outfit({
+  variable: "--font-body-modern",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+});
+
+const playfair = Playfair_Display({
+  variable: "--font-heading-elegant",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const lato = Lato({
+  variable: "--font-body-elegant",
+  subsets: ["latin"],
+  weight: ["300", "400", "700"],
 });
 
 export const metadata: Metadata = {
@@ -40,7 +64,7 @@ export default function RootLayout({
 
   return (
     <html lang="en" className="dark">
-      <body className={`${cormorant.variable} ${montserrat.variable} antialiased`}>
+      <body className={`${cormorant.variable} ${montserrat.variable} ${spaceGrotesk.variable} ${outfit.variable} ${playfair.variable} ${lato.variable} antialiased`}>
         {gaId && (
           <>
             <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="afterInteractive" />
