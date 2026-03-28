@@ -67,7 +67,7 @@ export async function fetchPageSpeedData(url: string) {
   }
 }
 
-export async function generateAuditSummary(url: string, metrics: any) {
+export async function generateAuditSummary(url: string, metrics: any, growth?: any) {
   if (!process.env.COHERE_API_KEY) {
     return "AI summary is unavailable — add a COHERE_API_KEY to enable it.";
   }
@@ -76,22 +76,39 @@ export async function generateAuditSummary(url: string, metrics: any) {
   const seo  = Math.round(metrics.lighthouseResult.categories.seo.score * 100);
   const a11y = Math.round(metrics.lighthouseResult.categories.accessibility.score * 100);
 
-  const prompt = `
-    You are a professional web performance consultant. Write a clear, friendly 3-sentence summary
-    for the following audit of ${url}. Focus on what's working well and the top priority to fix next.
-    Be direct and avoid jargon or sci-fi metaphors.
+  let growthContext = "";
+  if (growth) {
+    growthContext = `
+    Business Growth Matrix:
+    - Composite Growth Score: ${growth.score.total}/100 (${growth.score.status})
+    - LTV:CAC Ratio: ${growth.metrics.ltv_cac}
+    - Burn Multiple: ${growth.metrics.burn_multiple}
+    - Runway: ${growth.metrics.runway} months
+    `;
+  }
 
-    Scores (out of 100):
+  const prompt = `
+    You are a high-level business growth consultant for TurtleLabs. Write a clear, friendly 3-sentence executive summary
+    for the following audit of ${url}. 
+    
+    Incorporate both the Technical Health and the Business Growth Matrix in your synthesis.
+    Focus on the relationship between technical performance and business efficiency.
+    
+    Technical Scores (out of 100):
     - Performance: ${perf}
     - SEO: ${seo}
     - Accessibility: ${a11y}
+
+    ${growthContext}
+
+    Keep it professional, direct, and avoid jargon or sci-fi metaphors.
   `;
 
   try {
     const response = await cohere.chat({
       model: "command-r7b-12-2024",
       message: prompt,
-      maxTokens: 200,
+      maxTokens: 300,
       temperature: 0.4,
     });
     return response.text.trim();
@@ -258,12 +275,12 @@ export async function createPdfReport(url: string, data: any) {
 
         <div class="scores">
           <div class="score-card">
-            <div class="score-num" style="color: ${scoreColor(perf)}">${perf}</div>
-            <div class="score-label">Performance</div>
+            <div class="score-num" style="color: ${scoreColor(metrics?.composite?.total || perf)}">${metrics?.composite?.total || perf}</div>
+            <div class="score-label">Composite Score</div>
           </div>
           <div class="score-card">
-            <div class="score-num" style="color: ${scoreColor(bp)}">${bp}</div>
-            <div class="score-label">Best Practices</div>
+            <div class="score-num" style="color: ${scoreColor(perf)}">${perf}</div>
+            <div class="score-label">Performance</div>
           </div>
           <div class="score-card">
             <div class="score-num" style="color: ${scoreColor(seo)}">${seo}</div>
@@ -276,9 +293,33 @@ export async function createPdfReport(url: string, data: any) {
         </div>
 
         <div class="section">
-          <div class="section-title">Summary</div>
+          <div class="section-title">Executive Summary</div>
           <p class="summary-text">${summary}</p>
         </div>
+
+        ${metrics?.growth ? `
+        <div class="section">
+          <div class="section-title">Growth Matrix Telemetry</div>
+          <div class="metrics-grid">
+            <div class="metric-row">
+              <span class="metric-key">LTV : CAC Ratio</span>
+              <span class="metric-val" style="color: ${metrics.growth.ltv_cac >= 3 ? '#22c55e' : '#f97316'}">${metrics.growth.ltv_cac}x</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">Burn Multiple</span>
+              <span class="metric-val" style="color: ${metrics.growth.burn_multiple <= 1.5 ? '#22c55e' : '#ef4444'}">${metrics.growth.burn_multiple}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">Magic Number</span>
+              <span class="metric-val">${metrics.growth.magic_number}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">Estimated Runway</span>
+              <span class="metric-val" style="color: ${metrics.growth.runway >= 12 ? '#22c55e' : '#f97316'}">${metrics.growth.runway} Months</span>
+            </div>
+          </div>
+        </div>
+        ` : ''}
 
         <div class="section">
           <div class="section-title">Performance Details</div>

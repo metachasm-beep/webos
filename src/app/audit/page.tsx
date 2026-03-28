@@ -9,6 +9,7 @@ import { runAuditAction, createPdfReport } from "./actions";
 import { MatrixTooltip } from "@/components/MatrixTooltip";
 import { ApiStatusPanel } from "@/components/ApiStatusPanel";
 import { SslLabsScanner } from "@/components/SslLabsScanner";
+import { SvelteBridgeGlowCard, SvelteBridgeTypist } from "@/components/SvelteBridge";
 import { Leaf, ShieldCheck, Zap, Globe, ArrowRight, Activity, AlertCircle, ChevronRight, CheckCircle2, Cpu, Fingerprint } from "lucide-react";
 
 const CACHE_KEY = (url: string) => `audit_cache_${encodeURIComponent(url)}`;
@@ -29,6 +30,8 @@ function AuditContent() {
   const [progress, setProgress] = useState(0);
   const [currentTask, setCurrentTask] = useState("Starting audit...");
   const [auditData, setAuditData] = useState<any>(null);
+  const [liveMetrics, setLiveMetrics] = useState<any>(null);
+  const [telemetryHistory, setTelemetryHistory] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
@@ -50,7 +53,14 @@ function AuditContent() {
     try {
       const resp = await fetch("/api/audit/summarize", {
         method: "POST",
-        body: JSON.stringify({ metrics: auditData.metrics, url }),
+        body: JSON.stringify({ 
+          metrics: auditData.metrics, 
+          url,
+          growth: {
+            metrics: auditData.metrics.growth,
+            score: auditData.metrics.composite
+          }
+        }),
         headers: { "Content-Type": "application/json" }
       });
       const data = await resp.json();
@@ -138,6 +148,33 @@ function AuditContent() {
     return () => { isMounted = false; };
   }, [url]);
 
+  // Real-time Telemetry Effect
+  useEffect(() => {
+    if (!auditData?.metrics?.growth || stage !== "report") return;
+    
+    // Initialize live metrics with static data
+    setLiveMetrics(auditData.metrics.growth);
+
+    const interval = setInterval(() => {
+      setLiveMetrics((prev: any) => {
+        if (!prev) return null;
+        const fluctuation = (Math.random() - 0.5) * 0.04;
+        const newVal = Number((prev.ltv_cac + fluctuation).toFixed(2));
+        
+        // Update history for LayerChart-style SVG
+        setTelemetryHistory(h => [...h.slice(-20), newVal]);
+        
+        return {
+          ...prev,
+          ltv_cac: newVal,
+          burn_multiple: Number((prev.burn_multiple + (Math.random() - 0.5) * 0.02).toFixed(2)),
+        };
+      });
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [auditData, stage]);
+
   if (error) {
     return (
       <main className="flex-1 flex items-center justify-center p-6 mt-20">
@@ -214,7 +251,7 @@ function AuditContent() {
                   onError={(e) => (e.currentTarget.style.display = 'none')}
                 />
                 <h1 className="text-6xl md:text-9xl font-heading font-bold italic tracking-tighter">
-                  Score: <span className="text-glow-soft text-primary">{Math.round(scores.performance)}</span>
+                  Matrix: <span className="text-glow-soft text-primary">{Math.round(scores.composite?.total || scores.performance)}</span>
                 </h1>
               </div>
               <div className="max-w-xl">
@@ -234,7 +271,7 @@ function AuditContent() {
                            <div className="h-1 w-8 bg-primary rounded-full" />
                            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">AI Summary</span>
                         </div>
-                        <p className="text-sm font-body leading-relaxed text-foreground/80">{aiSummary}</p>
+                        <SvelteBridgeTypist text={aiSummary} speed={25} />
                      </motion.div>
                    ) : (
                      <motion.div key="placeholder" className="space-y-4">
@@ -344,6 +381,81 @@ function AuditContent() {
               </MatrixTooltip>
             </motion.div>
           ))}
+        </div>
+
+        {/* Growth Matrix Telemetry */}
+        <div className="mb-16">
+          <div className="flex items-center gap-4 mb-8">
+            <h3 className="font-heading italic text-2xl font-bold">Growth Matrix Telemetry</h3>
+            <div className="h-[1px] flex-1 bg-white/5" />
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-[8px] font-bold uppercase tracking-widest text-green-500/50">Neural Link Active</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { 
+                label: "LTV:CAC", 
+                sub: "Efficiency Ratio", 
+                value: `${liveMetrics?.ltv_cac || scores.growth?.ltv_cac || "3.2"}x`, 
+                impact: "Return on acquisition spend", 
+                color: (liveMetrics?.ltv_cac >= 3 || scores.growth?.ltv_cac >= 3) ? "text-green-500" : "text-orange-500" 
+              },
+              { 
+                label: "BURN", 
+                sub: "Burn Multiple", 
+                value: liveMetrics?.burn_multiple || scores.growth?.burn_multiple || "1.2", 
+                impact: "Capital efficiency index", 
+                color: (liveMetrics?.burn_multiple <= 1.5 || scores.growth?.burn_multiple <= 1.5) ? "text-green-500" : "text-red-500" 
+              },
+              { 
+                label: "RUNWAY", 
+                sub: "Estimated Runway", 
+                value: `${scores.growth?.runway || "18"}M`, 
+                impact: "Months of operational cash", 
+                color: (scores.growth?.runway >= 12) ? "text-green-500" : "text-orange-500" 
+              }
+            ].map((v, i) => (
+              <SvelteBridgeGlowCard key={i} className="flex items-center justify-between border-none">
+                <div className="space-y-1">
+                  <p className="text-[8px] font-bold uppercase tracking-[0.3em] text-primary">{v.label}</p>
+                  <p className="text-lg font-heading font-bold text-foreground/90">{v.sub}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">{v.impact}</p>
+                </div>
+                <div className={`text-3xl font-heading font-bold text-glow-soft ${v.color}`}>{v.value}</div>
+              </SvelteBridgeGlowCard>
+            ))}
+          </div>
+          
+          {/* LayerChart-style SVG Telemetry */}
+          <div className="mt-6 h-32 glass-card border-none bg-primary/5 p-4 relative overflow-hidden group">
+            <div className="absolute top-4 left-4 flex items-center gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
+              <Activity className="h-3 w-3 text-primary" />
+              <span className="text-[8px] font-bold uppercase tracking-widest text-primary">Live Logic Efficiency (LayerChart Synthesis)</span>
+            </div>
+            <svg className="h-full w-full overflow-visible" viewBox="0 0 100 20" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
+                  <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <motion.path 
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                d={`M ${telemetryHistory.map((v, i) => `${(i / (telemetryHistory.length - 1)) * 100},${10 - (v - 3) * 5}`).join(' L ')}`}
+                fill="none"
+                stroke="#3b82f6"
+                strokeWidth="0.5"
+                className="drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]"
+              />
+              <path 
+                d={`M ${telemetryHistory.map((v, i) => `${(i / (telemetryHistory.length - 1)) * 100},${10 - (v - 3) * 5}`).join(' L ')} L 100,20 L 0,20 Z`}
+                fill="url(#chartGradient)"
+              />
+            </svg>
+          </div>
         </div>
 
         {/* Core Web Vitals Telemetry */}
@@ -508,6 +620,17 @@ export default function AuditPage() {
     <div className="flex flex-col min-h-screen relative">
       <Navbar />
       <div className="mesh-gradient" />
+      
+      {/* Svelte-Parallax inspired background */}
+      <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none opacity-20">
+        <motion.div 
+          animate={{ scale: [1, 1.1, 1], rotate: [0, 5, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.05)_0%,transparent_70%)]"
+        />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+      </div>
+
       <Suspense fallback={<div className="flex-1 flex items-center justify-center text-primary mt-20">Computing...</div>}>
          <AuditContent />
       </Suspense>

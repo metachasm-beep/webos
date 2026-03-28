@@ -7,7 +7,7 @@ const cohere = new CohereClient({
 
 export async function POST(req: Request) {
   try {
-    const { metrics, url } = await req.json();
+    const { metrics, url, growth } = await req.json();
 
     if (!process.env.COHERE_API_KEY) {
       return NextResponse.json({ 
@@ -15,17 +15,32 @@ export async function POST(req: Request) {
       });
     }
 
-    const prompt = `
-    You are a professional web performance consultant writing a brief audit summary for a client.
-    Write 3 clear, friendly sentences about the following website: ${url}
+    let growthContext = "";
+    if (growth) {
+      growthContext = `
+      Business Growth Matrix:
+      - Composite Growth Score: ${growth.score.total}/100 (${growth.score.status})
+      - LTV:CAC Ratio: ${growth.metrics.ltv_cac}
+      - Burn Multiple: ${growth.metrics.burn_multiple}
+      - Runway: ${growth.metrics.runway} months
+      `;
+    }
 
-    Scores (out of 100):
+    const prompt = `
+    You are a high-level business growth consultant for TurtleLabs. Write a clear, friendly 3-sentence executive summary
+    for the following audit of ${url}. 
+    
+    Incorporate both the Technical Health and the Business Growth Matrix in your synthesis.
+    Focus on the relationship between technical performance and business efficiency.
+
+    Technical Scores (out of 100):
     - Performance: ${metrics.performance}
     - SEO: ${metrics.seo}
     - Accessibility: ${metrics.accessibility}
     - Best Practices: ${metrics.bestPractices}
 
-    Focus on: what's performing well, what needs the most improvement, and one actionable next step.
+    ${growthContext}
+
     Keep it simple, direct, and professional. No jargon or sci-fi terms.
     `;
 

@@ -8,9 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
 import { NeuralBackground } from "@/components/NeuralBackground";
-import { Canvas } from "@react-three/fiber";
-import { NeuralCore } from "@/components/NeuralCore";
 import { ContactForm } from "@/components/ContactForm";
+import LetterGlitch from "@/components/LetterGlitch";
 import { 
   ArrowRight, 
   BarChart3, 
@@ -176,9 +175,23 @@ export default function Home() {
                 className="relative h-[600px] hidden lg:block cursor-grab active:cursor-grabbing"
               >
                 <div className="absolute inset-0 bg-primary/10 blur-[120px] rounded-full animate-pulse" />
-                <Canvas>
-                  <NeuralCore />
-                </Canvas>
+                <div className="w-full h-full rounded-[40px] overflow-hidden border border-white/10 glass-card p-0 bg-black/40 relative">
+                  <div className="absolute inset-0 z-0">
+                    <LetterGlitch 
+                      glitchColors={['#3b82f6', '#22c55e', '#1e40af']}
+                      centerVignette={true}
+                      outerVignette={false}
+                      smooth={true}
+                      glitchSpeed={40}
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
+                  <div className="absolute bottom-8 left-8 right-8 z-20 space-y-2">
+                    <div className="h-1 w-12 bg-primary rounded-full" />
+                    <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/50">Neural Link Active</p>
+                    <h4 className="text-xl font-heading font-bold italic text-white">GROWTH_MATRIX_v2.0</h4>
+                  </div>
+                </div>
               </motion.div>
             </div>
           </div>
