@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     `;
 
     const response = await cohere.chat({
-      model: "command-r-plus",
+      model: "command-r",
       message: systemPrompt,
       maxTokens: 500,
       temperature: 0.6,
