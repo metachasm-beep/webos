@@ -244,13 +244,13 @@ export async function createPdfReport(url: string, data: any) {
           .metrics-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 0;
+            gap: 0 40px;
           }
           .metric-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px solid #f3f4f6;
             font-size: 11px;
           }
