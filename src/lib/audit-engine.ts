@@ -1,4 +1,7 @@
 import { CohereClient } from "cohere-ai";
+import * as cheerio from "cheerio";
+import readability from "text-readability";
+
 
 const cohere = new CohereClient({
   token: process.env.COHERE_API_KEY || "",
@@ -99,7 +102,13 @@ export async function generateAuditSummary(url: string, metrics: any, growth?: a
     - SEO: ${seo}
     - Accessibility: ${a11y}
 
+    Advanced Local Telemetry:
+    - Security Headers Score: ${metrics.security?.headers?.score || 'N/A'}/100
+    - Content Readability: ${metrics.content?.readability?.score || 'N/A'} (Flesch Score), Grade ${metrics.content?.readability?.grade || 'N/A'}
+    - Technology Detected: ${(metrics.tech || []).join(', ') || 'N/A'}
+
     ${growthContext}
+
 
     Keep it professional, direct, and avoid jargon or sci-fi metaphors.
   `;
@@ -150,6 +159,9 @@ export async function createPdfReport(url: string, data: any) {
     const logoUrl = `https://logo.clearbit.com/${getHostnameInner(url)}?size=128`;
     const carbon = data?.carbon;
     const security = data?.security;
+    const content = data?.content;
+    const tech = data?.tech;
+
 
     const html = `
     <!DOCTYPE html>
@@ -377,6 +389,16 @@ export async function createPdfReport(url: string, data: any) {
                 ${security.status === 'Clear' ? 'Verified Safe' : 'Threat Detected'}
               </span>
             </div>
+            ${security.headers ? `
+            <div class="metric-row">
+              <span class="metric-key">Security Headers Score</span>
+              <span class="metric-val" style="color: ${scoreColor(security.headers.score)}">${security.headers.score}/100</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">Server Engine</span>
+              <span class="metric-val">${security.headers.server}</span>
+            </div>
+            ` : ''}
             ${security.threats ? `
             <div class="metric-row">
               <span class="metric-key">Detected Issues</span>
@@ -386,6 +408,42 @@ export async function createPdfReport(url: string, data: any) {
           </div>
         </div>
         ` : ''}
+
+        ${content ? `
+        <div class="section">
+          <div class="section-title">Content Intelligence</div>
+          <div class="metrics-grid">
+            <div class="metric-row">
+              <span class="metric-key">Readability (Flesch)</span>
+              <span class="metric-val">${content.readability.score}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">Grade Level</span>
+              <span class="metric-val">${content.readability.grade}</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">Word Count</span>
+              <span class="metric-val">${content.readability.wordCount} words</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-key">Missing Alt Text</span>
+              <span class="metric-val" style="color: ${content.accessibility.missingAlt > 0 ? '#ef4444' : '#22c55e'}">
+                ${content.accessibility.missingAlt} of ${content.accessibility.totalImgs} images
+              </span>
+            </div>
+          </div>
+        </div>
+        ` : ''}
+
+        ${tech && tech.length > 0 ? `
+        <div class="section">
+          <div class="section-title">Technology Stack</div>
+          <div style="font-size: 11px; color: #374151; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;">
+            ${tech.map((t: string) => `<span style="background: #f3f4f6; padding: 4px 10px; border-radius: 6px; font-weight: 600;">${t}</span>`).join('')}
+          </div>
+        </div>
+        ` : ''}
+
 
         ${carbon ? `
         <div class="section">
@@ -475,4 +533,129 @@ export async function checkSafeBrowsing(url: string) {
 
 function normalizeUrl(url: string) {
   return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+}
+
+export async function runLocalAudit(url: string) {
+  const normalized = normalizeUrl(url);
+  try {
+    const response = await fetch(normalized, { 
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
+      next: { revalidate: 0 } 
+    });
+    
+    if (!response.ok) throw new Error(`Could not fetch site: ${response.statusText}`);
+    
+    const html = await response.text();
+    const headers = response.headers;
+
+    const security = analyzeSecurityHeaders(headers);
+    const content = analyzeHtmlContent(html);
+    const tech = detectTechStack(html, headers);
+
+    return {
+      security,
+      content,
+      tech,
+    };
+  } catch (error: any) {
+    console.error("[local-audit] Failed:", error);
+    return null;
+  }
+}
+
+function analyzeSecurityHeaders(headers: Headers) {
+  const check = (h: string) => headers.has(h.toLowerCase());
+  const get = (h: string) => headers.get(h.toLowerCase()) || "";
+
+  const results = {
+    hsts: check("Strict-Transport-Security"),
+    csp: check("Content-Security-Policy"),
+    xfo: check("X-Frame-Options"),
+    xss: check("X-XSS-Protection"),
+    nosniff: check("X-Content-Type-Options"),
+    referrer: check("Referrer-Policy"),
+    permissions: check("Permissions-Policy"),
+  };
+
+  const score = Object.values(results).filter(Boolean).length * (100 / 7);
+
+  return {
+    score: Math.round(score),
+    details: results,
+    server: get("Server") || "Hidden",
+  };
+}
+
+function analyzeHtmlContent(html: string) {
+  const $ = cheerio.load(html);
+  
+  // SEO Basics
+  const title = $("title").text();
+  const description = $("meta[name='description']").attr("content") || "";
+  const ogTitle = $("meta[property='og:title']").attr("content") || "";
+  const ogImage = $("meta[property='og:image']").attr("content") || "";
+  const canonical = $("link[rel='canonical']").attr("href") || "";
+
+  // Content Analysis
+  // Remove scripts, styles, and other non-text tags for readability
+  $("script, style, noscript, iframe, svg").remove();
+  const bodyText = $("body").text().replace(/\s+/g, " ").trim();
+  
+  let readabilityScore = 0;
+  let gradeLevel = "N/A";
+  
+  if (bodyText.length > 100) {
+    try {
+      readabilityScore = Math.round(readability.fleschReadingEase(bodyText));
+      gradeLevel = readability.fleschKincaidGrade(bodyText).toString();
+    } catch (e) {}
+  }
+
+  return {
+    seo: {
+      title,
+      description,
+      og: { title: ogTitle, image: ogImage },
+      canonical,
+      titleLength: title.length,
+      descLength: description.length,
+    },
+    readability: {
+      score: readabilityScore,
+      grade: gradeLevel,
+      wordCount: bodyText.split(/\s+/).length,
+    },
+    accessibility: {
+      missingAlt: $("img:not([alt])").length,
+      totalImgs: $("img").length,
+    }
+  };
+}
+
+function detectTechStack(html: string, headers: Headers) {
+  const tech = [];
+  const body = html.toLowerCase();
+  const server = headers.get("server")?.toLowerCase() || "";
+  const xpb = headers.get("x-powered-by")?.toLowerCase() || "";
+
+  // CMS
+  if (body.includes("wp-content") || body.includes("wordpress")) tech.push("WordPress");
+  if (body.includes("squarespace")) tech.push("Squarespace");
+  if (body.includes("wix.com")) tech.push("Wix");
+  if (body.includes("shopify")) tech.push("Shopify");
+  if (body.includes("webflow")) tech.push("Webflow");
+
+  // Frameworks/Libs
+  if (body.includes("react") || body.includes("_next")) tech.push("Next.js/React");
+  if (body.includes("vue.js") || body.includes("vuejs")) tech.push("Vue.js");
+  if (body.includes("framer.com")) tech.push("Framer");
+
+  // Servers/Cloud
+  if (server.includes("cloudflare")) tech.push("Cloudflare");
+  if (server.includes("nginx")) tech.push("Nginx");
+  if (server.includes("apache")) tech.push("Apache");
+  if (server.includes("vercel")) tech.push("Vercel");
+  if (xpb.includes("php")) tech.push("PHP");
+
+  return tech;
 }

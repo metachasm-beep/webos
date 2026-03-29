@@ -23,24 +23,27 @@ export async function POST(req: Request) {
     }
 
     const systemPrompt = `
-    [SYSTEM PROTOCOL: NEURAL LANDING PAGE ARCHITECT]
-    [OBJECTIVE: SYNTHESIZE HIGH-CONVERSION LANDING PAGE NODES]
-    [FRAMEWORK: ${framework}]
+    [SYSTEM ROLE: EXPERT BUSINESS WEBSITE BUILDER]
+    [OBJECTIVE: CREATE HIGH-CONVERSION WEBSITE SECTIONS]
+    [STRATEGY: ${framework}]
     [STYLE: ${style}]
 
     CONTEXT:
     - Target Audience: ${targetAudience}
-    - Pain Point: ${painPoint}
-    - Key Benefit: ${keyBenefit}
-    - Input Description: ${prompt}
+    - Input Goal: ${prompt}
 
     COPYWRITING RULES (${framework}):
-    ${framework === "PAS" ? "- Hero H1: Identify the PAIN POINT. Subtext: AGITATE the problem. CTA: The SOLUTION." : ""}
-    ${framework === "AIDA" ? "- ATTENTION-grabbing headline, INTEREST-building facts, DESIRE-building proof, ACTION-oriented CTA." : ""}
-    ${framework === "BAB" ? "- BEFORE state -> AFTER state. Bridge the gap with our product." : ""}
+    ${framework === "PAS" ? "- Headline: Clear Problem statement. Subtext: Why it matters. Button: The Solution." : ""}
+    ${framework === "AIDA" ? "- Headline: Catchy title. Subtext: Interesting facts and benefits. Button: Get Started." : ""}
+    ${framework === "BAB" ? "- Headline: The 'Before' state. Subtext: The 'After' transformation. Button: The Bridge." : ""}
+
+    CONTENT GUIDELINES:
+    - Use clear, professional layman language.
+    - Avoid technical jargon, sci-fi metaphors, or overly complex terms.
+    - Focus on benefits and emotional connection.
 
     DESIGN SYSTEM (${style}):
-    ${style === "dark-saas" ? "- bg: gray-950, accent: blue-500, font: bold italic tracking-tighter" : ""}
+    ${style === "dark-saas" ? "- bg: gray-950, accent: blue-500, font: bold italic" : ""}
     ${style === "clean-minimal" ? "- bg: gray-50, accent: black, font: sans-serif medium" : ""}
 
     OUTPUT SCHEMA (JSON ONLY):
@@ -54,14 +57,10 @@ export async function POST(req: Request) {
         "intensity": 0-100,
         "accentColor": "String (Hex)",
         "layout": "centered" | "split" | "bento"
-      },
-      "copyMetrics": {
-        "frameworkApplied": "${framework}",
-        "formality": 0-100
       }
     }
 
-    STRICT: Response must be raw JSON only. Use premium, high-impact vocabulary.
+    STRICT: Response must be raw JSON only. Use premium, high-impact business vocabulary.
     `;
 
     const response = await cohere.chat({

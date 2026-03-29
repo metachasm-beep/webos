@@ -17,8 +17,13 @@ import {
   Trash2,
   Download,
   RefreshCcw,
-  Wind
+  Wind,
+  Search,
+  BookOpen
 } from "lucide-react";
+
+import { BUSINESS_TEMPLATES, Template } from "@/lib/templates";
+
 
 import { 
   Tooltip, 
@@ -66,6 +71,8 @@ export default function BuilderPage() {
   const [blurValue, setBlurValue] = useState(32);
   const [meshIntensity, setMeshIntensity] = useState(15);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isSynthesizingAsset, setIsSynthesizingAsset] = useState(false);
+  const [synthesizedAsset, setSynthesizedAsset] = useState<any>(null);
 
   const [isMounted, setIsMounted] = useState(false);
 
@@ -115,6 +122,24 @@ export default function BuilderPage() {
     }
   };
 
+  const handleSynthesizeAsset = async () => {
+    if (isSynthesizingAsset) return;
+    setIsSynthesizingAsset(true);
+    try {
+      const resp = await fetch("/api/builder/synthesize-image", {
+        method: "POST",
+        body: JSON.stringify({ prompt: "High-tech abstract visualization for " + prompt, style }),
+        headers: { "Content-Type": "application/json" }
+      });
+      const data = await resp.json();
+      setSynthesizedAsset(data);
+    } catch (e) {
+      console.error("Asset Synthesis Protocol Failure.");
+    } finally {
+      setIsSynthesizingAsset(false);
+    }
+  };
+
   const handleExportJSON = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(nodes, null, 2));
     const downloadAnchorNode = document.createElement('a');
@@ -159,9 +184,10 @@ export default function BuilderPage() {
         {/* Primitives Panel */}
         <aside className="w-80 glass border-r border-white/5 flex flex-col relative z-20 overflow-hidden">
           <div className="p-8 border-b border-white/5 space-y-1">
-            <h2 className="text-xl font-heading font-bold italic tracking-tight">Neural Canvas</h2>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">Node Genesis Protocol</p>
+            <h2 className="text-xl font-heading font-bold italic tracking-tight">Design Board</h2>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">Section Creation Tools</p>
           </div>
+
           
           <div className="flex-1 overflow-y-auto p-6 space-y-8 relative">
             <AnimatePresence mode="wait">
@@ -200,17 +226,74 @@ export default function BuilderPage() {
                    className="space-y-6"
                 >
                   <Button variant="ghost" onClick={() => setActiveTab(null)} className="p-0 h-auto text-[10px] uppercase font-bold tracking-widest gap-2 text-muted-foreground hover:text-white">
-                    <ChevronRight className="h-3 w-3 rotate-180" /> Back to Genesis
+                    <ChevronRight className="h-3 w-3 rotate-180" /> Back to Tools
                   </Button>
-                  <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">Asset Synthesis Lab</h3>
-                  <div className="glass-dark border border-white/5 p-6 rounded-3xl space-y-4">
-                     <div className="h-32 w-full rounded-2xl bg-white/5 flex items-center justify-center border border-dashed border-white/10">
-                        <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
-                     </div>
-                     <p className="text-[10px] text-muted-foreground text-center">Neural image synthesis engine currently initializing...</p>
-                     <Button className="w-full h-10 rounded-xl bg-accent text-black font-bold uppercase tracking-widest text-[9px]">Synthesize Asset</Button>
+                  <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">AI Image Creator</h3>
+                   <div className="glass-dark border border-white/5 p-6 rounded-3xl space-y-4">
+                      <div className="h-32 w-full rounded-2xl bg-white/5 flex items-center justify-center border border-dashed border-white/10 overflow-hidden relative">
+                         {synthesizedAsset ? (
+                            <img src={synthesizedAsset.url} className="w-full h-full object-cover opacity-60" alt="Synthesized" />
+                         ) : (
+                            <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
+                         )}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground text-center">AI image generator {isSynthesizingAsset ? "active..." : "ready."}</p>
+                      <Button 
+                        onClick={handleSynthesizeAsset}
+                        disabled={isSynthesizingAsset || !prompt}
+                        className="w-full h-10 rounded-xl bg-accent text-black font-bold uppercase tracking-widest text-[9px]"
+                      >
+                        {isSynthesizingAsset ? "Generating..." : "Create Image"}
+                      </Button>
+                   </div>
+                </motion.div>
+              ) : activeTab === "templates" ? (
+                <motion.div 
+                   key="templates"
+                   initial={{ x: -20, opacity: 0 }}
+                   animate={{ x: 0, opacity: 1 }}
+                   exit={{ x: -20, opacity: 0 }}
+                   className="space-y-6"
+                >
+                  <Button variant="ghost" onClick={() => setActiveTab(null)} className="p-0 h-auto text-[10px] uppercase font-bold tracking-widest gap-2 text-muted-foreground hover:text-white">
+                    <ChevronRight className="h-3 w-3 rotate-180" /> Back to Tools
+                  </Button>
+                  <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">Template Library</h3>
+                  
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                    <input 
+                      type="text" 
+                      placeholder="Search 50+ business templates..." 
+                      className="w-full bg-white/5 border border-white/10 rounded-xl pl-8 pr-4 py-2 text-[10px] outline-none"
+                      onChange={(e) => {
+                        // Internal filter logic could go here
+                      }}
+                    />
+                  </div>
+
+                  <div className="space-y-2 h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                    {BUSINESS_TEMPLATES.map((tmpl) => (
+                      <div 
+                        key={tmpl.id}
+                        onClick={() => {
+                          setPrompt(tmpl.prompt);
+                          setStyle(tmpl.style);
+                          setFramework(tmpl.framework);
+                          setActiveTab(null);
+                        }}
+                        className="p-4 rounded-2xl border border-white/5 bg-white/5 hover:bg-primary/10 hover:border-primary/30 transition-all cursor-pointer group"
+                      >
+                        <div className="flex justify-between items-start mb-1">
+                          <div className="text-xs font-bold group-hover:text-primary transition-colors">{tmpl.name}</div>
+                          <span className="text-[8px] bg-white/5 px-2 py-0.5 rounded-full text-muted-foreground uppercase">{tmpl.category}</span>
+                        </div>
+                        <p className="text-[9px] text-muted-foreground leading-relaxed">{tmpl.description}</p>
+                      </div>
+                    ))}
                   </div>
                 </motion.div>
+
               ) : (
                 <motion.div 
                    key="main"
@@ -219,13 +302,14 @@ export default function BuilderPage() {
                    exit={{ opacity: 0 }}
                    className="space-y-8"
                 >
-                  <div className="space-y-4">
-                    <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">Synthesis Agents</h3>
+                   <div className="space-y-4">
+                    <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">Design Tools</h3>
                     <div className="space-y-2">
                       {[
-                        { icon: Sparkles, label: "AI Generator", desc: "Synthesize section via natural language", tooltip: "Access advanced LLM parameters", id: "generator" },
-                        { icon: Type, label: "Typography", desc: "Global font matrix control", tooltip: "Pair distinctive headings with body fonts", id: "typography" },
-                        { icon: ImageIcon, label: "Asset Lab", desc: "Neural image generation", tooltip: "Synthesize custom high-res assets", id: "asset-lab" }
+                        { icon: BookOpen, label: "Business Templates", desc: "Choose from 50+ industries", tooltip: "Quickly start with a pre-made business goal", id: "templates" },
+                        { icon: Sparkles, label: "AI Generator", desc: "Create section with a description", tooltip: "Describe what you want to build", id: "generator" },
+                        { icon: Type, label: "Font Settings", desc: "Change website typography", tooltip: "Pick beautiful font pairings", id: "typography" },
+                        { icon: ImageIcon, label: "AI Image Creator", desc: "Generate custom website images", tooltip: "Create high-quality assets with AI", id: "asset-lab" }
                       ].map((item, i) => (
                         <ActionTooltip key={i} label={item.tooltip}>
                           <div 
@@ -245,65 +329,67 @@ export default function BuilderPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-4 pb-20">
-                    <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">Genesis Protocol</h3>
+
+                   <div className="space-y-4 pb-20">
+                    <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">Add New Section</h3>
                     <form onSubmit={handleGenerate} className="space-y-3">
                       <textarea 
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
-                        placeholder="Describe your enterprise node (e.g., 'Cloud Security for Fintech')..."
+                        placeholder="Describe your website goal (e.g., 'A modern law firm' or 'A cozy cafe')..."
                         className="w-full h-32 glass-dark border border-white/10 rounded-2xl p-4 text-xs font-body focus:border-primary/50 outline-none transition-colors"
                       />
 
                       <div className="grid grid-cols-2 gap-2">
                         <div className="space-y-1">
-                          <label className="text-[8px] font-bold text-muted-foreground uppercase px-2">Framework</label>
+                          <label className="text-[8px] font-bold text-muted-foreground uppercase px-2">Sales Strategy</label>
                           <select 
                             value={framework} 
                             onChange={(e) => setFramework(e.target.value)}
                             className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] outline-none"
                           >
-                            <option value="PAS">PAS (Problem)</option>
-                            <option value="AIDA">AIDA (Sales)</option>
-                            <option value="BAB">BAB (Bridge)</option>
+                            <option value="PAS">Problem/Solution</option>
+                            <option value="AIDA">Attention/Sales</option>
+                            <option value="BAB">Bridge/Outcome</option>
                           </select>
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[8px] font-bold text-muted-foreground uppercase px-2">Style</label>
+                          <label className="text-[8px] font-bold text-muted-foreground uppercase px-2">Page Look</label>
                           <select 
                             value={style} 
                             onChange={(e) => setStyle(e.target.value)}
                             className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] outline-none"
                           >
-                            <option value="dark-saas">Dark SaaS</option>
-                            <option value="clean-minimal">Minimal</option>
+                            <option value="dark-saas">Dark Modern</option>
+                            <option value="clean-minimal">Clean Minimal</option>
                           </select>
                         </div>
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[8px] font-bold text-muted-foreground uppercase px-2">Audience Intelligence</label>
+                        <label className="text-[8px] font-bold text-muted-foreground uppercase px-2">Who is this for?</label>
                         <input 
                           type="text"
                           value={targetAudience}
                           onChange={(e) => setTargetAudience(e.target.value)}
-                          placeholder="e.g., CTOs, Growth Marketers"
+                          placeholder="e.g., Small business owners, CTOs"
                           className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] outline-none"
                         />
                       </div>
 
-                      <ActionTooltip label="Trigger neural synthesis of the landing page component">
+                      <ActionTooltip label="Build your website section using AI">
                         <Button 
                           type="submit" 
                           disabled={isGenerating}
                           className="w-full rounded-xl bg-primary text-white text-[10px] font-bold uppercase tracking-widest h-12 shadow-2xl shadow-primary/20"
                         >
-                          {isGenerating ? "Synthesizing..." : "Initialize Genesis"}
+                          {isGenerating ? "Building..." : "Generate Section"}
                           <Sparkles className="ml-2 h-4 w-4" />
                         </Button>
                       </ActionTooltip>
                     </form>
                   </div>
+
                 </motion.div>
               )}
             </AnimatePresence>
@@ -361,8 +447,8 @@ export default function BuilderPage() {
                       <Plus className="h-8 w-8 text-muted-foreground/30" />
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-2xl font-heading font-bold italic">Canvas Empty</h3>
-                      <p className="text-muted-foreground text-sm max-w-xs mx-auto">Initialize the Genesis Protocol to synthesize high-conversion nodes.</p>
+                      <h3 className="text-2xl font-heading font-bold italic">Design Board Empty</h3>
+                      <p className="text-muted-foreground text-sm max-w-xs mx-auto">Choose a template or describe a section to start building your website.</p>
                     </div>
                   </motion.div>
                 ) : (
@@ -401,12 +487,12 @@ export default function BuilderPage() {
         {/* Global Config Panel */}
         <aside className="w-80 glass border-l border-white/5 p-8 space-y-12 relative z-20">
           <div className="space-y-4">
-            <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Matrix Config</h3>
+            <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Appearance</h3>
             <div className="space-y-6">
               {[
-                { label: "Backdrop Blur", value: `${blurValue}px`, percent: blurValue / 64 * 100, onChange: setBlurValue, max: 64 },
-                { label: "Mesh Intensity", value: `${meshIntensity}%`, percent: meshIntensity, onChange: setMeshIntensity, max: 100 },
-                { label: "Chroma Shift", value: "None", percent: 0, onChange: () => {}, max: 100 }
+                { label: "Background Blur", value: `${blurValue}px`, percent: blurValue / 64 * 100, onChange: setBlurValue, max: 64 },
+                { label: "Gradient Strength", value: `${meshIntensity}%`, percent: meshIntensity, onChange: setMeshIntensity, max: 100 },
+                { label: "Color Shift", value: "None", percent: 0, onChange: () => {}, max: 100 }
               ].map((config, i) => (
                 <div key={i} className="space-y-3">
                   <div className="flex justify-between text-[11px] font-bold font-body">
@@ -441,14 +527,14 @@ export default function BuilderPage() {
                    <Sparkles className="h-5 w-5 text-accent" />
                    <span className="text-xs font-bold uppercase tracking-widest italic text-accent">AI Suggestions</span>
                 </div>
-                <p className="text-[10px] text-muted-foreground leading-relaxed">Consider increasing contrast on your CTA node for higher conversion synaptic flow.</p>
-                <ActionTooltip label="Automatically apply this optimization to the active node">
+                <p className="text-[10px] text-muted-foreground leading-relaxed">Try increasing the contrast on your main button to help it stand out!</p>
+                <ActionTooltip label="Automatically improve this section">
                   <Button 
                     variant="ghost" 
                     onClick={handleApplyHeuristic}
                     className="w-full text-[10px] font-bold uppercase tracking-widest text-accent hover:bg-accent/5 p-0 text-left justify-start gap-3 mt-2"
                   >
-                    Apply Heuristic <ChevronRight className="h-3 w-3" />
+                    Optimize Design <ChevronRight className="h-3 w-3" />
                   </Button>
                 </ActionTooltip>
              </div>
@@ -462,7 +548,7 @@ export default function BuilderPage() {
                  className="w-full h-12 rounded-2xl gap-3 text-[10px] bg-red-500/10 text-red-500 hover:bg-red-500/20 border-white/5 border shadow-none font-bold uppercase tracking-widest"
                >
                   <Wind className="h-4 w-4" />
-                  Flush Sequence
+                  Reset Designer
                </Button>
              </ActionTooltip>
           </div>

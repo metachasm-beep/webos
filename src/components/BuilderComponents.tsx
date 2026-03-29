@@ -25,7 +25,8 @@ export function HeroNode({ node }: NodeProps) {
       <div className="relative z-10 max-w-2xl space-y-8">
         <div className="flex items-center gap-3">
           <div className="h-[2px] w-12 bg-primary" />
-          <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Genesis Node / {node.copyMetrics?.frameworkApplied}</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Section / {node.copyMetrics?.frameworkApplied || 'Standard'}</span>
+
         </div>
         
         <h1 className="text-6xl md:text-7xl font-heading font-bold italic tracking-tighter leading-[0.9]">
@@ -65,8 +66,9 @@ export function FeaturesNode({ node }: NodeProps) {
             <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
               <Zap className="h-6 w-6" />
             </div>
-            <h4 className="text-xl font-bold italic font-heading">Sub-Protocol 0{i}</h4>
-            <p className="text-xs text-muted-foreground leading-relaxed">Advanced neural optimization for high-conversion synaptic flow.</p>
+            <h4 className="text-xl font-bold italic font-heading">Feature 0{i}</h4>
+            <p className="text-xs text-muted-foreground leading-relaxed">High-performance optimization for your business growth.</p>
+
           </div>
         ))}
       </div>
@@ -91,13 +93,15 @@ export function PricingNode({ node }: NodeProps) {
               {[1, 2, 3, 4].map((f) => (
                 <li key={f} className="flex items-center gap-3 text-xs text-muted-foreground">
                   <CheckCircle2 className="h-4 w-4 text-primary" />
-                  Synaptic Feature {f}
+                  Key Highlight {f}
+
                 </li>
               ))}
             </ul>
           </div>
           <Button className={`w-full h-12 rounded-xl mt-12 font-bold uppercase tracking-widest text-[9px] ${i === 1 ? 'bg-primary' : 'bg-white/5 hover:bg-white/10'}`}>
-            Select Protocol
+            Get Started
+
           </Button>
         </div>
       ))}

@@ -1,4 +1,6 @@
-import { fetchPageSpeedData, generateAuditSummary } from "@/lib/audit-engine";
+import { fetchPageSpeedData, generateAuditSummary, fetchCarbonMetrics, checkSafeBrowsing, runLocalAudit } from "@/lib/audit-engine";
+
+import { calculateGrowthMetrics, calculateCompositeScore } from "@/lib/matrix-engine";
 
 interface Props {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -20,18 +22,44 @@ export default async function ReportView({ searchParams }: Props) {
 
   let metrics: any = null;
   let summary = "";
-  let scores = { performance: 0, seo: 0, accessibility: 0 };
+  let scores = { performance: 0, seo: 0, accessibility: 0, bestPractices: 0, composite: 0 };
   let audits: any = {};
 
   try {
     metrics = await fetchPageSpeedData(url);
-    summary = await generateAuditSummary(url, metrics);
-    scores = {
+    const [carbon, security, local] = await Promise.all([
+      fetchCarbonMetrics(url),
+      checkSafeBrowsing(url),
+      runLocalAudit(url)
+    ]);
+
+    
+    const growth = calculateGrowthMetrics(url);
+    const techScores = {
       performance: Math.round(metrics.lighthouseResult.categories.performance.score * 100),
       seo: Math.round(metrics.lighthouseResult.categories.seo.score * 100),
       accessibility: Math.round(metrics.lighthouseResult.categories.accessibility.score * 100),
+      bestPractices: Math.round(metrics.lighthouseResult.categories["best-practices"].score * 100),
     };
-    audits = metrics.lighthouseResult.audits || {};
+    
+    const composite = calculateCompositeScore(growth, techScores);
+    summary = await generateAuditSummary(url, metrics, { metrics: growth, score: composite });
+    
+    scores = {
+      ...techScores,
+      composite: composite.total,
+    } as any;
+    
+    audits = {
+        ...metrics.lighthouseResult.audits,
+        growth,
+        composite,
+        carbon,
+        security: { ...security, headers: local?.security },
+        content: local?.content,
+        tech: local?.tech
+     };
+
   } catch (e) {
     return (
       <div style={{ padding: "4rem", textAlign: "center", fontFamily: "sans-serif" }}>
@@ -72,7 +100,7 @@ export default async function ReportView({ searchParams }: Props) {
           .meta strong { display: block; color: #374151; font-size: 11px; margin-bottom: 4px; }
           .scores {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 20px;
             margin-bottom: 40px;
           }
@@ -155,20 +183,21 @@ export default async function ReportView({ searchParams }: Props) {
         </div>
 
         {/* Scores */}
-        <div className="scores">
-          {[
-            { label: "Performance", score: scores.performance },
-            { label: "SEO", score: scores.seo },
-            { label: "Accessibility", score: scores.accessibility },
-          ].map((item) => (
-            <div className="score-card" key={item.label}>
-              <div className="score-num" style={{ color: scoreColor(item.score) }}>
-                {item.score}
-              </div>
-              <div className="score-label">{item.label}</div>
-            </div>
-          ))}
-        </div>
+         <div className="scores">
+           {[
+             { label: "Composite", score: scores.composite },
+             { label: "Performance", score: scores.performance },
+             { label: "SEO", score: scores.seo },
+             { label: "Accessibility", score: scores.accessibility },
+           ].map((item) => (
+             <div className="score-card" key={item.label}>
+               <div className="score-num" style={{ color: scoreColor(item.score) }}>
+                 {item.score}
+               </div>
+               <div className="score-label">{item.label}</div>
+             </div>
+           ))}
+         </div>
 
         {/* AI Summary */}
         <div className="section">
@@ -176,27 +205,110 @@ export default async function ReportView({ searchParams }: Props) {
           <p className="summary-text">{summary}</p>
         </div>
 
-        {/* Core Web Vitals */}
-        <div className="section">
-          <div className="section-title">Performance Details</div>
-          <div className="metrics-grid">
-            {[
-              { key: "First Contentful Paint", val: audits["first-contentful-paint"]?.displayValue },
-              { key: "Time to Interactive", val: audits["interactive"]?.displayValue },
-              { key: "Speed Index", val: audits["speed-index"]?.displayValue },
-              { key: "Total Blocking Time", val: audits["total-blocking-time"]?.displayValue },
-              { key: "Largest Contentful Paint", val: audits["largest-contentful-paint"]?.displayValue },
-              { key: "Cumulative Layout Shift", val: audits["cumulative-layout-shift"]?.displayValue },
-            ]
-              .filter((m) => m.val)
-              .map((m) => (
-                <div className="metric-row" key={m.key}>
-                  <span className="metric-key">{m.key}</span>
-                  <span className="metric-val">{m.val}</span>
-                </div>
-              ))}
+         {/* Growth Matrix */}
+         <div className="section">
+           <div className="section-title">Growth Matrix Telemetry</div>
+           <div className="metrics-grid">
+             <div className="metric-row">
+               <span className="metric-key">LTV : CAC Ratio</span>
+               <span className="metric-val">{audits.growth.ltv_cac}x</span>
+             </div>
+             <div className="metric-row">
+               <span className="metric-key">Burn Multiple</span>
+               <span className="metric-val">{audits.growth.burn_multiple}</span>
+             </div>
+             <div className="metric-row">
+               <span className="metric-key">Magic Number</span>
+               <span className="metric-val">{audits.growth.magic_number}</span>
+             </div>
+             <div className="metric-row">
+               <span className="metric-key">Estimated Runway</span>
+               <span className="metric-val">{audits.growth.runway} Months</span>
+             </div>
+           </div>
+         </div>
+
+          {/* Energy & Security */}
+          <div className="section">
+            <div className="section-title">Synaptic Integrity & Impact</div>
+            <div className="metrics-grid">
+              <div className="metric-row">
+                 <span className="metric-key">Carbon Footprint</span>
+                 <span className="metric-val">{audits.carbon?.green ? "A+ Sustainable" : "Standard"}</span>
+              </div>
+              <div className="metric-row">
+                 <span className="metric-key">Security Protocol</span>
+                 <span className="metric-val">{audits.security?.status === 'Clear' ? "Verified Safe" : "Risk Detected"}</span>
+              </div>
+              {audits.security?.headers && (
+                <>
+                  <div className="metric-row">
+                    <span className="metric-key">Security Headers</span>
+                    <span className="metric-val" style={{ color: scoreColor(audits.security.headers.score) }}>
+                      {audits.security.headers.score}/100
+                    </span>
+                  </div>
+                  <div className="metric-row">
+                    <span className="metric-key">Server Engine</span>
+                    <span className="metric-val">{audits.security.headers.server}</span>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </div>
+
+          {/* Content & Tech */}
+          {audits.content && (
+            <div className="section">
+              <div className="section-title">Content Intelligence</div>
+              <div className="metrics-grid">
+                <div className="metric-row">
+                  <span className="metric-key">Readability (Flesch)</span>
+                  <span className="metric-val">{audits.content.readability.score}</span>
+                </div>
+                <div className="metric-row">
+                  <span className="metric-key">Grade Level</span>
+                  <span className="metric-val">{audits.content.readability.grade}</span>
+                </div>
+                <div className="metric-row">
+                  <span className="metric-key">Word Count</span>
+                  <span className="metric-val">{audits.content.readability.wordCount} words</span>
+                </div>
+                <div className="metric-row">
+                  <span className="metric-key">Accessibility (Alt)</span>
+                  <span className="metric-val" style={{ color: audits.content.accessibility.missingAlt > 0 ? '#ef4444' : '#22c55e' }}>
+                    {audits.content.accessibility.missingAlt} issues
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {audits.tech && audits.tech.length > 0 && (
+            <div className="section">
+              <div className="section-title">Technology Stack</div>
+              <div style={{ fontSize: "11px", color: "#374151", display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "10px" }}>
+                {audits.tech.map((t: string) => (
+                  <span key={t} style={{ background: "#f3f4f6", padding: "4px 10px", borderRadius: "6px", fontWeight: "600" }}>
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+         {/* Growth Strategy */}
+         <div className="section">
+           <div className="section-title">Growth Strategy (AI Insights)</div>
+           <div className="summary-text" style={{ fontStyle: "italic", borderLeft: "2px solid #3b82f6", paddingLeft: "1.5rem", marginTop: "1rem" }}>
+             Based on your composite score of {scores.composite}, we recommend:
+             <ul style={{ marginTop: "1rem" }}>
+               <li style={{ marginBottom: "0.5rem" }}><strong>Technical:</strong> {scores.performance < 90 ? "Prioritize LCP and script execution optimization to bridge the performance gap." : "Maintain current performance standards; monitor Core Web Vitals for regressions."}</li>
+               <li style={{ marginBottom: "0.5rem" }}><strong>Growth:</strong> {audits.growth.ltv_cac < 3 ? "Optimize CAC through improved organic SEO and high-intent landing page nodes." : "Healthy LTV:CAC detected. Focus on virality (K-factor) to accelerate distribution."}</li>
+               <li style={{ marginBottom: "0.5rem" }}><strong>Impact:</strong> {audits.carbon?.green ? "Leverage your 'Green Site' status in marketing to appeal to eco-conscious segments." : "Consider edge-caching and asset compression to lower environmental impact and improve speed."}</li>
+             </ul>
+           </div>
+         </div>
 
         {/* Footer */}
         <div className="footer">Generated by TurtleLabs · turtlelabs.co</div>

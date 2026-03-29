@@ -108,6 +108,15 @@
   .text-glow-soft {
     text-shadow: 0 0 30px oklch(var(--primary) / 0.3);
   }
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
 }
 
 @keyframes mesh-float {

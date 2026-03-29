@@ -1,15 +1,18 @@
 "use server";
 
-import { fetchPageSpeedData, generateAuditSummary, createPdfReport as createPdfReportEngine, fetchCarbonMetrics, checkSafeBrowsing } from "@/lib/audit-engine";
+import { fetchPageSpeedData, generateAuditSummary, createPdfReport as createPdfReportEngine, fetchCarbonMetrics, checkSafeBrowsing, runLocalAudit } from "@/lib/audit-engine";
+
 import { calculateGrowthMetrics, calculateCompositeScore } from "@/lib/matrix-engine";
 
 export async function runAuditAction(url: string) {
   try {
     const data = await fetchPageSpeedData(url);
-    const [carbonData, securityData] = await Promise.all([
+    const [carbonData, securityData, localData] = await Promise.all([
       fetchCarbonMetrics(url),
-      checkSafeBrowsing(url)
+      checkSafeBrowsing(url),
+      runLocalAudit(url)
     ]);
+
 
     // Integrate Growth Matrix Logic
     const growthMetrics = calculateGrowthMetrics(url);
@@ -35,8 +38,14 @@ export async function runAuditAction(url: string) {
       },
       summary: summaryData,
       carbon: carbonData,
-      security: securityData,
+      security: {
+        ...securityData,
+        headers: localData?.security
+      },
+      content: localData?.content,
+      tech: localData?.tech,
     };
+
   } catch (error: any) {
     console.error("Audit failed:", error);
     return {
