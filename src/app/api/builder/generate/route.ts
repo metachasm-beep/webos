@@ -39,7 +39,6 @@ export async function POST(req: Request) {
 
     CONTENT GUIDELINES:
     - Use clear, professional layman language.
-    - Avoid technical jargon, sci-fi metaphors, or overly complex terms.
     - Focus on benefits and emotional connection.
 
     DESIGN SYSTEM (${style}):
@@ -48,7 +47,7 @@ export async function POST(req: Request) {
 
     OUTPUT SCHEMA (JSON ONLY):
     {
-      "type": "hero" | "features" | "pricing" | "cta",
+      "type": "hero" | "features" | "pricing" | "cta" | "lead-magnet" | "service" | "testimonial",
       "heading": "String",
       "subheading": "String",
       "ctaText": "String",
@@ -57,7 +56,12 @@ export async function POST(req: Request) {
         "intensity": 0-100,
         "accentColor": "String (Hex)",
         "layout": "centered" | "split" | "bento"
-      }
+      },
+      "services": [ { "icon": "Globe" | "Zap" | "ShieldCheck" | "Users", "title": "String", "text": "String" } ],
+      "tiers": [ { "name": "String", "price": "String", "features": ["String"], "popular": Boolean } ],
+      "quote": "String",
+      "author": "String",
+      "role": "String"
     }
 
     STRICT: Response must be raw JSON only. Use premium, high-impact business vocabulary.

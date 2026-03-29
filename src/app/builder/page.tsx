@@ -20,7 +20,11 @@ import {
   RefreshCcw,
   Wind,
   Search,
-  BookOpen
+  BookOpen,
+  Quote,
+  CheckCircle2,
+  DollarSign,
+  Briefcase
 } from "lucide-react";
 import Squares from "@/components/reactbits/Squares";
 import ShinyText from "@/components/reactbits/ShinyText";
@@ -59,6 +63,7 @@ export default function BuilderPage() {
   const [targetAudience, setTargetAudience] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [nodes, setNodes] = useState<any[]>([]);
+  const [selectedNodeIndex, setSelectedNodeIndex] = useState<number | null>(null);
 
   // Typography Lab State
   const [activePairing, setActivePairing] = useState("classic");
@@ -345,7 +350,10 @@ export default function BuilderPage() {
                         {[
                           { name: "Hero Deep", type: "hero", icon: Layout },
                           { name: "Features Grid", type: "features", icon: Layers },
-                          { name: "Pricing Table", type: "pricing", icon: Sparkles },
+                          { name: "Pricing Table", type: "pricing", icon: DollarSign },
+                          { name: "Service Grid", type: "service", icon: Briefcase },
+                          { name: "Testimonial", type: "testimonial", icon: Quote },
+                          { name: "Lead Magnet", type: "lead-magnet", icon: Sparkles },
                           { name: "CTA Block", type: "cta", icon: MousePointer2 },
                         ].map((mod, i) => (
                           <div 
@@ -361,10 +369,10 @@ export default function BuilderPage() {
                               setNodes([dummyNode, ...nodes]);
                               setActiveTab(null);
                             }}
-                            className="p-4 rounded-2xl border border-white/5 bg-white/5 hover:bg-primary/10 hover:border-primary/30 transition-all cursor-pointer text-center space-y-2 group"
+                            className="p-3 rounded-2xl border border-white/5 bg-white/5 hover:bg-primary/10 hover:border-primary/30 transition-all cursor-pointer text-center space-y-2 group"
                           >
                             <mod.icon className="h-5 w-5 mx-auto text-muted-foreground group-hover:text-primary transition-colors" />
-                            <div className="text-[10px] font-bold uppercase tracking-widest">{mod.name}</div>
+                            <div className="text-[9px] font-bold uppercase tracking-widest leading-tight">{mod.name}</div>
                           </div>
                         ))}
                       </div>
@@ -382,93 +390,161 @@ export default function BuilderPage() {
                    exit={{ opacity: 0 }}
                    className="space-y-8"
                 >
-                   <div className="space-y-4">
-                    <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">Design Tools</h3>
-                    <div className="space-y-2">
-                      {[
-                        { icon: BookOpen, label: "Business Templates", desc: "Choose from 50+ industries", tooltip: "Quickly start with a pre-made business goal", id: "templates" },
-                        { icon: Sparkles, label: "AI Generator", desc: "Create section with a description", tooltip: "Describe what you want to build", id: "generator" },
-                        { icon: Type, label: "Font Settings", desc: "Change website typography", tooltip: "Pick beautiful font pairings", id: "typography" },
-                        { icon: ImageIcon, label: "AI Image Creator", desc: "Generate custom website images", tooltip: "Create high-quality assets with AI", id: "asset-lab" }
-                      ].map((item, i) => (
-                        <ActionTooltip key={i} label={item.tooltip}>
-                          <div 
-                            onClick={() => setActiveTab(item.id)}
-                            className="glass-dark border border-white/5 p-4 rounded-2xl flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-all group"
-                          >
-                            <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
-                              <item.icon className="h-5 w-5" />
+                   {selectedNodeIndex !== null ? (
+                     <motion.div 
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="space-y-6"
+                     >
+                        <Button variant="ghost" onClick={() => setSelectedNodeIndex(null)} className="p-0 h-auto text-[10px] uppercase font-bold tracking-widest gap-2 text-muted-foreground hover:text-white">
+                          <ChevronRight className="h-3 w-3 rotate-180" /> Back to Tools
+                        </Button>
+                        <div className="space-y-1">
+                          <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">Node Inspector</h3>
+                          <p className="text-[9px] text-muted-foreground uppercase tracking-widest">Editing: {nodes[selectedNodeIndex]?.type}</p>
+                        </div>
+
+                        <div className="space-y-4">
+                           <div className="space-y-2">
+                              <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block px-1">Heading</label>
+                              <input 
+                                type="text"
+                                value={nodes[selectedNodeIndex]?.heading || ""}
+                                onChange={(e) => {
+                                  const newNodes = [...nodes];
+                                  newNodes[selectedNodeIndex].heading = e.target.value;
+                                  setNodes(newNodes);
+                                }}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary/50"
+                              />
+                           </div>
+                           <div className="space-y-2">
+                              <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block px-1">Subheading</label>
+                              <textarea 
+                                value={nodes[selectedNodeIndex]?.subheading || ""}
+                                onChange={(e) => {
+                                  const newNodes = [...nodes];
+                                  newNodes[selectedNodeIndex].subheading = e.target.value;
+                                  setNodes(newNodes);
+                                }}
+                                className="w-full h-24 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary/50"
+                              />
+                           </div>
+                           <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-2">
+                                <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block px-1">Accent</label>
+                                <input 
+                                  type="color"
+                                  value={nodes[selectedNodeIndex]?.visualData?.accentColor || "#3b82f6"}
+                                  onChange={(e) => {
+                                    const newNodes = [...nodes];
+                                    if (!newNodes[selectedNodeIndex].visualData) newNodes[selectedNodeIndex].visualData = {};
+                                    newNodes[selectedNodeIndex].visualData.accentColor = e.target.value;
+                                    setNodes(newNodes);
+                                  }}
+                                  className="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-2 py-1 outline-none cursor-pointer"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block px-1">Refine AI</label>
+                                <Button className="w-full h-10 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 p-0">
+                                   <Sparkles className="h-4 w-4" />
+                                </Button>
+                              </div>
+                           </div>
+                        </div>
+                     </motion.div>
+                   ) : (
+                     <>
+                      <div className="space-y-4">
+                        <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">Design Tools</h3>
+                        <div className="space-y-2">
+                          {[
+                            { icon: BookOpen, label: "Business Templates", desc: "Choose from 50+ industries", tooltip: "Quickly start with a pre-made business goal", id: "templates" },
+                            { icon: Sparkles, label: "AI Generator", desc: "Create section with a description", tooltip: "Describe what you want to build", id: "generator" },
+                            { icon: Type, label: "Font Settings", desc: "Change website typography", tooltip: "Pick beautiful font pairings", id: "typography" },
+                            { icon: ImageIcon, label: "AI Image Creator", desc: "Generate custom website images", tooltip: "Create high-quality assets with AI", id: "asset-lab" }
+                          ].map((item, i) => (
+                            <ActionTooltip key={i} label={item.tooltip}>
+                              <div 
+                                onClick={() => setActiveTab(item.id)}
+                                className="glass-dark border border-white/5 p-4 rounded-2xl flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-all group"
+                              >
+                                <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
+                                  <item.icon className="h-5 w-5" />
+                                </div>
+                                <div>
+                                  <div className="text-xs font-bold">{item.label}</div>
+                                  <div className="text-[9px] text-muted-foreground mt-0.5">{item.desc}</div>
+                                </div>
+                              </div>
+                            </ActionTooltip>
+                          ))}
+                        </div>
+                      </div>
+
+
+                       <div className="space-y-4 pb-20">
+                        <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">Add New Section</h3>
+                        <form onSubmit={handleGenerate} className="space-y-3">
+                          <textarea 
+                            value={prompt}
+                            onChange={(e) => setPrompt(e.target.value)}
+                            placeholder="Describe your website goal (e.g., 'A modern law firm' or 'A cozy cafe')..."
+                            className="w-full h-32 glass-dark border border-white/10 rounded-2xl p-4 text-xs font-body focus:border-primary/50 outline-none transition-colors"
+                          />
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                              <label className="text-[8px] font-bold text-muted-foreground uppercase px-2">Sales Strategy</label>
+                              <select 
+                                value={framework} 
+                                onChange={(e) => setFramework(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] outline-none"
+                              >
+                                <option value="PAS">Problem/Solution</option>
+                                <option value="AIDA">Attention/Sales</option>
+                                <option value="BAB">Bridge/Outcome</option>
+                              </select>
                             </div>
-                            <div>
-                              <div className="text-xs font-bold">{item.label}</div>
-                              <div className="text-[9px] text-muted-foreground mt-0.5">{item.desc}</div>
+                            <div className="space-y-1">
+                              <label className="text-[8px] font-bold text-muted-foreground uppercase px-2">Page Look</label>
+                              <select 
+                                value={style} 
+                                onChange={(e) => setStyle(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] outline-none"
+                              >
+                                <option value="dark-saas">Dark Modern</option>
+                                <option value="clean-minimal">Clean Minimal</option>
+                              </select>
                             </div>
                           </div>
-                        </ActionTooltip>
-                      ))}
-                    </div>
-                  </div>
 
+                          <div className="space-y-1">
+                            <label className="text-[8px] font-bold text-muted-foreground uppercase px-2">Who is this for?</label>
+                            <input 
+                              type="text"
+                              value={targetAudience}
+                              onChange={(e) => setTargetAudience(e.target.value)}
+                              placeholder="e.g., Small business owners, CTOs"
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] outline-none"
+                            />
+                          </div>
 
-                   <div className="space-y-4 pb-20">
-                    <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">Add New Section</h3>
-                    <form onSubmit={handleGenerate} className="space-y-3">
-                      <textarea 
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        placeholder="Describe your website goal (e.g., 'A modern law firm' or 'A cozy cafe')..."
-                        className="w-full h-32 glass-dark border border-white/10 rounded-2xl p-4 text-xs font-body focus:border-primary/50 outline-none transition-colors"
-                      />
-
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="space-y-1">
-                          <label className="text-[8px] font-bold text-muted-foreground uppercase px-2">Sales Strategy</label>
-                          <select 
-                            value={framework} 
-                            onChange={(e) => setFramework(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] outline-none"
-                          >
-                            <option value="PAS">Problem/Solution</option>
-                            <option value="AIDA">Attention/Sales</option>
-                            <option value="BAB">Bridge/Outcome</option>
-                          </select>
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[8px] font-bold text-muted-foreground uppercase px-2">Page Look</label>
-                          <select 
-                            value={style} 
-                            onChange={(e) => setStyle(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] outline-none"
-                          >
-                            <option value="dark-saas">Dark Modern</option>
-                            <option value="clean-minimal">Clean Minimal</option>
-                          </select>
-                        </div>
+                          <ActionTooltip label="Build your website section using AI">
+                            <Button 
+                              type="submit" 
+                              disabled={isGenerating}
+                              className="w-full rounded-xl bg-primary text-white text-[10px] font-bold uppercase tracking-widest h-12 shadow-2xl shadow-primary/20"
+                            >
+                              {isGenerating ? "Building..." : "Generate Section"}
+                              <Sparkles className="ml-2 h-4 w-4" />
+                            </Button>
+                          </ActionTooltip>
+                        </form>
                       </div>
-
-                      <div className="space-y-1">
-                        <label className="text-[8px] font-bold text-muted-foreground uppercase px-2">Who is this for?</label>
-                        <input 
-                          type="text"
-                          value={targetAudience}
-                          onChange={(e) => setTargetAudience(e.target.value)}
-                          placeholder="e.g., Small business owners, CTOs"
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] outline-none"
-                        />
-                      </div>
-
-                      <ActionTooltip label="Build your website section using AI">
-                        <Button 
-                          type="submit" 
-                          disabled={isGenerating}
-                          className="w-full rounded-xl bg-primary text-white text-[10px] font-bold uppercase tracking-widest h-12 shadow-2xl shadow-primary/20"
-                        >
-                          {isGenerating ? "Building..." : "Generate Section"}
-                          <Sparkles className="ml-2 h-4 w-4" />
-                        </Button>
-                      </ActionTooltip>
-                    </form>
-                  </div>
+                     </>
+                   )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -567,7 +643,12 @@ export default function BuilderPage() {
                            </Button>
                          </ActionTooltip>
                       </div>
-                      <RenderNode node={node} />
+                      <div 
+                        onClick={() => setSelectedNodeIndex(i)}
+                        className={`transition-all ${selectedNodeIndex === i ? 'ring-2 ring-primary ring-offset-4 ring-offset-black rounded-[40px]' : ''}`}
+                      >
+                         <RenderNode node={node} idx={i} />
+                      </div>
                     </motion.div>
                   ))
                 )}

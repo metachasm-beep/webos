@@ -1,7 +1,31 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ChevronRight, CheckCircle2, Zap, ShieldCheck, BarChart3, Sparkles, AlertCircle } from "lucide-react";
+import { 
+  ArrowRight, 
+  Check, 
+  Menu, 
+  X, 
+  Zap, 
+  Layout, 
+  Type, 
+  Image as ImageIcon, 
+  Palette, 
+  Layers, 
+  Settings, 
+  Sparkles, 
+  ChevronRight, 
+  Monitor, 
+  Smartphone, 
+  Tablet,
+  Star,
+  Quote,
+  ShieldCheck,
+  Globe,
+  Users,
+  CheckCircle2,
+  AlertCircle
+} from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import ShinyText from "./reactbits/ShinyText";
 import StarBorder from "./reactbits/StarBorder";
@@ -39,7 +63,6 @@ export function HeroNode({ node }: NodeProps) {
         <div className="flex items-center gap-3">
           <div className="h-[2px] w-12 bg-primary" />
           <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Section / {node.copyMetrics?.frameworkApplied || 'Standard'}</span>
-
         </div>
         
         <ShinyText 
@@ -97,7 +120,6 @@ export function FeaturesNode({ node }: NodeProps) {
             </div>
             <h4 className="text-xl font-bold italic font-heading">Feature 0{i}</h4>
             <p className="text-xs text-muted-foreground leading-relaxed">High-performance optimization for your business growth.</p>
-
           </div>
         ))}
       </div>
@@ -123,14 +145,12 @@ export function PricingNode({ node }: NodeProps) {
                 <li key={f} className="flex items-center gap-3 text-xs text-muted-foreground">
                   <CheckCircle2 className="h-4 w-4 text-primary" />
                   Key Highlight {f}
-
                 </li>
               ))}
             </ul>
           </div>
           <Button className={`w-full h-12 rounded-xl mt-12 font-bold uppercase tracking-widest text-[9px] ${i === 1 ? 'bg-primary' : 'bg-white/5 hover:bg-white/10'}`}>
             Get Started
-
           </Button>
         </div>
       ))}
@@ -142,14 +162,14 @@ export function CTANode({ node }: NodeProps) {
   return (
     <section className="glass rounded-[40px] p-16 text-center space-y-8 relative overflow-hidden">
       <div className="absolute inset-0 bg-primary/5 -z-10" />
-      <center className="space-y-6">
+      <div className="space-y-6">
         <ShinyText 
           text={node.heading || "Revolutionize Your Workflow"} 
           className="text-6xl md:text-8xl font-heading font-bold italic tracking-tighter leading-[0.9] text-white" 
           speed={3}
         />
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed font-light">
-          {node.subheading}
+          {node.subheading || "Deploy high-fidelity assets across your entire business matrix."}
         </p>
         <div className="flex justify-center pt-8">
           <StarBorder speed="4s" color="#3b82f6">
@@ -159,7 +179,7 @@ export function CTANode({ node }: NodeProps) {
             </div>
           </StarBorder>
         </div>
-      </center>
+      </div>
     </section>
   );
 }
@@ -205,6 +225,63 @@ export function LeadMagnetNode({ node }: NodeProps) {
   );
 }
 
+export function ServiceGridNode({ node }: NodeProps) {
+  return (
+    <section className="py-24 space-y-12">
+      <div className="text-center max-w-2xl mx-auto space-y-4">
+        <h2 className="text-4xl font-heading font-bold italic tracking-tight">{node.heading || "High-Performance Services"}</h2>
+        <p className="text-muted-foreground">{node.subheading || "Engineered for growth."}</p>
+      </div>
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {(node.services || [
+          { icon: Globe, title: 'Global Sync', text: 'Real-time synchronization across edge nodes.' },
+          { icon: ShieldCheck, title: 'Neural Security', text: 'Automated threat detection and encryption.' },
+          { icon: Zap, title: 'Edge Synthesis', text: 'Latency-free asset generation.' },
+          { icon: Users, title: 'Matrix Flow', text: 'Optimized user journey orchestration.' }
+        ]).map((service: any, idx: number) => {
+          const Icon = service.icon || Star;
+          return (
+            <div key={idx} className="glass-dark group hover:bg-primary/5 transition-all p-8 border-none bg-primary/5 rounded-[32px]">
+               <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 text-primary">
+                  <Icon className="h-6 w-6" />
+               </div>
+               <h3 className="text-lg font-bold mb-3">{service.title}</h3>
+               <p className="text-sm text-muted-foreground leading-relaxed">{service.text}</p>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+export function TestimonialNode({ node }: NodeProps) {
+  return (
+    <section className="py-24 relative">
+      <div className="max-w-4xl mx-auto glass rounded-[40px] p-12 md:p-20 text-center relative overflow-hidden">
+        <Quote className="h-12 w-12 text-primary opacity-20 absolute top-8 left-8" />
+        <div className="flex justify-center gap-1 mb-10">
+          {[1,2,3,4,5].map(i => <Star key={i} className="h-4 w-4 fill-primary text-primary" />)}
+        </div>
+        <blockquote className="text-2xl md:text-3xl font-heading font-medium italic mb-12 leading-relaxed">
+          "{node.quote || 'WebOS has completely transformed our growth trajectory.'}"
+        </blockquote>
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-16 w-16 rounded-full bg-primary/20 border-2 border-primary/40 p-1">
+             <div className="h-full w-full rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                <Users className="h-8 w-8 text-primary opacity-40" />
+             </div>
+          </div>
+          <div>
+            <div className="font-bold">{node.author || 'Sarah Jenkins'}</div>
+            <div className="text-[10px] text-primary/60 uppercase tracking-[0.2em]">{node.role || 'Growth Director'}</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function ErrorNode({ node }: NodeProps) {
   return (
     <div className="glass-card p-16 border-red-500/30 bg-red-500/5 text-center space-y-6">
@@ -212,25 +289,21 @@ export function ErrorNode({ node }: NodeProps) {
         <AlertCircle className="h-8 w-8" />
       </div>
       <div className="space-y-2">
-        <h3 className="text-2xl font-heading font-bold italic text-red-400">{node.heading}</h3>
-        <p className="text-sm text-muted-foreground max-w-md mx-auto">{node.subheading}</p>
+        <h3 className="text-2xl font-heading font-bold italic text-red-400">{node.heading || "Matrix Synthesis Interrupted"}</h3>
+        <p className="text-sm text-muted-foreground max-w-md mx-auto">{node.subheading || "The neural link encountered a protocol collision."}</p>
       </div>
       <Button 
         variant="ghost" 
         onClick={() => window.location.reload()}
         className="text-[10px] font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/10"
       >
-        Retry Protocol <RefreshCcw className="ml-2 h-3 w-3" />
+        Retry Protocol
       </Button>
     </div>
   );
 }
 
-const RefreshCcw = ({ className }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
-);
-
-export function RenderNode({ node }: NodeProps) {
+export function RenderNode({ node, idx, onUpdate }: { node: any, idx: number, onUpdate?: (idx: number, content: any) => void }) {
   if (node.error) return <ErrorNode node={node} />;
   
   const type = node.type?.toLowerCase() || "";
@@ -240,6 +313,8 @@ export function RenderNode({ node }: NodeProps) {
   if (type.includes("pricing")) return <PricingNode node={node} />;
   if (type.includes("cta")) return <CTANode node={node} />;
   if (type.includes("lead") || type.includes("magnet") || type.includes("capture")) return <LeadMagnetNode node={node} />;
+  if (type.includes("service")) return <ServiceGridNode node={node} />;
+  if (type.includes("testimonial")) return <TestimonialNode node={node} />;
   
   // High-fidelity fallback that guesses based on structure if type is weird
   if (node.heading && node.ctaText && !node.features) return <HeroNode node={node} />;
