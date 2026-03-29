@@ -429,32 +429,87 @@ function AuditContent() {
           </div>
           
           {/* LayerChart-style SVG Telemetry */}
-          <div className="mt-6 h-32 glass-card border-none bg-primary/5 p-4 relative overflow-hidden group">
-            <div className="absolute top-4 left-4 flex items-center gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
-              <Activity className="h-3 w-3 text-primary" />
-              <span className="text-[8px] font-bold uppercase tracking-widest text-primary">Live Logic Efficiency (LayerChart Synthesis)</span>
+          <div className="mt-8 h-40 glass-card border-none bg-primary/5 p-6 relative overflow-hidden group">
+            {/* HUD Elements Overlay */}
+            <div className="absolute inset-0 pointer-events-none opacity-20 group-hover:opacity-40 transition-opacity">
+               <div className="absolute top-2 right-2 text-[6px] font-mono uppercase tracking-widest text-primary text-right leading-none">
+                  Node: TL-902<br/>Buffer: 0x4F2A<br/>Sync: 99.8%
+               </div>
+               <div className="absolute bottom-2 left-2 text-[6px] font-mono uppercase tracking-widest text-primary leading-none">
+                  Neural: Active<br/>Link: Secure<br/>v2.1.8
+               </div>
             </div>
+
+            <div className="absolute top-4 left-4 flex items-center gap-3">
+              <Activity className="h-4 w-4 text-primary animate-pulse" />
+              <div className="space-y-0.5">
+                 <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary block">Live Logic Synthesis</span>
+                 <span className="text-[7px] font-bold uppercase tracking-[0.2em] text-primary/40 block">Interactive Neural Flow Control</span>
+              </div>
+            </div>
+
             <svg className="h-full w-full overflow-visible" viewBox="0 0 100 20" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
+                  <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.4" />
                   <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
                 </linearGradient>
+                <pattern id="grid" width="4" height="4" patternUnits="userSpaceOnUse">
+                   <path d="M 4 0 L 0 0 0 4" fill="none" stroke="currentColor" strokeWidth="0.1" className="text-primary/10" />
+                </pattern>
               </defs>
+
+              {/* Neural Grid Background */}
+              <rect width="100%" height="100%" fill="url(#grid)" />
+
+              {/* Scanning Laser Line */}
+              <motion.line
+                x1="0" y1="0" x2="0" y2="20"
+                stroke="currentColor"
+                strokeWidth="0.2"
+                className="text-primary/30"
+                animate={{ x: [0, 100, 0] }}
+                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+              />
+
               <motion.path 
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
                 d={`M ${telemetryHistory.map((v, i) => `${(i / (telemetryHistory.length - 1)) * 100},${10 - (v - 3) * 5}`).join(' L ')}`}
                 fill="none"
                 stroke="#3b82f6"
-                strokeWidth="0.5"
-                className="drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]"
+                strokeWidth="0.8"
+                className="drop-shadow-[0_0_8px_rgba(59,130,246,0.9)]"
               />
               <path 
                 d={`M ${telemetryHistory.map((v, i) => `${(i / (telemetryHistory.length - 1)) * 100},${10 - (v - 3) * 5}`).join(' L ')} L 100,20 L 0,20 Z`}
                 fill="url(#chartGradient)"
               />
+
+              {/* Data Packet Pulse Nodes */}
+              {telemetryHistory.length > 5 && [20, 50, 80].map((pos, idx) => (
+                 <motion.circle
+                   key={idx}
+                   r="0.5"
+                   fill="#3b82f6"
+                   animate={{ 
+                      x: [0, 100], 
+                      opacity: [0, 1, 0],
+                      r: [0.3, 0.7, 0.3]
+                   }}
+                   transition={{ 
+                      duration: 8, 
+                      repeat: Infinity, 
+                      delay: idx * 2.5,
+                      ease: "linear"
+                   }}
+                   className="shadow-[0_0_10px_#3b82f6]"
+                 />
+              ))}
             </svg>
+            
+            {/* Bottom Glow */}
+            <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-primary/30 shadow-[0_0_20px_#3b82f6]" />
           </div>
         </div>
 
