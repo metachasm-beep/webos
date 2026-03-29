@@ -74,10 +74,22 @@ export async function POST(req: Request) {
     const jsonStart = text.indexOf('{');
     const jsonEnd = text.lastIndexOf('}') + 1;
     const jsonStr = text.substring(jsonStart, jsonEnd);
+    let parsed = JSON.parse(jsonStr);
     
-    return NextResponse.json(JSON.parse(jsonStr));
+    // Ensure the type is lowercase and valid or guess it
+    if (!parsed.type) parsed.type = "hero";
+    parsed.type = parsed.type.toLowerCase();
+    
+    return NextResponse.json(parsed);
   } catch (error: any) {
     console.error("Builder Error:", error);
-    return NextResponse.json({ error: error?.message || "Failed to generate component" }, { status: 500 });
+    // Return a valid "error" node structure that the UI can handle professionally
+    return NextResponse.json({ 
+      type: "error",
+      heading: "Matrix Synthesis Interrupted",
+      subheading: error?.message || "The AI model encountered an unexpected structure during node generation.",
+      error: true
+    });
   }
 }
+

@@ -80,8 +80,12 @@ export default function BuilderPage() {
   const [synthesizedAsset, setSynthesizedAsset] = useState<any>(null);
   const [subTab, setSubTab] = useState<'templates' | 'modules'>('templates');
   const [isIsometric, setIsIsometric] = useState(false);
+  const [matrixData, setMatrixData] = useState<any>(null);
+  const [showMatrixDashboard, setShowMatrixDashboard] = useState(false);
+
 
   const containerRef = useRef<HTMLDivElement>(null);
+
   const [isMounted, setIsMounted] = useState(false);
 
 
@@ -163,8 +167,19 @@ export default function BuilderPage() {
 
   const handleSyncMatrix = () => {
     setIsSyncing(true);
-    setTimeout(() => setIsSyncing(false), 2000);
+    // Simulate complex matrix synthesis 2.0
+    setTimeout(() => {
+      setMatrixData({
+        seo: { score: 84, trend: "up", alert: "none" },
+        performance: { score: 92, trend: "up", alert: "none" },
+        friction: { score: 18, trend: "down", alert: "warning" },
+        conversion: { score: 4.2, trend: "up", alert: "strategic" }
+      });
+      setIsSyncing(false);
+      setShowMatrixDashboard(true);
+    }, 2000);
   };
+
 
   const handleFlushCanvas = () => {
     if (confirm("Are you sure you want to flush the Neural Canvas sequence? This cannot be undone.")) {
@@ -505,7 +520,12 @@ export default function BuilderPage() {
 
 
             {/* Simulated Glass Website Section */}
-            <div className="space-y-12 pb-32">
+            <div className={`space-y-12 pb-32 transition-all duration-700 ${isIsometric ? 'perspective-isometry' : ''}`}
+                 style={isIsometric ? { 
+                    perspective: '2000px', 
+                    transform: 'rotateX(20deg) rotateY(-10deg) scale(0.9)',
+                    transformStyle: 'preserve-3d'
+                 } : {}}>
               <AnimatePresence>
                 {nodes.length === 0 ? (
                   <motion.div 
@@ -529,6 +549,7 @@ export default function BuilderPage() {
                       className="relative group"
                       initial={{ opacity: 0, y: 50 }}
                       animate={{ opacity: 1, y: 0 }}
+                      style={isIsometric ? { transformStyle: 'preserve-3d', translateZ: i * 20 } : {}}
                     >
                       <div className="absolute -left-16 top-0 h-full flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                          <ActionTooltip label="Remove this node from the synthesis sequence">
@@ -552,8 +573,80 @@ export default function BuilderPage() {
                 )}
               </AnimatePresence>
             </div>
+
+
+            {/* Matrix 2.0 Dashboard Overlay */}
+            <AnimatePresence>
+              {showMatrixDashboard && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black/80 backdrop-blur-xl"
+                >
+                  <div className="glass-card max-w-4xl w-full p-12 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4">
+                       <Button variant="ghost" onClick={() => setShowMatrixDashboard(false)} className="rounded-full hover:bg-white/10">
+                          <Plus className="h-6 w-6 rotate-45" />
+                       </Button>
+                    </div>
+
+                    <div className="space-y-12">
+                      <div className="flex flex-col items-center text-center space-y-4">
+                        <div className="px-4 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Executive Summary: Synthesized</div>
+                        <h2 className="text-5xl font-heading font-bold italic tracking-tighter">Growth Matrix 2.0</h2>
+                        <p className="text-muted-foreground text-sm max-w-md">Real-time business performance orchestration across all platform vectors.</p>
+                      </div>
+
+                      <div className="grid grid-cols-4 gap-6">
+                        {[
+                          { label: "SEO Health", value: matrixData?.seo.score + "%", trend: matrixData?.seo.trend, color: "text-green-400" },
+                          { label: "Performance", value: matrixData?.performance.score, trend: matrixData?.performance.trend, color: "text-blue-400" },
+                          { label: "Form Friction", value: matrixData?.friction.score, trend: matrixData?.friction.trend, color: "text-orange-400" },
+                          { label: "Conversion Est.", value: matrixData?.conversion.score + "%", trend: matrixData?.conversion.trend, color: "text-accent" },
+                        ].map((kpi, i) => (
+                          <div key={i} className="glass-dark p-6 rounded-[24px] space-y-2 border border-white/5 relative group hover:border-primary/50 transition-all">
+                             <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{kpi.label}</p>
+                             <div className="flex items-end gap-2">
+                                <span className={`text-3xl font-heading font-bold italic ${kpi.color}`}>{kpi.value}</span>
+                                <span className={`text-[10px] pb-1 ${kpi.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
+                                  {kpi.trend === 'up' ? '▲' : '▼'}
+                                </span>
+                             </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="p-8 glass-dark border border-white/5 rounded-[32px] space-y-6">
+                         <div className="flex items-center gap-3">
+                            <Sparkles className="h-5 w-5 text-accent" />
+                            <h4 className="text-xs font-bold uppercase tracking-widest italic text-accent">Strategic Alerts</h4>
+                         </div>
+                         <div className="space-y-3">
+                            <div className="flex items-center gap-4 text-xs font-body group">
+                               <div className="h-2 w-2 rounded-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]" />
+                               <span className="text-muted-foreground group-hover:text-white transition-colors">Form Friction Index is climbing. Recommendation: Reduce field count to increase top-of-funnel flow.</span>
+                            </div>
+                            <div className="flex items-center gap-4 text-xs font-body group">
+                               <div className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
+                               <span className="text-muted-foreground group-hover:text-white transition-colors">SEO Health Index is optimal. Genesis Protocol successfully indexed all spatial tokens.</span>
+                            </div>
+                         </div>
+                      </div>
+
+                      <div className="flex justify-center">
+                         <Button className="h-14 rounded-2xl px-12 bg-primary text-white font-bold uppercase tracking-widest text-[10px] shadow-2xl shadow-primary/20">
+                            Apply Matrix Remediations
+                         </Button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </main>
+
 
         {/* Global Config Panel */}
         <aside className="w-80 glass border-l border-white/5 p-8 space-y-12 relative z-20">

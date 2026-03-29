@@ -164,13 +164,82 @@ export function CTANode({ node }: NodeProps) {
   );
 }
 
+export function LeadMagnetNode({ node }: NodeProps) {
+  return (
+    <section className="glass rounded-[40px] p-16 grid md:grid-cols-2 gap-12 items-center relative overflow-hidden border-accent/20">
+      <div className="space-y-8">
+         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20">
+            <Sparkles className="h-3 w-3 text-accent" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Lead Generation Engine</span>
+         </div>
+         <h2 className="text-5xl font-heading font-bold italic tracking-tight leading-tight">
+            {node.heading || "Ready to scale your business?"}
+         </h2>
+         <p className="text-lg text-muted-foreground font-light leading-relaxed">
+            {node.subheading || "Get our exclusive growth framework delivered to your inbox."}
+         </p>
+         <div className="flex flex-col sm:flex-row gap-4">
+            <input 
+              type="email" 
+              placeholder="Enter your professional email..." 
+              className="flex-1 h-14 rounded-2xl px-6 bg-white/5 border border-white/10 focus:border-accent/50 outline-none transition-all"
+            />
+            <Button className="h-14 rounded-2xl px-8 bg-accent text-black font-bold uppercase tracking-widest text-xs">
+              {node.ctaText || "Get Access"}
+            </Button>
+         </div>
+         <p className="text-[9px] text-muted-foreground opacity-50 uppercase tracking-widest">
+            Used by over 500+ professionals worldwide.
+         </p>
+      </div>
+      <div className="aspect-square glass-dark rounded-[32px] p-12 flex items-center justify-center relative group">
+         <div className="absolute inset-0 bg-accent/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-[32px]" />
+         <div className="text-center space-y-4">
+            <div className="h-24 w-24 rounded-3xl bg-accent/10 flex items-center justify-center text-accent mx-auto">
+               <Zap className="h-12 w-12" />
+            </div>
+            <div className="text-xs font-bold uppercase tracking-[0.3em]">Value synthesis...</div>
+         </div>
+      </div>
+    </section>
+  );
+}
+
+export function ErrorNode({ node }: NodeProps) {
+  return (
+    <div className="glass-card p-16 border-red-500/30 bg-red-500/5 text-center space-y-6">
+      <div className="h-16 w-16 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mx-auto">
+        <AlertCircle className="h-8 w-8" />
+      </div>
+      <div className="space-y-2">
+        <h3 className="text-2xl font-heading font-bold italic text-red-400">{node.heading}</h3>
+        <p className="text-sm text-muted-foreground max-w-md mx-auto">{node.subheading}</p>
+      </div>
+      <Button 
+        variant="ghost" 
+        onClick={() => window.location.reload()}
+        className="text-[10px] font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/10"
+      >
+        Retry Protocol <RefreshCcw className="ml-2 h-3 w-3" />
+      </Button>
+    </div>
+  );
+}
+
+const RefreshCcw = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+);
+
 export function RenderNode({ node }: NodeProps) {
+  if (node.error) return <ErrorNode node={node} />;
+  
   const type = node.type?.toLowerCase() || "";
 
   if (type.includes("hero")) return <HeroNode node={node} />;
   if (type.includes("feature")) return <FeaturesNode node={node} />;
   if (type.includes("pricing")) return <PricingNode node={node} />;
   if (type.includes("cta")) return <CTANode node={node} />;
+  if (type.includes("lead") || type.includes("magnet") || type.includes("capture")) return <LeadMagnetNode node={node} />;
   
   // High-fidelity fallback that guesses based on structure if type is weird
   if (node.heading && node.ctaText && !node.features) return <HeroNode node={node} />;
@@ -183,4 +252,5 @@ export function RenderNode({ node }: NodeProps) {
     </div>
   );
 }
+
 
