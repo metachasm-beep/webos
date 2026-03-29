@@ -1,8 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ChevronRight, CheckCircle2, Zap, ShieldCheck, BarChart3 } from "lucide-react";
+import { ChevronRight, CheckCircle2, Zap, ShieldCheck, BarChart3, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ShinyText from "./reactbits/ShinyText";
+import StarBorder from "./reactbits/StarBorder";
 
 interface NodeProps {
   node: any;
@@ -29,19 +31,23 @@ export function HeroNode({ node }: NodeProps) {
 
         </div>
         
-        <h1 className="text-6xl md:text-7xl font-heading font-bold italic tracking-tighter leading-[0.9]">
-          {node.heading}
-        </h1>
+        <ShinyText 
+          text={node.heading} 
+          className="text-6xl md:text-7xl font-heading font-bold italic tracking-tighter leading-[0.9]" 
+          speed={3}
+        />
         
         <p className="text-xl text-muted-foreground font-body leading-relaxed">
           {node.subheading}
         </p>
         
         <div className="flex items-center gap-6">
-          <Button size="lg" className="rounded-2xl px-10 h-16 bg-primary text-white font-bold uppercase tracking-widest text-xs shadow-2xl shadow-primary/20">
-            {node.ctaText}
-            <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
+          <StarBorder speed="4s" color={accent}>
+            <Button size="lg" className="rounded-2xl px-10 h-16 bg-transparent text-white font-bold uppercase tracking-widest text-xs">
+              {node.ctaText}
+              <ChevronRight className="ml-2 h-4 w-4" />
+            </Button>
+          </StarBorder>
           <div className="flex items-center gap-2 opacity-50">
              <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
              <span className="text-[9px] font-bold uppercase tracking-widest leading-none">Global Deployment Ready</span>
@@ -109,16 +115,49 @@ export function PricingNode({ node }: NodeProps) {
   );
 }
 
+export function CTANode({ node }: NodeProps) {
+  return (
+    <section className="glass rounded-[40px] p-16 text-center space-y-8 relative overflow-hidden">
+      <div className="absolute inset-0 bg-primary/5 -z-10" />
+      <center className="space-y-6">
+        <ShinyText 
+          text={node.heading || "Revolutionize Your Workflow"} 
+          className="text-6xl md:text-8xl font-heading font-bold italic tracking-tighter leading-[0.9] text-white" 
+          speed={3}
+        />
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed font-light">
+          {node.subheading}
+        </p>
+        <div className="flex justify-center pt-8">
+          <StarBorder speed="4s" color="#3b82f6">
+            <div className="flex items-center gap-3">
+               <span className="font-bold uppercase tracking-widest text-xs">{node.ctaText || "Deploy Now"}</span>
+               <ChevronRight className="h-4 w-4" />
+            </div>
+          </StarBorder>
+        </div>
+      </center>
+    </section>
+  );
+}
+
 export function RenderNode({ node }: NodeProps) {
   const type = node.type?.toLowerCase() || "";
 
   if (type.includes("hero")) return <HeroNode node={node} />;
   if (type.includes("feature")) return <FeaturesNode node={node} />;
   if (type.includes("pricing")) return <PricingNode node={node} />;
+  if (type.includes("cta")) return <CTANode node={node} />;
+  
+  // High-fidelity fallback that guesses based on structure if type is weird
+  if (node.heading && node.ctaText && !node.features) return <HeroNode node={node} />;
   
   return (
-    <div className="glass-card p-12 text-center italic text-muted-foreground">
-      Synthesizing component of type: {node.type}
+    <div className="glass-card p-12 text-center italic text-muted-foreground flex flex-col items-center gap-4">
+      <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+      <span className="text-[10px] uppercase font-bold tracking-widest">Synthesizing {node.type || 'Component'}...</span>
+      <p className="text-[8px] opacity-50 not-italic">If this takes too long, try refreshing the generator.</p>
     </div>
   );
 }
+
