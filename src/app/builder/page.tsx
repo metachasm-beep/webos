@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ import {
 } from "@/components/ui/tooltip";
 
 import { RenderNode } from "@/components/BuilderComponents";
-import { useState, useEffect } from "react";
+
 
 // Tooltip Helper
 const ActionTooltip = ({ children, label }: { children: React.ReactNode, label: string }) => (
@@ -78,9 +79,11 @@ export default function BuilderPage() {
   const [isSynthesizingAsset, setIsSynthesizingAsset] = useState(false);
   const [synthesizedAsset, setSynthesizedAsset] = useState<any>(null);
   const [subTab, setSubTab] = useState<'templates' | 'modules'>('templates');
+  const [isIsometric, setIsIsometric] = useState(false);
 
-
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
+
 
   useEffect(() => {
     setIsMounted(true);
@@ -297,43 +300,30 @@ export default function BuilderPage() {
                       </div>
 
                       <div className="space-y-2 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
-                        {BUSINESS_TEMPLATES.map((tmpl) => (
-                          <div 
+                        {BUSINESS_TEMPLATES.map((tmpl, idx) => (
+                          <motion.div 
                             key={tmpl.id}
-                            onClick={() => {
-                        {renderLibraryContent().map((item, idx) => (
-                          <motion.div
-                            key={item.id}
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ 
-                              delay: idx * 0.05,
-                              type: "spring",
-                              stiffness: 100,
-                              damping: 15
+                            transition={{ delay: idx * 0.03 }}
+                            onClick={() => {
+                              setPrompt(tmpl.prompt);
+                              setStyle(tmpl.style);
+                              setFramework(tmpl.framework);
+                              setActiveTab(null);
                             }}
-                            className="group relative"
+                            className="p-4 rounded-2xl border border-white/5 bg-white/5 hover:bg-primary/10 hover:border-primary/30 transition-all cursor-pointer group"
                           >
-                            <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity blur-xl -z-10" />
-                            <button
-                              onClick={() => handleAddNode(item)}
-                              className="w-full text-left glass-dark hover:glass transition-all p-4 rounded-2xl border border-white/5 hover:border-primary/50"
-                            >
-                              <div className="flex justify-between items-start mb-2">
-                                <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                                  <Plus className="h-4 w-4" />
-                                </div>
-                                {item.type === 'Hero' && <div className="text-[8px] bg-primary/20 px-2 py-0.5 rounded text-primary font-bold uppercase tracking-widest">Premium</div>}
-                              </div>
-                              <div className="text-xs font-bold text-white mb-1">{item.data.heading || item.title}</div>
-                              <div className="text-[10px] text-muted-foreground line-clamp-2 leading-relaxed">
-                                {item.data.subheading || "Ready to deploy module"}
-                              </div>
-                            </button>
+                            <div className="flex justify-between items-start mb-1">
+                              <div className="text-xs font-bold group-hover:text-primary transition-colors">{tmpl.name}</div>
+                              <span className="text-[8px] bg-white/5 px-2 py-0.5 rounded-full text-muted-foreground uppercase">{tmpl.category}</span>
+                            </div>
+                            <p className="text-[9px] text-muted-foreground leading-relaxed">{tmpl.description}</p>
                           </motion.div>
                         ))}
                       </div>
                     </div>
+
                   ) : (
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-2">
@@ -478,6 +468,13 @@ export default function BuilderPage() {
                   <Download className="h-3 w-3" />
                   Export JSON
                 </Button>
+                <button 
+                  onClick={() => setIsIsometric(!isIsometric)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-[11px] font-bold uppercase tracking-wider ${isIsometric ? 'bg-accent/20 text-accent' : 'hover:bg-white/5 text-muted-foreground'}`}
+                >
+                  <Layers className="h-4 w-4" />
+                  {isIsometric ? "Standard View" : "Isometric View"}
+                </button>
                 <Button 
                   onClick={handleSyncMatrix}
                   disabled={isSyncing}
