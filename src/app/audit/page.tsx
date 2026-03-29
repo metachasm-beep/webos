@@ -429,87 +429,113 @@ function AuditContent() {
           </div>
           
           {/* LayerChart-style SVG Telemetry */}
-          <div className="mt-8 h-40 glass-card border-none bg-primary/5 p-6 relative overflow-hidden group">
+          <div className="mt-8 h-48 glass-card border-none bg-primary/5 p-6 relative overflow-hidden group">
             {/* HUD Elements Overlay */}
             <div className="absolute inset-0 pointer-events-none opacity-20 group-hover:opacity-40 transition-opacity">
-               <div className="absolute top-2 right-2 text-[6px] font-mono uppercase tracking-widest text-primary text-right leading-none">
-                  Node: TL-902<br/>Buffer: 0x4F2A<br/>Sync: 99.8%
+               <div className="absolute top-2 right-4 text-[7px] font-mono uppercase tracking-widest text-primary text-right leading-relaxed">
+                  PROCESS: GROWTH_PATH_OPT<br/>STATUS: ANALYZING_FLUX<br/>STABILITY: 99.9%
                </div>
-               <div className="absolute bottom-2 left-2 text-[6px] font-mono uppercase tracking-widest text-primary leading-none">
-                  Neural: Active<br/>Link: Secure<br/>v2.1.8
+               <div className="absolute bottom-2 left-4 text-[7px] font-mono uppercase tracking-widest text-primary leading-relaxed">
+                  NEURAL_LINK: ACTIVE<br/>OPTIMIZATION: ENABLED<br/>MATRIX_v2
                </div>
             </div>
 
-            <div className="absolute top-4 left-4 flex items-center gap-3">
-              <Activity className="h-4 w-4 text-primary animate-pulse" />
-              <div className="space-y-0.5">
-                 <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary block">Live Logic Synthesis</span>
-                 <span className="text-[7px] font-bold uppercase tracking-[0.2em] text-primary/40 block">Interactive Neural Flow Control</span>
-              </div>
+            <div className="flex justify-between items-start relative z-10 mb-2">
+               <div className="flex items-center gap-3">
+                 <Activity className="h-5 w-5 text-primary animate-pulse" />
+                 <div className="space-y-0.5">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.4em] text-primary block">Logical Synthesis Engine</span>
+                    <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-primary/40 block">Real-time Efficiency Telemetry</span>
+                 </div>
+               </div>
+               <div className="text-right">
+                  <div className="text-3xl font-heading font-bold text-primary text-glow-soft">
+                     {telemetryHistory.length > 0 ? (telemetryHistory[telemetryHistory.length - 1] * 25).toFixed(1) : "0"}%
+                  </div>
+                  <div className="text-[8px] font-bold uppercase tracking-widest text-primary/60">Current Efficiency</div>
+               </div>
             </div>
 
-            <svg className="h-full w-full overflow-visible" viewBox="0 0 100 20" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.4" />
-                  <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
-                </linearGradient>
-                <pattern id="grid" width="4" height="4" patternUnits="userSpaceOnUse">
-                   <path d="M 4 0 L 0 0 0 4" fill="none" stroke="currentColor" strokeWidth="0.1" className="text-primary/10" />
-                </pattern>
-              </defs>
+            <div className="relative h-24 w-full">
+               {/* Human-readable Axis Labels */}
+               <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-[6px] font-bold text-primary/30 uppercase tracking-tighter py-1 border-r border-primary/10 pr-2">
+                  <span>MAX</span>
+                  <span>OPT</span>
+                  <span>BASE</span>
+               </div>
+               
+               <svg className="h-full w-full overflow-visible ml-8" viewBox="0 0 100 20" preserveAspectRatio="none">
+                 <defs>
+                   <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                     <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.4" />
+                     <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+                   </linearGradient>
+                   <pattern id="grid" width="10" height="5" patternUnits="userSpaceOnUse">
+                      <path d="M 10 0 L 0 0 0 5" fill="none" stroke="currentColor" strokeWidth="0.05" className="text-primary/10" />
+                   </pattern>
+                 </defs>
 
-              {/* Neural Grid Background */}
-              <rect width="100%" height="100%" fill="url(#grid)" />
+                 {/* Neural Grid Background */}
+                 <rect width="100%" height="100%" fill="url(#grid)" />
 
-              {/* Scanning Laser Line */}
-              <motion.line
-                x1="0" y1="0" x2="0" y2="20"
-                stroke="currentColor"
-                strokeWidth="0.2"
-                className="text-primary/30"
-                animate={{ x: [0, 100, 0] }}
-                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-              />
-
-              <motion.path 
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                d={`M ${telemetryHistory.map((v, i) => `${(i / (telemetryHistory.length - 1)) * 100},${10 - (v - 3) * 5}`).join(' L ')}`}
-                fill="none"
-                stroke="#3b82f6"
-                strokeWidth="0.8"
-                className="drop-shadow-[0_0_8px_rgba(59,130,246,0.9)]"
-              />
-              <path 
-                d={`M ${telemetryHistory.map((v, i) => `${(i / (telemetryHistory.length - 1)) * 100},${10 - (v - 3) * 5}`).join(' L ')} L 100,20 L 0,20 Z`}
-                fill="url(#chartGradient)"
-              />
-
-              {/* Data Packet Pulse Nodes */}
-              {telemetryHistory.length > 5 && [20, 50, 80].map((pos, idx) => (
-                 <motion.circle
-                   key={idx}
-                   r="0.5"
-                   fill="#3b82f6"
-                   animate={{ 
-                      x: [0, 100], 
-                      opacity: [0, 1, 0],
-                      r: [0.3, 0.7, 0.3]
-                   }}
-                   transition={{ 
-                      duration: 8, 
-                      repeat: Infinity, 
-                      delay: idx * 2.5,
-                      ease: "linear"
-                   }}
-                   className="shadow-[0_0_10px_#3b82f6]"
+                 {/* Scanning Laser Line */}
+                 <motion.line
+                   x1="0" y1="0" x2="0" y2="20"
+                   stroke="currentColor"
+                   strokeWidth="0.2"
+                   className="text-primary/40"
+                   animate={{ x: [0, 100, 0] }}
+                   transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
                  />
-              ))}
-            </svg>
+
+                 <motion.path 
+                   initial={{ pathLength: 0 }}
+                   animate={{ pathLength: 1 }}
+                   d={`M ${telemetryHistory.map((v, i) => `${(i / (telemetryHistory.length - 1)) * 100},${10 - (v - 3.2) * 10}`).join(' L ')}`}
+                   fill="none"
+                   stroke="#3b82f6"
+                   strokeWidth="1"
+                   className="drop-shadow-[0_0_8px_rgba(59,130,246,0.9)]"
+                 />
+                 <path 
+                   d={`M ${telemetryHistory.map((v, i) => `${(i / (telemetryHistory.length - 1)) * 100},${10 - (v - 3.2) * 10}`).join(' L ')} L 100,20 L 0,20 Z`}
+                   fill="url(#chartGradient)"
+                 />
+
+                 {/* Data Packet Pulse Nodes */}
+                 {telemetryHistory.length > 5 && [20, 50, 80].map((pos, idx) => (
+                    <motion.circle
+                      key={idx}
+                      r="0.8"
+                      fill="#3b82f6"
+                      animate={{ 
+                         x: [0, 100], 
+                         opacity: [0, 1, 0],
+                         r: [0.5, 1, 0.5]
+                      }}
+                      transition={{ 
+                         duration: 6, 
+                         repeat: Infinity, 
+                         delay: idx * 2.0,
+                         ease: "linear"
+                      }}
+                      className="shadow-[0_0_12px_#3b82f6]"
+                    />
+                 ))}
+               </svg>
+            </div>
             
-            {/* Bottom Glow */}
-            <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-primary/30 shadow-[0_0_20px_#3b82f6]" />
+            {/* Bottom Status Ticker */}
+            <div className="absolute bottom-0 left-0 right-0 h-4 bg-primary/5 flex items-center px-4 overflow-hidden border-t border-primary/10">
+               <div className="flex gap-8 animate-marquee text-[6px] font-bold uppercase tracking-[0.3em] text-primary/40 whitespace-nowrap">
+                  <span>Logic Synthesis Optimized</span>
+                  <span>Neural Path Secured</span>
+                  <span>Data Flow Stabilized</span>
+                  <span>Growth Matrix Synthesis Active</span>
+                  <span>Logic Synthesis Optimized</span>
+                  <span>Neural Path Secured</span>
+               </div>
+            </div>
           </div>
         </div>
 
