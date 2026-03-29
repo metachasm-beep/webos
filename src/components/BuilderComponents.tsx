@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ChevronRight, CheckCircle2, Zap, ShieldCheck, BarChart3, Sparkles } from "lucide-react";
+import { ChevronRight, CheckCircle2, Zap, ShieldCheck, BarChart3, Sparkles, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ShinyText from "./reactbits/ShinyText";
 import StarBorder from "./reactbits/StarBorder";
@@ -16,6 +16,17 @@ export function HeroNode({ node }: NodeProps) {
 
   return (
     <section className={`relative py-24 px-8 rounded-[40px] overflow-hidden ${isNeon ? 'bg-black' : 'glass'}`}>
+      {node.image && (
+        <div className="absolute inset-0 -z-10 opacity-20">
+          <img 
+            src={node.image} 
+            alt="Background" 
+            className="w-full h-full object-cover"
+            fetchPriority="high"
+            loading="eager"
+          />
+        </div>
+      )}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent" />
       {isNeon && (
         <div 
@@ -55,6 +66,18 @@ export function HeroNode({ node }: NodeProps) {
         </div>
       </div>
     </section>
+  );
+}
+
+export function FeatureNode({ node }: NodeProps) {
+  return (
+    <div className="antigravity-glass antigravity-float rounded-[32px] p-10 space-y-4 border border-white/5 hover:border-primary/20 transition-all">
+      <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+         <Sparkles className="h-6 w-6" />
+      </div>
+      <h3 className="text-2xl font-heading font-bold italic tracking-tight">{node.title}</h3>
+      <p className="text-muted-foreground leading-relaxed font-light">{node.description}</p>
+    </div>
   );
 }
 

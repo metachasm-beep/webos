@@ -301,19 +301,36 @@ export default function BuilderPage() {
                           <div 
                             key={tmpl.id}
                             onClick={() => {
-                              setPrompt(tmpl.prompt);
-                              setStyle(tmpl.style);
-                              setFramework(tmpl.framework);
-                              setActiveTab(null);
+                        {renderLibraryContent().map((item, idx) => (
+                          <motion.div
+                            key={item.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ 
+                              delay: idx * 0.05,
+                              type: "spring",
+                              stiffness: 100,
+                              damping: 15
                             }}
-                            className="p-4 rounded-2xl border border-white/5 bg-white/5 hover:bg-primary/10 hover:border-primary/30 transition-all cursor-pointer group"
+                            className="group relative"
                           >
-                            <div className="flex justify-between items-start mb-1">
-                              <div className="text-xs font-bold group-hover:text-primary transition-colors">{tmpl.name}</div>
-                              <span className="text-[8px] bg-white/5 px-2 py-0.5 rounded-full text-muted-foreground uppercase">{tmpl.category}</span>
-                            </div>
-                            <p className="text-[9px] text-muted-foreground leading-relaxed">{tmpl.description}</p>
-                          </div>
+                            <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity blur-xl -z-10" />
+                            <button
+                              onClick={() => handleAddNode(item)}
+                              className="w-full text-left glass-dark hover:glass transition-all p-4 rounded-2xl border border-white/5 hover:border-primary/50"
+                            >
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                  <Plus className="h-4 w-4" />
+                                </div>
+                                {item.type === 'Hero' && <div className="text-[8px] bg-primary/20 px-2 py-0.5 rounded text-primary font-bold uppercase tracking-widest">Premium</div>}
+                              </div>
+                              <div className="text-xs font-bold text-white mb-1">{item.data.heading || item.title}</div>
+                              <div className="text-[10px] text-muted-foreground line-clamp-2 leading-relaxed">
+                                {item.data.subheading || "Ready to deploy module"}
+                              </div>
+                            </button>
+                          </motion.div>
                         ))}
                       </div>
                     </div>

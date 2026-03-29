@@ -628,9 +628,67 @@ function analyzeHtmlContent(html: string) {
     accessibility: {
       missingAlt: $("img:not([alt])").length,
       totalImgs: $("img").length,
-    }
+    },
+    forms: analyzeForms($),
+    seoHealth: calculateSeoHealthIndex($),
   };
 }
+
+function analyzeForms($: cheerio.CheerioAPI) {
+  const forms = $("form");
+  const results: any[] = [];
+  
+  forms.each((_, el) => {
+    const $form = $(el);
+    const inputs = $form.find("input, select, textarea");
+    const required = inputs.filter("[required]");
+    
+    // Form Friction calculation (simplified logic from skill)
+    // 3 fields = 0 friction, 7+ = 25+ points
+    let frictionScore = inputs.length * 5;
+    if (inputs.length > 6) frictionScore += 15;
+    
+    results.push({
+      action: $form.attr("action") || "local",
+      method: $form.attr("method") || "get",
+      fieldCount: inputs.length,
+      requiredCount: required.length,
+      frictionScore: Math.min(100, frictionScore),
+      hasPrivacyNote: $form.text().toLowerCase().includes("privacy") || $form.text().toLowerCase().includes("data"),
+    });
+  });
+  
+  return results;
+}
+
+function calculateSeoHealthIndex($: cheerio.CheerioAPI) {
+  // Weights: Crawlability 30, Technical 25, On-Page 20, Content 15, Trust 10
+  let crawlability = 100;
+  let technical = 100;
+  let onPage = 100;
+  let contentScore = 100;
+  let trust = 100;
+
+  // Deductions (Evidence-based)
+  if ($("meta[name='robots'][content*='noindex']").length) crawlability -= 30;
+  if (!$("link[rel='canonical']").length) onPage -= 15;
+  if (!$("h1").length) onPage -= 20;
+  if ($("h1").length > 1) onPage -= 5;
+  
+  const bodyText = $("body").text().trim();
+  if (bodyText.length < 500) contentScore -= 20; // thin content
+  
+  if (!bodyText.toLowerCase().includes("privacy policy")) trust -= 20;
+
+  const weighted = (crawlability * 0.3) + (technical * 0.25) + (onPage * 0.2) + (contentScore * 0.15) + (trust * 0.1);
+  
+  return {
+    score: Math.round(weighted),
+    categories: { crawlability, technical, onPage, content: contentScore, trust },
+    status: weighted >= 85 ? "Excellent" : weighted >= 70 ? "Good" : weighted >= 55 ? "Fair" : "Poor"
+  };
+}
+
 
 function detectTechStack(html: string, headers: Headers) {
   const tech = [];

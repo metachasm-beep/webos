@@ -125,7 +125,17 @@
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
+  .antigravity-glass {
+    @apply bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.1)];
+  }
+  .antigravity-float {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .antigravity-float:hover {
+    transform: translateY(-8px) scale(1.02);
+  }
 }
+
 
 @keyframes float {
   0% { transform: translateY(0px); }
