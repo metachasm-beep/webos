@@ -31,7 +31,7 @@ function BrandMarquee() {
   // Double the list so the seamless loop works perfectly
   const items = [...BRANDS, ...BRANDS];
   return (
-    <div className="relative overflow-hidden py-10 border-y border-white/5 select-none">
+    <div className="relative overflow-hidden py-10 border-y border-white/5 select-none" aria-label="Partner Brands">
       <div className="absolute left-0 inset-y-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
       <div className="absolute right-0 inset-y-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
       <motion.div
@@ -145,7 +145,7 @@ export default function Home() {
                   transition={{ delay: 0.8 }}
                   className="max-w-xl"
                 >
-                  <form onSubmit={handleAudit} className="group relative">
+                  <form onSubmit={handleAudit} className="group relative" aria-label="Website Audit Form">
                     <div className="absolute -inset-4 bg-primary/5 rounded-[40px] blur-2xl group-hover:bg-primary/10 transition-all duration-700" />
                     <div className="relative glass rounded-[32px] p-2 flex items-center gap-2 border-white/10 overflow-hidden">
                       <div className="pl-6 flex items-center gap-3 border-r border-white/10 pr-6 group-focus-within:border-primary/30 transition-colors">

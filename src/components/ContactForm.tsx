@@ -81,16 +81,18 @@ export function ContactForm() {
         <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-primary">Identity</label>
+              <label htmlFor="identity" className="text-[10px] font-bold uppercase tracking-widest text-primary">Identity</label>
               <Input 
+                id="identity"
                 placeholder="Full Name" 
                 className="bg-white/5 border-white/10 rounded-xl h-12 focus:border-primary/50 transition-colors"
                 required
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-primary">Uplink</label>
+              <label htmlFor="uplink" className="text-[10px] font-bold uppercase tracking-widest text-primary">Uplink</label>
               <Input 
+                id="uplink"
                 type="email" 
                 placeholder="email@domain.com" 
                 className="bg-white/5 border-white/10 rounded-xl h-12 focus:border-primary/50 transition-colors"
@@ -100,8 +102,9 @@ export function ContactForm() {
           </div>
           
           <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-primary">Mission Intel</label>
+            <label htmlFor="mission-intel" className="text-[10px] font-bold uppercase tracking-widest text-primary">Mission Intel</label>
             <Textarea 
+              id="mission-intel"
               placeholder="Describe your enterprise growth requirements..." 
               className="bg-white/5 border-white/10 rounded-xl min-h-[120px] focus:border-primary/50 transition-colors"
               required

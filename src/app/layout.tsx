@@ -41,8 +41,38 @@ const lato = Lato({
 export const metadata: Metadata = {
   title: "WebOS AI | Audit. Build. Dominate.",
   description: "WebOS AI is the ultimate business growth engine. Audit your website, build high-performance sections, and dominate your niche with AI.",
+  metadataBase: new URL("https://webos-beta.vercel.app"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "WebOS AI | Audit. Build. Dominate.",
+    description: "The ultimate business growth engine for modern enterprises.",
+    url: "https://webos-beta.vercel.app",
+    siteName: "WebOS AI",
+    images: [
+      {
+        url: "/assets/branding/logo_full.png",
+        width: 1200,
+        height: 630,
+        alt: "WebOS AI Logo",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "WebOS AI | Audit. Build. Dominate.",
+    description: "Transform your website into a growth machine with AI-powered audits and modular synthesis.",
+    images: ["/assets/branding/logo_full.png"],
+    creator: "@turtlelabsindia",
+  },
   icons: {
-    icon: "/assets/branding/icon.png",
+    icon: [
+      { url: "/assets/branding/icon.png" },
+      { url: "/favicon.ico", sizes: "any" }
+    ],
     apple: "/assets/branding/icon.png",
   },
 };
@@ -68,6 +98,11 @@ export default function RootLayout({
 
   return (
     <html lang="en" className="dark">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {gaId && <link rel="preconnect" href="https://www.googletagmanager.com" />}
+      </head>
       <body className={`${cormorant.variable} ${montserrat.variable} ${spaceGrotesk.variable} ${outfit.variable} ${playfair.variable} ${lato.variable} antialiased`}>
         {gaId && (
           <>

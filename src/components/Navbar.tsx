@@ -57,6 +57,7 @@ export function Navbar() {
               <Button 
                 variant="ghost" 
                 size="icon" 
+                aria-label="Sign Out"
                 className="h-9 w-9 rounded-full hover:bg-white/5"
                 onClick={() => signOut()}
               >
@@ -78,7 +79,7 @@ export function Navbar() {
             Launch Engine
             <Rocket className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="md:hidden">
+          <Button variant="ghost" size="icon" className="md:hidden" aria-label="Toggle Menu">
             <Menu className="h-5 w-5" />
           </Button>
         </div>
