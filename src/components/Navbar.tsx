@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Rocket, ShieldCheck, Zap, Menu, User, LogOut } from "lucide-react";
+import { Menu, User, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { signIn, signOut, useSession } from "next-auth/react";
 
@@ -75,10 +75,6 @@ export function Navbar() {
             </Button>
           )}
           
-          <Button size="sm" className="rounded-full bg-primary hover:bg-primary/80 px-8 h-10 text-white shadow-xl shadow-primary/20 gap-3 font-bold text-xs uppercase tracking-widest">
-            Launch Engine
-            <Rocket className="h-4 w-4" />
-          </Button>
           <Button variant="ghost" size="icon" className="md:hidden" aria-label="Toggle Menu">
             <Menu className="h-5 w-5" />
           </Button>
