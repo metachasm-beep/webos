@@ -1,0 +1,250 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Navbar } from "@/components/Navbar";
+import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Plus, 
+  Layout, 
+  Activity, 
+  ExternalLink, 
+  Clock, 
+  ArrowRight,
+  ShieldCheck,
+  Zap,
+  Layers,
+  ChevronRight,
+  Sparkles,
+  Search
+} from "lucide-react";
+import Link from "next/link";
+import Squares from "@/components/reactbits/Squares";
+import ShinyText from "@/components/reactbits/ShinyText";
+
+export default function DashboardPage() {
+  const [projects, setProjects] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'projects' | 'audits'>('projects');
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const resp = await fetch("/api/projects");
+        const data = await resp.json();
+        if (!data.error) setProjects(data);
+      } catch (err) {
+        console.error("Dashboard Sync failure.", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProjects();
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-black text-white font-body selection:bg-primary/20 overflow-x-hidden">
+      <Navbar />
+
+      <div className="fixed inset-0 z-0">
+        <Squares 
+          direction="diagonal"
+          speed={0.3}
+          squareSize={40}
+          borderColor="rgba(255, 255, 255, 0.02)"
+          hoverFillColor="rgba(59, 130, 246, 0.05)"
+        />
+      </div>
+
+      <main className="relative z-10 pt-32 pb-24 px-8 max-w-7xl mx-auto space-y-16">
+        {/* Header HUD */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b border-white/5 pb-10">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-ping" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Neural Workspace v.3.1.0</span>
+            </div>
+            <h1 className="text-6xl md:text-8xl font-heading font-bold italic tracking-tighter">Strategic HUD</h1>
+            <p className="text-muted-foreground text-sm max-w-md font-body">Orchestrating growth, audits, and neural synthesis across all digital vectors.</p>
+          </div>
+          
+          <div className="flex gap-4">
+             <Link href="/builder">
+                <Button className="h-16 px-10 rounded-full bg-primary text-white font-bold uppercase tracking-widest text-[11px] gap-3 shadow-2xl shadow-primary/20 hover:scale-105 transition-all">
+                   <Plus className="h-4 w-4" /> Start New Synthesis
+                </Button>
+             </Link>
+          </div>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+           {[
+             { label: "Active Project Sequence", value: projects.length, icon: Layers, color: "text-blue-400" },
+             { label: "Matrix Audits Completed", value: "12", icon: Activity, color: "text-emerald-400" },
+             { label: "Strategic Tier", value: "Dominator", icon: ShieldCheck, color: "text-accent" },
+             { label: "Neural Logic Credits", value: "840/1000", icon: Zap, color: "text-orange-400" }
+           ].map((stat, i) => (
+             <div key={i} className="glass-card p-6 flex flex-col justify-between hover:border-primary/30 transition-all cursor-crosshair group">
+                <div className="flex justify-between items-start">
+                   <stat.icon className={`h-5 w-5 ${stat.color} opacity-40 group-hover:opacity-100 transition-opacity`} />
+                   <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</span>
+                </div>
+                <div className="text-4xl font-heading font-bold mt-4 italic">{stat.value}</div>
+             </div>
+           ))}
+        </div>
+
+        {/* Workspace Management */}
+        <div className="space-y-12">
+            <div className="flex items-center gap-8 border-b border-white/5">
+               <button 
+                 onClick={() => setActiveTab('projects')}
+                 className={`pb-4 text-[11px] font-bold uppercase tracking-[0.3em] transition-all relative ${activeTab === 'projects' ? 'text-primary' : 'text-muted-foreground hover:text-white'}`}
+               >
+                  Project Registry
+                  {activeTab === 'projects' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+               </button>
+               <button 
+                 onClick={() => setActiveTab('audits')}
+                 className={`pb-4 text-[11px] font-bold uppercase tracking-[0.3em] transition-all relative ${activeTab === 'audits' ? 'text-primary' : 'text-muted-foreground hover:text-white'}`}
+               >
+                  Audit Archives
+                  {activeTab === 'audits' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+               </button>
+            </div>
+
+            <AnimatePresence mode="wait">
+              {activeTab === 'projects' ? (
+                <motion.div 
+                  key="projects"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="grid grid-cols-1 md:grid-cols-3 gap-8"
+                >
+                  {isLoading ? (
+                    Array(3).fill(0).map((_, i) => (
+                      <div key={i} className="h-64 rounded-[40px] bg-white/5 animate-pulse" />
+                    ))
+                  ) : projects.length === 0 ? (
+                    <div className="col-span-full py-20 text-center space-y-4">
+                       <p className="text-muted-foreground italic">No project sequences found in the registry.</p>
+                       <Link href="/builder">
+                          <Button variant="outline" className="rounded-full border-white/10 uppercase font-bold tracking-widest text-[10px]">Initialize First Schema</Button>
+                       </Link>
+                    </div>
+                  ) : (
+                    projects.map((project, i) => (
+                      <Link href={`/builder?id=${project.id}`} key={project.id}>
+                        <div className="glass-card h-80 relative overflow-hidden group p-10 flex flex-col justify-between hover:border-primary/50 transition-all">
+                           <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                              <Layout className="h-32 w-32 rotate-12" />
+                           </div>
+                           <div className="space-y-4 relative z-10">
+                              <div className="flex items-center gap-3">
+                                 <div className="h-6 w-6 rounded-lg bg-primary/20 flex items-center justify-center">
+                                    <Layers className="h-3 w-3 text-primary" />
+                                 </div>
+                                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Synthesized: {new Date(project.updated_at).toLocaleDateString()}</span>
+                              </div>
+                              <h3 className="text-3xl font-heading font-bold italic">{project.name}</h3>
+                              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-[0.2em]">{project.nodes?.length || 0} Logic Nodes Detected</p>
+                           </div>
+                           <div className="relative z-10 flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-all translate-x-[-10px] group-hover:translate-x-0">
+                              Access Sequence <ChevronRight className="h-3 w-3" />
+                           </div>
+                        </div>
+                      </Link>
+                    ))
+                  )}
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="audits"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-4"
+                >
+                   {/* Audit Archive Table Placeholder */}
+                   <div className="glass-card p-10 space-y-8">
+                      <div className="flex justify-between items-center">
+                         <div className="flex items-center gap-3">
+                            <Activity className="h-5 w-5 text-emerald-400" />
+                            <span className="text-xs font-bold uppercase tracking-widest">Growth Matrix History</span>
+                         </div>
+                         <div className="flex items-center gap-4">
+                            <div className="relative">
+                               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                               <input type="text" placeholder="Search archives..." className="bg-white/5 border border-white/10 rounded-full pl-12 pr-6 py-2 text-[10px] outline-none focus:border-primary" />
+                            </div>
+                         </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        {[
+                          { domain: "apple.com", score: 98, date: "2026-03-31", profile: "Dominator" },
+                          { domain: "stripe.com", score: 94, date: "2026-03-30", profile: "Dominator" },
+                          { domain: "example-corp.com", score: 42, date: "2026-03-29", profile: "Challenger" }
+                        ].map((audit, i) => (
+                          <div key={i} className="flex items-center justify-between p-6 rounded-2xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5 group">
+                             <div className="flex items-center gap-8">
+                                <div className={`text-2xl font-heading font-bold italic w-12 ${audit.score > 90 ? 'text-emerald-400' : 'text-orange-400'}`}>{audit.score}%</div>
+                                <div>
+                                   <div className="text-sm font-bold">{audit.domain}</div>
+                                   <div className="text-[10px] text-muted-foreground uppercase tracking-widest">{audit.date}</div>
+                                </div>
+                             </div>
+                             <div className="flex items-center gap-12">
+                                <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{audit.profile}</div>
+                                <Button variant="ghost" size="icon" className="group-hover:text-primary"><ExternalLink className="h-4 w-4" /></Button>
+                             </div>
+                          </div>
+                        ))}
+                      </div>
+                   </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+        </div>
+
+        {/* Global Strategy Suggestions */}
+        <div className="pt-20 border-t border-white/5 grid md:grid-cols-2 gap-12">
+           <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                 <Sparkles className="h-5 w-5 text-accent" />
+                 <h4 className="text-xs font-bold uppercase tracking-[0.3em] italic text-accent">Strategic Recommendations</h4>
+              </div>
+              <div className="glass-card p-10 bg-accent/5 border-accent/20 space-y-6 relative overflow-hidden group">
+                 <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <Zap className="h-48 w-48 text-accent" />
+                 </div>
+                 <p className="text-xl font-heading italic leading-relaxed">"Your Performance Index has dropped by 4% since the last synthesis. We recommend auditing your image compression protocols."</p>
+                 <Button className="rounded-full bg-accent text-black font-bold uppercase tracking-widest text-[10px] h-12 shadow-2xl shadow-accent/20">Optimize Portfolio</Button>
+              </div>
+           </div>
+
+           <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                 <Activity className="h-5 w-5 text-primary" />
+                 <h4 className="text-xs font-bold uppercase tracking-[0.3em] italic text-primary">Neural Link Summary</h4>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                 {[
+                   { label: "Matrix Coverage", value: "92%", color: "text-blue-400" },
+                   { label: "Synthesis Rate", value: "1.2/day", color: "text-primary" }
+                 ].map((kpi, i) => (
+                   <div key={i} className="glass-card p-8 space-y-2 group hover:border-primary/20 transition-all">
+                      <p className="text-[9px] font-bold text-muted-foreground uppercase">{kpi.label}</p>
+                      <div className={`text-4xl font-heading font-bold italic ${kpi.color}`}>{kpi.value}</div>
+                   </div>
+                 ))}
+              </div>
+              <p className="text-[10px] text-muted-foreground italic px-2">Next automated synthesis scheduled for tomorrow at 04:00 AM.</p>
+           </div>
+        </div>
+      </main>
+    </div>
+  );
+}

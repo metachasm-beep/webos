@@ -145,12 +145,56 @@ export default function BuilderPage() {
   const [isIsometric, setIsIsometric] = useState(false);
   const [matrixData, setMatrixData] = useState<any>(null);
   const [showMatrixDashboard, setShowMatrixDashboard] = useState(false);
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const [projectName, setProjectName] = useState("Untethered Synthesis");
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
+    // Try to get project ID from URL
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (id) {
+       setProjectId(id);
+       // Fetch existing project (Logic to be added in fetchProjects)
+    }
   }, []);
+
+  // Autosave Engine
+  useEffect(() => {
+    if (!isMounted || nodes.length === 0) return;
+    
+    const saver = setTimeout(async () => {
+      setIsSaving(true);
+      try {
+        const resp = await fetch("/api/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: projectId,
+            name: projectName,
+            nodes,
+            theme: activeTheme
+          })
+        });
+        const data = await resp.json();
+        if (data.id && !projectId) {
+          setProjectId(data.id);
+          window.history.replaceState(null, "", `?id=${data.id}`);
+        }
+        setLastSaved(new Date());
+      } catch (err) {
+        console.error("Registry Sync Failure.", err);
+      } finally {
+        setIsSaving(false);
+      }
+    }, 2000);
+
+    return () => clearTimeout(saver);
+  }, [nodes, activeTheme, projectName, isMounted, projectId]);
 
   // Theme & Typography Orchestration
   useEffect(() => {
@@ -304,10 +348,21 @@ export default function BuilderPage() {
       <div className="flex-1 flex pt-16">
         {/* Sidebar Panel */}
         <aside className="w-80 glass border-r border-white/5 flex flex-col relative z-20 overflow-hidden">
-          <div className="p-8 border-b border-white/5 space-y-1">
-            <h2 className="text-xl font-heading font-bold italic tracking-tight">Design Board</h2>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">Section Creation Tools</p>
-          </div>
+            <div className="p-8 border-b border-white/5 space-y-1">
+               <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-heading font-bold italic tracking-tight">Design Board</h2>
+                  <div className="flex items-center gap-2">
+                     <div className={`h-1.5 w-1.5 rounded-full ${isSaving ? 'bg-orange-500 animate-pulse' : 'bg-green-500'}`} />
+                     <span className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">{isSaving ? 'Saving...' : 'Synced'}</span>
+                  </div>
+               </div>
+               <input 
+                 value={projectName}
+                 onChange={(e) => setProjectName(e.target.value)}
+                 className="bg-transparent border-none p-0 text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold outline-none focus:text-primary transition-colors"
+               />
+               {lastSaved && <p className="text-[8px] text-muted-foreground/30 uppercase italic">Last Sync: {lastSaved.toLocaleTimeString()}</p>}
+            </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-8 relative">
             <AnimatePresence mode="wait">
