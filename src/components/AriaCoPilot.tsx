@@ -13,9 +13,15 @@ interface AriaCoPilotProps {
     seo: any[];
     scores: { performance: number; accessibility: number; seo: number };
   };
+  autonomy?: {
+    isPulsing: boolean;
+    recommendation: string | null;
+    plan: any[] | null;
+  };
+  onClearAutonomy?: () => void;
 }
 
-export function AriaCoPilot({ onMutation, currentNodes, evaluation }: AriaCoPilotProps) {
+export function AriaCoPilot({ onMutation, currentNodes, evaluation, autonomy, onClearAutonomy }: AriaCoPilotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -113,6 +119,36 @@ export function AriaCoPilot({ onMutation, currentNodes, evaluation }: AriaCoPilo
                  </div>
                )}
                
+               {autonomy?.recommendation && (
+                 <div className="glass-card p-4 border-accent/40 bg-accent/10 space-y-3">
+                   <div className="flex items-center gap-2">
+                     <div className="h-2 w-2 rounded-full bg-accent animate-ping" />
+                     <span className="text-[10px] font-bold uppercase tracking-widest text-accent">Aria Master Plan</span>
+                   </div>
+                   <p className="text-[11px] leading-relaxed italic text-white/90">
+                     {autonomy.recommendation}
+                   </p>
+                   <div className="flex gap-2">
+                     <Button 
+                       onClick={() => {
+                         if (autonomy.plan) onMutation(autonomy.plan);
+                         onClearAutonomy?.();
+                       }}
+                       className="flex-1 h-9 bg-accent text-black font-bold uppercase tracking-widest text-[9px] hover:bg-accent/80"
+                     >
+                       Sync Master Plan
+                     </Button>
+                     <Button 
+                       variant="ghost"
+                       onClick={onClearAutonomy}
+                       className="h-9 w-9 p-0 rounded-xl hover:bg-white/10"
+                     >
+                       <X className="h-3 w-3" />
+                     </Button>
+                   </div>
+                 </div>
+               )}
+
                {isTyping && (
                  <div className="flex gap-2 p-2">
                     <div className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]" />
@@ -145,12 +181,15 @@ export function AriaCoPilot({ onMutation, currentNodes, evaluation }: AriaCoPilo
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="h-16 w-16 rounded-[24px] bg-primary shadow-[0_0_40px_rgba(var(--primary),0.3)] flex items-center justify-center text-white relative overflow-hidden group"
+        className={`h-16 w-16 rounded-[24px] bg-primary shadow-[0_0_40px_rgba(var(--primary),0.3)] flex items-center justify-center text-white relative overflow-hidden group ${autonomy?.isPulsing ? 'ring-4 ring-primary/20 ring-offset-4 ring-offset-black' : ''}`}
       >
         <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-        <MessageCircle className="h-7 w-7" />
-        {!isOpen && (
-          <div className="absolute -top-1 -right-1 h-4 w-4 bg-accent rounded-full border-2 border-black animate-bounce" />
+        {autonomy?.isPulsing && (
+          <div className="absolute inset-0 bg-primary/20 animate-pulse" />
+        )}
+        <MessageCircle className={`h-7 w-7 transition-all ${autonomy?.isPulsing ? 'scale-110' : ''}`} />
+        {!isOpen && (autonomy?.recommendation || (evaluation && (evaluation.a11y.length > 0 || evaluation.seo.length > 0))) && (
+          <div className={`absolute -top-1 -right-1 h-4 w-4 rounded-full border-2 border-black animate-bounce ${autonomy?.recommendation ? 'bg-accent' : 'bg-primary'}`} />
         )}
       </motion.button>
     </div>

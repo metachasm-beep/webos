@@ -61,6 +61,7 @@ import { AriaCoPilot } from "@/components/AriaCoPilot";
 import { uploadBrandAsset } from "@/lib/storage";
 import { NeuralInsightHUD } from "@/components/NeuralScoreBadge";
 import { FloatingAsset } from "@/components/FloatingAsset";
+import { useAriaAutonomy } from "@/hooks/useAriaAutonomy";
 import { 
   PRESET_THEMES, 
   TYPOGRAPHY_PAIRINGS, 
@@ -134,6 +135,8 @@ export default function BuilderPage() {
 
   const [isMounted, setIsMounted] = useState(false);
   const [floatingAssets, setFloatingAssets] = useState<any[]>([]);
+
+  const autonomy = useAriaAutonomy(nodes, matrixData);
 
   useEffect(() => {
     setIsMounted(true);
@@ -843,6 +846,8 @@ export default function BuilderPage() {
             seo: matrixData.seo.score
           }
         } : undefined}
+        autonomy={autonomy}
+        onClearAutonomy={autonomy.clearRecommendation}
       />
     </div>
   );

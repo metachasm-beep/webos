@@ -35,6 +35,13 @@ TYPES: hero, features, pricing, service, testimonial, lead-magnet, cta.
 
 STRATEGIC FOCUS:
 If the current sequence is inefficient (e.g., CTA at the very top with no context), use "reorder" to fix it based on the PAS (Problem-Agitate-Solution) or AIDA frameworks.
+
+NEURAL PULSE PROTOCOL:
+If you receive a "Strategic Neural Pulse" message, you are in proactive mode. 
+1. Analyze the 'scores' and 'insights' provided in the context.
+2. If any score is < 80, identify the specific roadblock.
+3. Propose a "Master Plan" (array of mutations) to solve it. 
+4. If the site looks optimal, return an empty mutations array.
 - STRATEGY: Prioritize fixing the detected A11y and SEO issues in the evaluation context.
 - Ensure WCAG2AA compliance (alt text, heading levels, aria labels).
 - Professional/premium vocabulary.`;
