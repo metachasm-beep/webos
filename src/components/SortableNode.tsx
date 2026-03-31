@@ -31,19 +31,25 @@ export function SortableNode({ id, children, index, isIsometric }: SortableNodeP
   };
 
   return (
-    <div 
+    <motion.div 
       ref={setNodeRef} 
       style={style} 
-      className={`relative group ${isDragging ? 'opacity-50' : ''}`}
+      animate={{
+        scale: isDragging ? 1.02 : 1,
+        boxShadow: isDragging 
+          ? "0 20px 40px rgba(0,0,0,0.4), 0 0 0 2px var(--primary)" 
+          : "0 0 0 0px rgba(0,0,0,0)",
+      }}
+      className={`relative group ${isDragging ? 'z-50' : ''}`}
     >
       <div 
         {...attributes} 
         {...listeners}
-        className="absolute -left-12 top-1/2 -translate-y-1/2 p-2 cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-primary transition-colors opacity-0 group-hover:opacity-100 z-50 glass rounded-xl"
+        className={`absolute -left-12 top-1/2 -translate-y-1/2 p-2 cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-primary transition-all z-50 glass rounded-xl ${isDragging ? 'opacity-100 scale-110 text-primary' : 'opacity-0 group-hover:opacity-100'}`}
       >
         <GripVertical className="h-4 w-4" />
       </div>
       {children}
-    </div>
+    </motion.div>
   );
 }

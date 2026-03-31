@@ -56,6 +56,7 @@
   --border: oklch(1 0 0 / 0.1);
   --ring: oklch(0.65 0.2 250 / 0.3);
   --radius: 1rem;
+  --glass-opacity: 0.1;
 }
 
 @layer base {
@@ -96,13 +97,16 @@
 
 @layer utilities {
   .glass {
-    @apply bg-white/5 backdrop-blur-[32px] border border-white/10 shadow-[0_4px_24px_-1px_rgba(0,0,0,0.4)];
+    @apply backdrop-blur-[32px] border border-white/10 shadow-[0_4px_24px_-1px_rgba(0,0,0,0.4)];
+    background-color: oklch(1 0 0 / var(--glass-opacity, 0.05));
+    border-radius: var(--radius);
   }
   .glass-dark {
     @apply bg-black/60 backdrop-blur-xl border border-white/5;
   }
   .glass-card {
-    @apply rounded-[40px] p-8 border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-3xl shadow-2xl transition-all duration-500;
+    @apply p-8 border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-3xl shadow-2xl transition-all duration-500;
+    border-radius: var(--radius);
   }
   .glass-card:hover {
     @apply border-white/20 bg-white/5 -translate-y-2;

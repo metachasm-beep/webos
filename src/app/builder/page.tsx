@@ -60,34 +60,14 @@ import { SortableNode } from "@/components/SortableNode";
 import { AriaCoPilot } from "@/components/AriaCoPilot";
 import { uploadBrandAsset } from "@/lib/storage";
 import { NeuralInsightHUD } from "@/components/NeuralScoreBadge";
+import { FloatingAsset } from "@/components/FloatingAsset";
+import { 
+  PRESET_THEMES, 
+  TYPOGRAPHY_PAIRINGS, 
+  DesignTheme 
+} from "@/lib/design-system";
 
-// Theme Configuration
-const GLOBAL_THEMES = {
-  emerald: {
-    primary: "oklch(0.75 0.15 150)", // Vivid Emerald
-    accent: "oklch(0.85 0.1 190)",
-    bg: "oklch(0.05 0.01 150)",
-    label: "Emerald Synthesis"
-  },
-  sapphire: {
-    primary: "oklch(0.65 0.2 250)", // Deep Sapphire
-    accent: "oklch(0.75 0.15 190)",
-    bg: "oklch(0.05 0.01 250)",
-    label: "Sapphire Protocol"
-  },
-  ruby: {
-    primary: "oklch(0.6 0.25 20)", // Crimson Ruby
-    accent: "oklch(0.7 0.15 40)",
-    bg: "oklch(0.05 0.01 20)",
-    label: "Ruby Matrix"
-  },
-  obsidian: {
-    primary: "oklch(0.98 0 0)", // White/Silver
-    accent: "oklch(0.6 0 0)",
-    bg: "oklch(0.02 0 0)", // Pure Black
-    label: "Pure Obsidian"
-  }
-};
+// Tooltip Helper
 
 // Tooltip Helper
 const ActionTooltip = ({ children, label }: { children: React.ReactNode, label: string }) => (
@@ -111,7 +91,8 @@ export default function BuilderPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [nodes, setNodes] = useState<any[]>([]);
   const [selectedNodeIndex, setSelectedNodeIndex] = useState<number | null>(null);
-  const [activeTheme, setActiveTheme] = useState<keyof typeof GLOBAL_THEMES>("sapphire");
+  const [activeThemeId, setActiveThemeId] = useState<string>("sapphire");
+  const [activeDesign, setActiveDesign] = useState<DesignTheme>(PRESET_THEMES.sapphire);
 
   // DND Sensors
   const sensors = useSensors(
@@ -126,12 +107,7 @@ export default function BuilderPage() {
   );
 
   // Typography Lab State
-  const [activePairing, setActivePairing] = useState("classic");
-  const pairings = {
-    classic: { heading: '--font-heading-classic', body: '--font-body-classic', label: "Classic Serif" },
-    modern: { heading: '--font-heading-modern', body: '--font-body-modern', label: "Modern Sans" },
-    elegant: { heading: '--font-heading-elegant', body: '--font-body-elegant', label: "Elegant Display" }
-  };
+  const [activePairingId, setActivePairingId] = useState("modern");
 
   const [activeTab, setActiveTab] = useState<string | null>(null);
 
@@ -157,6 +133,7 @@ export default function BuilderPage() {
   const [isExporting, setIsExporting] = useState(false);
 
   const [isMounted, setIsMounted] = useState(false);
+  const [floatingAssets, setFloatingAssets] = useState<any[]>([]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -183,7 +160,7 @@ export default function BuilderPage() {
             id: projectId,
             name: projectName,
             nodes,
-            theme: activeTheme
+            theme: activeThemeId
           })
         });
         const data = await resp.json();
@@ -200,23 +177,38 @@ export default function BuilderPage() {
     }, 2000);
 
     return () => clearTimeout(saver);
-  }, [nodes, activeTheme, projectName, isMounted, projectId]);
+  }, [nodes, activeThemeId, projectName, isMounted, projectId]);
 
   // Theme & Typography Orchestration
   useEffect(() => {
     if (!isMounted) return;
     
-    // Apply Typography
-    const pair = pairings[activePairing as keyof typeof pairings];
-    document.documentElement.style.setProperty('--font-heading', `var(${pair.heading})`);
-    document.documentElement.style.setProperty('--font-body', `var(${pair.body})`);
+    // Apply Global Design Tokens
+    const design = activeDesign;
+    document.documentElement.style.setProperty('--font-heading', design.headingFont);
+    document.documentElement.style.setProperty('--font-body', design.bodyFont);
+    document.documentElement.style.setProperty('--primary', design.primary);
+    document.documentElement.style.setProperty('--accent', design.accent);
+    document.documentElement.style.setProperty('--background', design.bg);
+    document.documentElement.style.setProperty('--radius', design.radius);
+    document.documentElement.style.setProperty('--glass-opacity', `${design.glassIntensity / 100}`);
     
-    // Apply Global Theme
-    const theme = GLOBAL_THEMES[activeTheme];
-    document.documentElement.style.setProperty('--primary', theme.primary);
-    document.documentElement.style.setProperty('--accent', theme.accent);
-    document.documentElement.style.setProperty('--background', theme.bg);
-  }, [activePairing, activeTheme, isMounted]);
+  }, [activeDesign, isMounted]);
+
+  // Sync activeDesign when IDs change (manual selection)
+  useEffect(() => {
+    if (PRESET_THEMES[activeThemeId]) {
+      const preset = PRESET_THEMES[activeThemeId];
+      const pairing = TYPOGRAPHY_PAIRINGS[activePairingId as keyof typeof TYPOGRAPHY_PAIRINGS];
+      if (pairing) {
+        setActiveDesign({
+          ...preset,
+          headingFont: pairing.heading,
+          bodyFont: pairing.body
+        });
+      }
+    }
+  }, [activeThemeId, activePairingId]);
 
   // Live Neural Evaluation Observer
   useEffect(() => {
@@ -251,6 +243,10 @@ export default function BuilderPage() {
     document.documentElement.style.setProperty('--canvas-blur', `${blurValue}px`);
     document.documentElement.style.setProperty('--mesh-opacity', `${meshIntensity / 100}`);
     document.documentElement.style.setProperty('--chroma-shift', `${chromaShift}deg`);
+    
+    // Explicitly update the body for global inheritance
+    document.body.style.setProperty('--canvas-blur', `${blurValue}px`);
+    document.body.style.setProperty('--mesh-opacity', `${meshIntensity / 100}`);
   }, [blurValue, meshIntensity, chromaShift, isMounted]);
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -383,6 +379,75 @@ export default function BuilderPage() {
     }
   };
 
+  const handleNeuralThemeSynthesis = async () => {
+    setIsSyncing(true);
+    try {
+      const resp = await fetch("/api/builder/theme", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          brandDescription: projectName, 
+          logoColors: [] // Could be enhanced with actual extraction
+        })
+      });
+      const data = await resp.json();
+      if (!data.error) {
+        // Map API response to DesignTheme interface
+        const synthesized: DesignTheme = {
+          id: "neural-" + Date.now(),
+          label: "Neural Synthesis",
+          primary: data.primary,
+          accent: data.accent,
+          bg: data.bg,
+          headingFont: TYPOGRAPHY_PAIRINGS[data.headingFont as keyof typeof TYPOGRAPHY_PAIRINGS]?.heading || TYPOGRAPHY_PAIRINGS.modern.heading,
+          bodyFont: TYPOGRAPHY_PAIRINGS.modern.body,
+          radius: data.radius || "24px",
+          glassIntensity: data.glass || 20
+        };
+        setActiveDesign(synthesized);
+        setActiveThemeId("neural");
+      }
+    } catch (err) {
+      console.error("Neural Theme Synthesis Failure.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleUpdateAsset = (id: string, updates: any) => {
+    setFloatingAssets(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
+  };
+
+  const handleDeleteAsset = (id: string) => {
+    setFloatingAssets(prev => prev.filter(a => a.id !== id));
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+    const images = files.filter(f => f.type.startsWith('image/'));
+    
+    for (const img of images) {
+       const url = URL.createObjectURL(img);
+       setFloatingAssets(prev => [...prev, {
+         id: `asset-${Date.now()}-${Math.random()}`,
+         url: url,
+         x: e.clientX - 200, // Offset for sidebar
+         y: e.clientY - 100,
+         w: 300,
+         h: 300
+       }]);
+    }
+  };
+
+  const handleContentChange = (idx: number, updates: any) => {
+    setNodes(prev => {
+      const newNodes = [...prev];
+      newNodes[idx] = { ...newNodes[idx], ...updates };
+      return newNodes;
+    });
+  };
+
   const handleAriaMutation = (mutations: any[]) => {
     setNodes(prev => {
       let newNodes = [...prev];
@@ -395,6 +460,11 @@ export default function BuilderPage() {
           if (idx !== -1) newNodes[idx] = { ...newNodes[idx], ...m.updates };
         } else if (m.action === 'delete' && m.id) {
           newNodes = newNodes.filter(n => n.id !== m.id);
+        } else if (m.action === 'reorder' && m.newOrder) {
+          // Re-sequence based on the provided array of IDs
+          newNodes = m.newOrder
+            .map((id: string) => prev.find(n => n.id === id))
+            .filter(Boolean);
         }
       });
       return newNodes;
@@ -455,14 +525,14 @@ export default function BuilderPage() {
                   </Button>
                   <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">Typography Lab</h3>
                   <div className="space-y-3">
-                    {Object.entries(pairings).map(([key, pair]) => (
+                    {Object.values(TYPOGRAPHY_PAIRINGS).map((pair) => (
                       <div 
-                        key={key}
-                        onClick={() => setActivePairing(key)}
-                        className={`p-4 rounded-2xl border cursor-pointer transition-all ${activePairing === key ? 'bg-primary/10 border-primary' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}
+                        key={pair.id}
+                        onClick={() => setActivePairingId(pair.id)}
+                        className={`p-4 rounded-2xl border cursor-pointer transition-all ${activePairingId === pair.id ? 'bg-primary/10 border-primary' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}
                       >
                         <div className="text-xs font-bold mb-1">{pair.label}</div>
-                        <div className="text-[10px] text-muted-foreground opacity-60">Heading: {pair.heading.replace('--font-heading-', '')}</div>
+                        <div className="text-[10px] text-muted-foreground opacity-60">Heading: {pair.heading.replace('var(--font-heading-', '').replace(')', '')}</div>
                       </div>
                     ))}
                   </div>
@@ -476,13 +546,23 @@ export default function BuilderPage() {
                   <Button variant="ghost" onClick={() => setActiveTab(null)} className="p-0 h-auto text-[10px] uppercase font-bold tracking-widest gap-2 text-muted-foreground hover:text-white">
                     <ChevronRight className="h-3 w-3 rotate-180" /> Back
                   </Button>
-                  <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">Global Themes</h3>
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">Global Themes</h3>
+                    <Button 
+                      variant="ghost" 
+                      onClick={handleNeuralThemeSynthesis}
+                      disabled={isSyncing}
+                      className="h-auto p-0 text-[8px] uppercase tracking-widest text-primary font-bold hover:text-primary/70 transition-colors"
+                    >
+                      {isSyncing ? "Synthesizing..." : "Neural Synth"}
+                    </Button>
+                  </div>
                   <div className="space-y-3">
-                    {Object.entries(GLOBAL_THEMES).map(([key, theme]) => (
+                    {Object.values(PRESET_THEMES).map((theme) => (
                       <div 
-                        key={key}
-                        onClick={() => setActiveTheme(key as any)}
-                        className={`p-4 rounded-2xl border cursor-pointer transition-all ${activeTheme === key ? 'bg-primary/10 border-primary' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}
+                        key={theme.id}
+                        onClick={() => setActiveThemeId(theme.id)}
+                        className={`p-4 rounded-2xl border cursor-pointer transition-all ${activeThemeId === theme.id ? 'bg-primary/10 border-primary' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}
                       >
                         <div className="flex items-center gap-3">
                           <div className="h-4 w-4 rounded-full" style={{ backgroundColor: theme.primary }} />
@@ -642,7 +722,25 @@ export default function BuilderPage() {
         </aside>
 
         {/* Canvas Workspace */}
-        <main className="flex-1 bg-black/5 relative p-12 overflow-y-auto" style={{ filter: `hue-rotate(${chromaShift}deg)` }}>
+        <main 
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleDrop}
+          className="flex-1 bg-black/5 relative p-12 overflow-y-auto" 
+          style={{ filter: `hue-rotate(${chromaShift}deg)` }}
+        >
+          {/* Floating Asset Layer */}
+          {floatingAssets.map(asset => (
+             <FloatingAsset 
+               key={asset.id}
+               id={asset.id}
+               url={asset.url}
+               initialPos={{ x: asset.x, y: asset.y }}
+               initialSize={{ w: asset.w, h: asset.h }}
+               onUpdate={handleUpdateAsset}
+               onDelete={handleDeleteAsset}
+             />
+          ))}
+
           <div className="max-w-4xl mx-auto space-y-12">
             <div className="flex gap-4">
               <div className="glass px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-2">
@@ -655,7 +753,7 @@ export default function BuilderPage() {
                  style={isIsometric ? { transform: 'rotateX(20deg) rotateY(-10deg) scale(0.9)', transformStyle: 'preserve-3d' } : {}}>
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={nodes.map(n => n.id)} strategy={verticalListSortingStrategy}>
-                  <AnimatePresence>
+                  <AnimatePresence mode="popLayout">
                     {nodes.length === 0 ? (
                       <div className="glass-card min-h-[400px] flex flex-col items-center justify-center text-center p-12 space-y-4 border border-dashed border-white/10 opacity-40">
                          <Plus className="h-12 w-12" />
@@ -664,17 +762,28 @@ export default function BuilderPage() {
                     ) : (
                       nodes.map((node, i) => (
                         <SortableNode key={node.id} id={node.id} index={i} isIsometric={isIsometric}>
-                          <div className="relative group">
+                          <motion.div 
+                            layout 
+                            initial={{ opacity: 0, y: 20 }} 
+                            animate={{ opacity: 1, y: 0 }} 
+                            exit={{ opacity: 0, scale: 0.95 }} 
+                            transition={{ duration: 0.4 }} 
+                            className="relative group"
+                          >
                             <div className="absolute -left-20 top-0 h-full flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-50">
                                <Button variant="ghost" size="icon" className="h-10 w-10 text-red-500 rounded-full glass" onClick={() => setNodes(nodes.filter(n => n.id !== node.id))}>
                                  <Trash2 className="h-4 w-4" />
                                </Button>
-                               <Button variant="ghost" size="icon" className="h-10 w-10 text-primary rounded-full glass" onClick={() => setSelectedNodeIndex(i)}>
+                               <Button variant="ghost" size="icon" className="h-10 w-10 text-primary rounded-full glass" onClick={() => { setSelectedNodeIndex(i); setActiveTab(null); }}>
                                  <Settings2 className="h-4 w-4" />
                                </Button>
                             </div>
-                            <RenderNode node={node} idx={i} />
-                          </div>
+                             <RenderNode 
+                               node={node} 
+                               idx={i} 
+                               onContentChange={(updates) => handleContentChange(i, updates)} 
+                             />
+                          </motion.div>
                         </SortableNode>
                       ))
                     )}

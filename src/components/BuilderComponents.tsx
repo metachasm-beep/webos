@@ -32,9 +32,10 @@ import StarBorder from "./reactbits/StarBorder";
 
 interface NodeProps {
   node: any;
+  onContentChange?: (updates: any) => void;
 }
 
-export function HeroNode({ node }: NodeProps) {
+export function HeroNode({ node, onContentChange }: NodeProps) {
   const isNeon = node.visualData?.variant === 'neon';
   const accent = node.visualData?.accentColor || "#3b82f6";
 
@@ -65,13 +66,21 @@ export function HeroNode({ node }: NodeProps) {
           <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Section / {node.copyMetrics?.frameworkApplied || 'Standard'}</span>
         </div>
         
-        <ShinyText 
-          text={node.heading} 
-          className="text-6xl md:text-7xl font-heading font-bold italic tracking-tighter leading-[0.9]" 
-          speed={3}
-        />
+        <div 
+          contentEditable 
+          suppressContentEditableWarning
+          onBlur={(e) => onContentChange?.({ heading: e.currentTarget.innerText })}
+          className="text-6xl md:text-7xl font-heading font-bold italic tracking-tighter leading-[0.9] text-white outline-none hover:text-primary transition-colors focus:text-primary cursor-text"
+        >
+          {node.heading}
+        </div>
         
-        <p className="text-xl text-muted-foreground font-body leading-relaxed">
+        <p 
+          contentEditable 
+          suppressContentEditableWarning
+          onBlur={(e) => onContentChange?.({ subheading: e.currentTarget.innerText })}
+          className="text-xl text-muted-foreground font-body leading-relaxed outline-none hover:text-white transition-colors focus:text-white cursor-text"
+        >
           {node.subheading}
         </p>
         
@@ -104,12 +113,26 @@ export function FeatureNode({ node }: NodeProps) {
   );
 }
 
-export function FeaturesNode({ node }: NodeProps) {
+export function FeaturesNode({ node, onContentChange }: NodeProps) {
   return (
     <section className="glass rounded-[40px] p-12 space-y-12">
       <div className="space-y-4">
-        <h2 className="text-4xl font-heading font-bold italic tracking-tight">{node.heading}</h2>
-        <p className="text-muted-foreground max-w-sm">{node.subheading}</p>
+        <h2 
+          contentEditable 
+          suppressContentEditableWarning
+          onBlur={(e) => onContentChange?.({ heading: e.currentTarget.innerText })}
+          className="text-4xl font-heading font-bold italic tracking-tight outline-none focus:text-primary transition-colors cursor-text"
+        >
+          {node.heading}
+        </h2>
+        <p 
+          contentEditable 
+          suppressContentEditableWarning
+          onBlur={(e) => onContentChange?.({ subheading: e.currentTarget.innerText })}
+          className="text-muted-foreground max-w-sm outline-none focus:text-white transition-colors cursor-text"
+        >
+          {node.subheading}
+        </p>
       </div>
       
       <div className="grid md:grid-cols-3 gap-6">
@@ -181,17 +204,25 @@ export function PricingNode({ node }: NodeProps) {
   );
 }
 
-export function CTANode({ node }: NodeProps) {
+export function CTANode({ node, onContentChange }: NodeProps) {
   return (
     <section className="glass rounded-[40px] p-16 text-center space-y-8 relative overflow-hidden">
       <div className="absolute inset-0 bg-primary/5 -z-10" />
       <div className="space-y-6">
-        <ShinyText 
-          text={node.heading || "Revolutionize Your Workflow"} 
-          className="text-6xl md:text-8xl font-heading font-bold italic tracking-tighter leading-[0.9] text-white" 
-          speed={3}
-        />
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed font-light">
+        <div 
+          contentEditable 
+          suppressContentEditableWarning
+          onBlur={(e) => onContentChange?.({ heading: e.currentTarget.innerText })}
+          className="text-6xl md:text-8xl font-heading font-bold italic tracking-tighter leading-[0.9] text-white outline-none hover:text-primary transition-colors focus:text-primary cursor-text"
+        >
+          {node.heading || "Revolutionize Your Workflow"}
+        </div>
+        <p 
+          contentEditable 
+          suppressContentEditableWarning
+          onBlur={(e) => onContentChange?.({ subheading: e.currentTarget.innerText })}
+          className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed font-light outline-none hover:text-white transition-colors focus:text-white cursor-text"
+        >
           {node.subheading || "Deploy high-fidelity assets across your entire business matrix."}
         </p>
         <div className="flex justify-center pt-8">
@@ -207,7 +238,7 @@ export function CTANode({ node }: NodeProps) {
   );
 }
 
-export function LeadMagnetNode({ node }: NodeProps) {
+export function LeadMagnetNode({ node, onContentChange }: NodeProps) {
   return (
     <section className="glass rounded-[40px] p-16 grid md:grid-cols-2 gap-12 items-center relative overflow-hidden border-accent/20">
       <div className="space-y-8">
@@ -215,10 +246,20 @@ export function LeadMagnetNode({ node }: NodeProps) {
             <Sparkles className="h-3 w-3 text-accent" />
             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Lead Generation Engine</span>
          </div>
-         <h2 className="text-5xl font-heading font-bold italic tracking-tight leading-tight">
+         <h2 
+            contentEditable 
+            suppressContentEditableWarning
+            onBlur={(e) => onContentChange?.({ heading: e.currentTarget.innerText })}
+            className="text-5xl font-heading font-bold italic tracking-tight leading-tight outline-none focus:text-accent transition-colors cursor-text"
+         >
             {node.heading || "Ready to scale your business?"}
          </h2>
-         <p className="text-lg text-muted-foreground font-light leading-relaxed">
+         <p 
+            contentEditable 
+            suppressContentEditableWarning
+            onBlur={(e) => onContentChange?.({ subheading: e.currentTarget.innerText })}
+            className="text-lg text-muted-foreground font-light leading-relaxed outline-none focus:text-white transition-colors cursor-text"
+         >
             {node.subheading || "Get our exclusive growth framework delivered to your inbox."}
          </p>
          <div className="flex flex-col sm:flex-row gap-4">
@@ -248,12 +289,26 @@ export function LeadMagnetNode({ node }: NodeProps) {
   );
 }
 
-export function ServiceGridNode({ node }: NodeProps) {
+export function ServiceGridNode({ node, onContentChange }: NodeProps) {
   return (
     <section className="py-24 space-y-12">
       <div className="text-center max-w-2xl mx-auto space-y-4">
-        <h2 className="text-4xl font-heading font-bold italic tracking-tight">{node.heading || "High-Performance Services"}</h2>
-        <p className="text-muted-foreground">{node.subheading || "Engineered for growth."}</p>
+        <h2 
+          contentEditable 
+          suppressContentEditableWarning
+          onBlur={(e) => onContentChange?.({ heading: e.currentTarget.innerText })}
+          className="text-4xl font-heading font-bold italic tracking-tight outline-none focus:text-primary transition-colors cursor-text"
+        >
+          {node.heading || "High-Performance Services"}
+        </h2>
+        <p 
+          contentEditable 
+          suppressContentEditableWarning
+          onBlur={(e) => onContentChange?.({ subheading: e.currentTarget.innerText })}
+          className="text-muted-foreground outline-none focus:text-white transition-colors cursor-text"
+        >
+          {node.subheading || "Engineered for growth."}
+        </p>
       </div>
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         {(node.services || [
@@ -278,7 +333,7 @@ export function ServiceGridNode({ node }: NodeProps) {
   );
 }
 
-export function TestimonialNode({ node }: NodeProps) {
+export function TestimonialNode({ node, onContentChange }: NodeProps) {
   return (
     <section className="py-24 relative">
       <div className="max-w-4xl mx-auto glass rounded-[40px] p-12 md:p-20 text-center relative overflow-hidden">
@@ -286,7 +341,12 @@ export function TestimonialNode({ node }: NodeProps) {
         <div className="flex justify-center gap-1 mb-10">
           {[1,2,3,4,5].map(i => <Star key={i} className="h-4 w-4 fill-primary text-primary" />)}
         </div>
-        <blockquote className="text-2xl md:text-3xl font-heading font-medium italic mb-12 leading-relaxed">
+        <blockquote 
+          contentEditable 
+          suppressContentEditableWarning
+          onBlur={(e) => onContentChange?.({ quote: e.currentTarget.innerText })}
+          className="text-2xl md:text-3xl font-heading font-medium italic mb-12 leading-relaxed outline-none focus:text-primary transition-colors cursor-text"
+        >
           "{node.quote || 'WebOS has completely transformed our growth trajectory.'}"
         </blockquote>
         <div className="flex flex-col items-center gap-4">
@@ -326,21 +386,21 @@ export function ErrorNode({ node }: NodeProps) {
   );
 }
 
-export function RenderNode({ node, idx, onUpdate }: { node: any, idx: number, onUpdate?: (idx: number, content: any) => void }) {
+export function RenderNode({ node, idx, onContentChange }: { node: any, idx: number, onContentChange?: (updates: any) => void }) {
   if (node.error) return <ErrorNode node={node} />;
   
   const type = node.type?.toLowerCase() || "";
-
-  if (type.includes("hero")) return <HeroNode node={node} />;
-  if (type.includes("feature")) return <FeaturesNode node={node} />;
+  
+  if (type.includes("hero")) return <HeroNode node={node} onContentChange={onContentChange} />;
+  if (type.includes("feature")) return <FeaturesNode node={node} onContentChange={onContentChange} />;
   if (type.includes("pricing")) return <PricingNode node={node} />;
-  if (type.includes("cta")) return <CTANode node={node} />;
-  if (type.includes("lead") || type.includes("magnet") || type.includes("capture")) return <LeadMagnetNode node={node} />;
-  if (type.includes("service")) return <ServiceGridNode node={node} />;
-  if (type.includes("testimonial")) return <TestimonialNode node={node} />;
+  if (type.includes("cta")) return <CTANode node={node} onContentChange={onContentChange} />;
+  if (type.includes("lead") || type.includes("magnet") || type.includes("capture")) return <LeadMagnetNode node={node} onContentChange={onContentChange} />;
+  if (type.includes("service")) return <ServiceGridNode node={node} onContentChange={onContentChange} />;
+  if (type.includes("testimonial")) return <TestimonialNode node={node} onContentChange={onContentChange} />;
   
   // High-fidelity fallback that guesses based on structure if type is weird
-  if (node.heading && node.ctaText && !node.features) return <HeroNode node={node} />;
+  if (node.heading && node.ctaText && !node.features) return <HeroNode node={node} onContentChange={onContentChange} />;
   
   return (
     <div className="glass-card p-12 text-center italic text-muted-foreground flex flex-col items-center gap-4">

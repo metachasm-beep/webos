@@ -26,10 +26,15 @@ CONTEXT (EVALUATION): ${JSON.stringify(evaluation || {})}
 USER: "${message}"
 
 OUTPUT: VALID JSON ONLY.
-SCHEMA: { "mutations": [{ "action": "add"|"update"|"delete", "id": "str", "node": {}, "updates": {} }] }
+SCHEMA: { "mutations": [{ "action": "add"|"update"|"delete"|"reorder", "id": "str", "node": {}, "updates": {}, "newOrder": ["id1", "id2"] }] }
 TYPES: hero, features, pricing, service, testimonial, lead-magnet, cta.
-- "add": generate full node object with high-impact copy.
-- "update": apply logic to existing nodes.
+- "add": Give me a "node" object (from RenderNode schema).
+- "update": Give me an "id" and "updates" object.
+- "delete": Give me an "id".
+- "reorder": Give me a "newOrder" array of ID strings in the optimal sequence.
+
+STRATEGIC FOCUS:
+If the current sequence is inefficient (e.g., CTA at the very top with no context), use "reorder" to fix it based on the PAS (Problem-Agitate-Solution) or AIDA frameworks.
 - STRATEGY: Prioritize fixing the detected A11y and SEO issues in the evaluation context.
 - Ensure WCAG2AA compliance (alt text, heading levels, aria labels).
 - Professional/premium vocabulary.`;
