@@ -3,6 +3,8 @@ import { supabase } from "@/lib/supabase";
 import { PHONEPE_CONFIG } from "@/lib/phonepe";
 import crypto from "crypto";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const merchantTransactionId = searchParams.get("id");
