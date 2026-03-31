@@ -24,12 +24,17 @@ import {
   Globe,
   Users,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Plus,
+  Settings2
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import ShinyText from "./reactbits/ShinyText";
 import StarBorder from "./reactbits/StarBorder";
 import { ContactFormNode } from "./ContactFormNode";
+import { BentoGridNode } from "./BentoGridNode";
+import { CollectionNode } from "./CollectionNode";
+import { SmartPricingNode } from "./SmartPricingNode";
 
 interface NodeProps {
   node: any;
@@ -392,14 +397,28 @@ export function RenderNode({ node, idx, onContentChange }: { node: any, idx: num
   
   const type = node.type?.toLowerCase() || "";
   
-  if (type.includes("hero")) return <HeroNode node={node} onContentChange={onContentChange} />;
-  if (type.includes("feature")) return <FeaturesNode node={node} onContentChange={onContentChange} />;
-  if (type.includes("pricing")) return <PricingNode node={node} />;
-  if (type.includes("cta")) return <CTANode node={node} onContentChange={onContentChange} />;
-  if (type.includes("lead") || type.includes("magnet") || type.includes("capture")) return <LeadMagnetNode node={node} onContentChange={onContentChange} />;
-  if (type.includes("service")) return <ServiceGridNode node={node} onContentChange={onContentChange} />;
-  if (type.includes("testimonial")) return <TestimonialNode node={node} onContentChange={onContentChange} />;
-  if (type.includes("contact")) return <ContactFormNode node={node} />;
+  const RevealWrapper = ({ children }: { children: React.ReactNode }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 40, filter: 'blur(10px)' }}
+      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+
+  if (type.includes("hero")) return <RevealWrapper><HeroNode node={node} onContentChange={onContentChange} /></RevealWrapper>;
+  if (type.includes("feature")) return <RevealWrapper><FeaturesNode node={node} onContentChange={onContentChange} /></RevealWrapper>;
+  if (type.includes("bento")) return <RevealWrapper><BentoGridNode node={node} onContentChange={onContentChange} /></RevealWrapper>;
+  if (type.includes("collection") || type.includes("team") || type.includes("portfolio")) return <RevealWrapper><CollectionNode node={node} onContentChange={onContentChange} /></RevealWrapper>;
+  if (type.includes("smart-pricing") || (type.includes("pricing") && node.featured)) return <RevealWrapper><SmartPricingNode node={node} /></RevealWrapper>;
+  if (type.includes("pricing")) return <RevealWrapper><PricingNode node={node} /></RevealWrapper>;
+  if (type.includes("cta")) return <RevealWrapper><CTANode node={node} onContentChange={onContentChange} /></RevealWrapper>;
+  if (type.includes("lead") || type.includes("magnet") || type.includes("capture")) return <RevealWrapper><LeadMagnetNode node={node} onContentChange={onContentChange} /></RevealWrapper>;
+  if (type.includes("service")) return <RevealWrapper><ServiceGridNode node={node} onContentChange={onContentChange} /></RevealWrapper>;
+  if (type.includes("testimonial")) return <RevealWrapper><TestimonialNode node={node} onContentChange={onContentChange} /></RevealWrapper>;
+  if (type.includes("contact")) return <RevealWrapper><ContactFormNode node={node} /></RevealWrapper>;
   
   // High-fidelity fallback that guesses based on structure if type is weird
   if (node.heading && node.ctaText && !node.features) return <HeroNode node={node} onContentChange={onContentChange} />;

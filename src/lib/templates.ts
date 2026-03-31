@@ -99,10 +99,19 @@ export const SECTION_TEMPLATES = {
     { id: 'about-service', icon: 'Globe', name: 'Global Impact', type: 'service', heading: 'Founded on Innovation', subheading: 'Pioneering the future of digital architecture.' }
   ],
   PRICING: [
-    { id: 'pricing-tiered', icon: 'ShieldCheck', name: 'Tiered Matrix', type: 'pricing', heading: 'Scale Your Success', subheading: 'Transparent synthesis for every stage.' }
+    { id: 'pricing-tiered', icon: 'ShieldCheck', name: 'Tiered Matrix', type: 'pricing', heading: 'Scale Your Success', subheading: 'Transparent synthesis for every stage.' },
+    { id: 'pricing-smart', icon: 'Sparkles', name: 'Smart Pricing', type: 'smart-pricing', featured: true, heading: 'Strategic Synthesis Pricing', subheading: 'Transparent scaling for the next generation.' }
   ],
   CONTACT: [
     { id: 'contact-standard', icon: 'Send', name: 'Contact Form', type: 'contact', heading: 'Initiate Link', subheading: 'Our neural core is ready to process your request.' },
     { id: 'contact-magnet', icon: 'Sparkles', name: 'Lead Magnet', type: 'lead-magnet', heading: 'Join the Vanguard', subheading: 'Get exclusive strategic updates.' }
+  ],
+  BENTO: [
+    { id: 'bento-standard', icon: 'Layout', name: 'Bento Grid', type: 'bento', heading: 'The Bento Matrix', subheading: 'High-fidelity modular grid orchestration.' },
+    { id: 'bento-features', icon: 'Layers', name: 'Feature Bento', type: 'bento', heading: 'Core Capabilities', subheading: 'Premium non-uniform grid layout.' }
+  ],
+  COLLECTION: [
+    { id: 'collection-team', icon: 'Users', name: 'The Team', type: 'team', heading: 'The Vanguard Team', subheading: 'Engineered for high-fidelity execution.' },
+    { id: 'collection-portfolio', icon: 'Globe', name: 'Portfolio Grid', type: 'portfolio', heading: 'Our Work', subheading: 'High-fidelity case studies and outcomes.' }
   ]
 };
