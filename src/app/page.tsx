@@ -297,7 +297,7 @@ export default function Home() {
                 <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 h-full">
                   <div className="space-y-4 text-center md:text-left">
                     <h3 className="text-4xl font-heading font-bold italic">Ready to grow?</h3>
-                    <p className="text-primary-foreground/70 max-w-sm">Join thousands of businesses using TurtleLabs to improve their online presence.</p>
+                    <p className="text-primary-foreground/70 max-w-sm">Join thousands of businesses using WebOS AI to improve their online presence.</p>
                   </div>
                   <Button size="lg" className="rounded-full px-12 h-16 bg-white text-black hover:bg-white/90 shadow-2xl transition-all font-bold uppercase tracking-widest text-xs">
                     Start Free Audit
@@ -353,7 +353,7 @@ export default function Home() {
             </div>
           </div>
           <div className="mt-20 pt-8 border-t border-white/5 text-[9px] text-center text-muted-foreground/30 uppercase tracking-[0.4em] font-bold">
-            © 2026 TurtleLabs. All rights reserved.
+            © 2026 WebOS AI. All rights reserved.
           </div>
         </div>
       </footer>
