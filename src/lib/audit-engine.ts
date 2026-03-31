@@ -265,9 +265,9 @@ export async function createPdfReport(url: string, data: any) {
       <body>
         <div class="header">
           <div class="logo-container">
-            <img src="https://webos-beta.vercel.app/assets/branding/logo_full.png" class="webos-logo" alt="WebOS AI" />
-            <div style="width: 1px; height: 24px; background: #e5e7eb; margin: 0 4px;"></div>
-            <img src="${logoUrl}" class="target-logo" onerror="this.style.display='none'" />
+            <img src="https://webos-beta.vercel.app/assets/branding/logo_cropped.png" class="webos-logo" alt="WebOS AI" crossorigin="anonymous" />
+            <div style="width: 1px; height: 32px; background: rgba(0,0,0,0.1); margin: 0 4px;"></div>
+            <img src="${logoUrl}" class="target-logo" onerror="this.style.display='none'" crossorigin="anonymous" />
           </div>
           <div class="meta">
             <strong>${new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</strong>
