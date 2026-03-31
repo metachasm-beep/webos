@@ -8,9 +8,14 @@ import { Button } from './ui/button';
 interface AriaCoPilotProps {
   onMutation: (commands: any[]) => void;
   currentNodes: any[];
+  evaluation?: {
+    a11y: any[];
+    seo: any[];
+    scores: { performance: number; accessibility: number; seo: number };
+  };
 }
 
-export function AriaCoPilot({ onMutation, currentNodes }: AriaCoPilotProps) {
+export function AriaCoPilot({ onMutation, currentNodes, evaluation }: AriaCoPilotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -26,7 +31,10 @@ export function AriaCoPilot({ onMutation, currentNodes }: AriaCoPilotProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           message, 
-          context: { nodes: currentNodes } 
+          context: { 
+            nodes: currentNodes,
+            evaluation: evaluation
+          } 
         })
       });
       const { mutations } = await resp.json();
@@ -67,16 +75,43 @@ export function AriaCoPilot({ onMutation, currentNodes }: AriaCoPilotProps) {
             </div>
 
             <div className="h-[300px] p-6 overflow-y-auto space-y-4 font-body">
-               <div className="flex gap-3">
+                <div className="flex gap-3">
                   <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
                      <Sparkles className="h-4 w-4" />
                   </div>
                   <div className="bg-white/5 border border-white/5 p-3 rounded-2xl rounded-tl-none">
                      <p className="text-[11px] leading-relaxed italic text-muted-foreground">
-                        Protocol online. I can modify your canvas sequence using natural language. Try saying "Make all headers italics" or "Add a tech-themed service grid".
+                        Neural Co-Pilot online. I am monitoring your canvas for performance and accessibility violations. How can I assist with your synthesis today?
                      </p>
                   </div>
                </div>
+
+               {evaluation && (evaluation.a11y.length > 0 || evaluation.seo.length > 0) && (
+                 <div className="space-y-3">
+                   <div className="flex items-center gap-2 px-2">
+                     <div className="h-[1px] flex-1 bg-white/5" />
+                     <span className="text-[8px] font-bold uppercase tracking-widest text-primary/40">Strategic Flaws Detected</span>
+                     <div className="h-[1px] flex-1 bg-white/5" />
+                   </div>
+                   
+                   {[...evaluation.a11y, ...evaluation.seo].slice(0, 3).map((issue, idx) => (
+                     <div key={idx} className="glass-card p-3 border-primary/20 bg-primary/5 flex items-start justify-between gap-3 group/item">
+                       <div className="space-y-1">
+                         <div className="text-[9px] font-bold uppercase tracking-widest text-primary">{issue.type} Issue</div>
+                         <div className="text-[10px] text-foreground/80 leading-tight">{issue.message}</div>
+                       </div>
+                       <Button 
+                         variant="outline" 
+                         size="sm"
+                         onClick={() => setMessage(`Fix this ${issue.type} issue: ${issue.message}`)}
+                         className="h-7 px-2 text-[8px] border-primary/30 hover:bg-primary/20 text-primary font-bold uppercase tracking-widest flex items-center gap-2"
+                       >
+                         Sync Fix <Command className="h-2 w-2" />
+                       </Button>
+                     </div>
+                   ))}
+                 </div>
+               )}
                
                {isTyping && (
                  <div className="flex gap-2 p-2">

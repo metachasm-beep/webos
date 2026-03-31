@@ -722,7 +722,19 @@ export default function BuilderPage() {
         </aside>
       </div>
 
-      <AriaCoPilot onMutation={handleAriaMutation} currentNodes={nodes} />
+      <AriaCoPilot 
+        onMutation={handleAriaMutation} 
+        currentNodes={nodes} 
+        evaluation={matrixData ? {
+          a11y: matrixData.insights.filter((i: string) => i.toLowerCase().includes('a11y')).map((i: string) => ({ type: 'Accessibility', message: i })),
+          seo: matrixData.insights.filter((i: string) => i.toLowerCase().includes('seo') || i.toLowerCase().includes('hierarchy')).map((i: string) => ({ type: 'SEO', message: i })),
+          scores: {
+            performance: matrixData.performance.score,
+            accessibility: matrixData.a11y.score,
+            seo: matrixData.seo.score
+          }
+        } : undefined}
+      />
     </div>
   );
 }

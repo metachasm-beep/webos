@@ -134,7 +134,7 @@ function AuditContent() {
             setCurrentTask("Audit complete.");
             setTimeout(() => setStage("report"), 1000);
           } else {
-            setError(result.error || "Audit failed. Please try again.");
+            setError((result as any).error || "Audit failed. Please try again.");
           }
         }
       } catch (err: any) {
