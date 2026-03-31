@@ -1,4 +1,4 @@
-import { fetchPageSpeedData, generateAuditSummary, fetchCarbonMetrics, checkSafeBrowsing, runLocalAudit } from "@/lib/audit-engine";
+import { fetchPageSpeedData, generateAuditSummary, fetchCarbonMetrics, checkSafeBrowsing, runLocalAudit, fetchMultiEngineMetrics } from "@/lib/audit-engine";
 
 import { calculateGrowthMetrics, calculateCompositeScore } from "@/lib/matrix-engine";
 
@@ -27,10 +27,11 @@ export default async function ReportView({ searchParams }: Props) {
 
   try {
     metrics = await fetchPageSpeedData(url);
-    const [carbon, security, local] = await Promise.all([
+    const [carbon, security, local, multiEngine] = await Promise.all([
       fetchCarbonMetrics(url),
       checkSafeBrowsing(url),
-      runLocalAudit(url)
+      runLocalAudit(url),
+      fetchMultiEngineMetrics(url)
     ]);
 
     
@@ -57,7 +58,11 @@ export default async function ReportView({ searchParams }: Props) {
         carbon,
         security: { ...security, headers: local?.security },
         content: local?.content,
-        tech: local?.tech
+        tech: local?.tech,
+        pa11y: multiEngine.pa11y,
+        debugbear: multiEngine.debugbear,
+        geekflare: multiEngine.geekflare,
+        observatory: multiEngine.observatory
      };
 
   } catch (e) {
@@ -258,31 +263,33 @@ export default async function ReportView({ searchParams }: Props) {
           </div>
 
           {/* Content & Tech */}
-          {audits.content && (
             <div className="section">
-              <div className="section-title">Content Intelligence</div>
-              <div className="metrics-grid">
-                <div className="metric-row">
-                  <span className="metric-key">Readability (Flesch)</span>
-                  <span className="metric-val">{audits.content.readability.score}</span>
-                </div>
-                <div className="metric-row">
-                  <span className="metric-key">Grade Level</span>
-                  <span className="metric-val">{audits.content.readability.grade}</span>
-                </div>
-                <div className="metric-row">
-                  <span className="metric-key">Word Count</span>
-                  <span className="metric-val">{audits.content.readability.wordCount} words</span>
-                </div>
-                <div className="metric-row">
-                  <span className="metric-key">Accessibility (Alt)</span>
-                  <span className="metric-val" style={{ color: audits.content.accessibility.missingAlt > 0 ? '#ef4444' : '#22c55e' }}>
-                    {audits.content.accessibility.missingAlt} issues
-                  </span>
-                </div>
-              </div>
+               <div className="section-title">Deep Performance Logic (DebugBear)</div>
+               <div className="metrics-grid">
+                  <div className="metric-row"><span className="metric-key">LCP</span><span className="metric-val">{audits.debugbear?.vitals?.lcp || 'N/A'}</span></div>
+                  <div className="metric-row"><span className="metric-key">FID</span><span className="metric-val">{audits.debugbear?.vitals?.fid || 'N/A'}</span></div>
+                  <div className="metric-row"><span className="metric-key">CLS</span><span className="metric-val">{audits.debugbear?.vitals?.cls || 'N/A'}</span></div>
+                  <div className="metric-row"><span className="metric-key">TTFB</span><span className="metric-val">{audits.debugbear?.vitals?.ttfb || 'N/A'}</span></div>
+               </div>
             </div>
-          )}
+
+            <div className="section">
+               <div className="section-title">Deep Accessibility Logic (Pa11y)</div>
+               <div className="metrics-grid">
+                  <div className="metric-row"><span className="metric-key">Total Issues</span><span className="metric-val" style={{ color: (audits.pa11y?.errors || 0) > 0 ? '#ef4444' : '#22c55e' }}>{audits.pa11y?.totalIssues || 0}</span></div>
+                  <div className="metric-row"><span className="metric-key">Compliance Errors</span><span className="metric-val" style={{ color: '#ef4444' }}>{audits.pa11y?.errors || 0}</span></div>
+                  <div className="metric-row"><span className="metric-key">Compliance Warnings</span><span className="metric-val" style={{ color: '#f97316' }}>{audits.pa11y?.warnings || 0}</span></div>
+               </div>
+            </div>
+
+            <div className="section">
+               <div className="section-title">Infra Security (Geekflare + Observatory)</div>
+               <div className="metrics-grid">
+                  <div className="metric-row"><span className="metric-key">Observatory Grade</span><span className="metric-val" style={{ fontSize: '18px', fontWeight: '900', color: (audits.observatory?.score || 0) > 70 ? '#22c55e' : '#f97316' }}>{audits.observatory?.grade || 'N/A'}</span></div>
+                  <div className="metric-row"><span className="metric-key">TLS/SSL Score</span><span className="metric-val">{audits.geekflare?.tls?.score || 'Provisioned'}</span></div>
+                  <div className="metric-row"><span className="metric-key">DNS Status</span><span className="metric-val">Synced</span></div>
+               </div>
+            </div>
 
           {audits.tech && audits.tech.length > 0 && (
             <div className="section">

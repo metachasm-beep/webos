@@ -1,16 +1,17 @@
 "use server";
 
-import { fetchPageSpeedData, generateAuditSummary, createPdfReport as createPdfReportEngine, fetchCarbonMetrics, checkSafeBrowsing, runLocalAudit } from "@/lib/audit-engine";
+import { fetchPageSpeedData, generateAuditSummary, createPdfReport as createPdfReportEngine, fetchCarbonMetrics, checkSafeBrowsing, runLocalAudit, fetchMultiEngineMetrics } from "@/lib/audit-engine";
 
 import { calculateGrowthMetrics, calculateCompositeScore } from "@/lib/matrix-engine";
 
 export async function runAuditAction(url: string) {
   try {
     const data = await fetchPageSpeedData(url);
-    const [carbonData, securityData, localData] = await Promise.all([
+    const [carbonData, securityData, localData, multiEngineData] = await Promise.all([
       fetchCarbonMetrics(url),
       checkSafeBrowsing(url),
-      runLocalAudit(url)
+      runLocalAudit(url),
+      fetchMultiEngineMetrics(url)
     ]);
 
 
@@ -44,6 +45,10 @@ export async function runAuditAction(url: string) {
       },
       content: localData?.content,
       tech: localData?.tech,
+      pa11y: multiEngineData.pa11y,
+      debugbear: multiEngineData.debugbear,
+      geekflare: multiEngineData.geekflare,
+      observatory: multiEngineData.observatory,
     };
 
   } catch (error: any) {

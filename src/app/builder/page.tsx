@@ -59,6 +59,7 @@ import {
 import { SortableNode } from "@/components/SortableNode";
 import { AriaCoPilot } from "@/components/AriaCoPilot";
 import { uploadBrandAsset } from "@/lib/storage";
+import { NeuralInsightHUD } from "@/components/NeuralScoreBadge";
 
 // Theme Configuration
 const GLOBAL_THEMES = {
@@ -217,6 +218,33 @@ export default function BuilderPage() {
     document.documentElement.style.setProperty('--background', theme.bg);
   }, [activePairing, activeTheme, isMounted]);
 
+  // Live Neural Evaluation Observer
+  useEffect(() => {
+    if (!isMounted || nodes.length === 0) return;
+    
+    const evaluator = setTimeout(async () => {
+      setIsSyncing(true);
+      try {
+        const resp = await fetch("/api/builder/evaluate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nodes })
+        });
+        const data = await resp.json();
+        if (data.success) {
+          setMatrixData(data.matrix);
+          setShowMatrixDashboard(true);
+        }
+      } catch (err) {
+        console.error("Neural Evaluation Protocol Failure.", err);
+      } finally {
+        setIsSyncing(false);
+      }
+    }, 1500); // Debounce for 1.5s to preserve compute
+
+    return () => clearTimeout(evaluator);
+  }, [nodes, isMounted]);
+
   // Update Config CSS Variables
   useEffect(() => {
     if (!isMounted) return;
@@ -291,17 +319,9 @@ export default function BuilderPage() {
   };
 
   const handleSyncMatrix = () => {
+    // Now just a manual trigger for the existing observer logic if needed
     setIsSyncing(true);
-    setTimeout(() => {
-      setMatrixData({
-        seo: { score: 84, trend: "up", alert: "none" },
-        performance: { score: 92, trend: "up", alert: "none" },
-        friction: { score: 18, trend: "down", alert: "warning" },
-        conversion: { score: 4.2, trend: "up", alert: "strategic" }
-      });
-      setIsSyncing(false);
-      setShowMatrixDashboard(true);
-    }, 2000);
+    setTimeout(() => setIsSyncing(false), 500);
   };
 
   const handleFlushCanvas = () => {
@@ -667,6 +687,11 @@ export default function BuilderPage() {
 
         {/* Global Toolbar */}
         <aside className="w-80 glass border-l border-white/5 p-8 space-y-12 relative z-20">
+          <div className="space-y-6">
+            <h3 className="text-[10px] uppercase font-bold text-muted-foreground">Neural Matrix</h3>
+            <NeuralInsightHUD matrix={matrixData} />
+          </div>
+
           <div className="space-y-6">
             <h3 className="text-[10px] uppercase font-bold text-muted-foreground">Appearance</h3>
             {[

@@ -71,18 +71,74 @@ async function checkSafeBrowsing() {
   }
 }
 
+async function checkDebugBear() {
+  const key = process.env.DEBUGBEAR_API_KEY || "lHNwhuHNDtJRFvqZrsQPBxLcB";
+  try {
+    const r = await fetch("https://www.debugbear.com/api/v1/projects", {
+      headers: { Authorization: `Bearer ${key}` },
+      signal: AbortSignal.timeout(6000),
+    });
+    return r.ok ? { ok: true, label: "Connected" } : { ok: false, label: "Invalid key" };
+  } catch {
+    return { ok: false, label: "Timeout" };
+  }
+}
+
+async function checkGeekflare() {
+  const key = process.env.GEEKFLARE_API_KEY || "y10MkLTwhdiVObpbwMhVLY8sNal2PKLe";
+  try {
+    const r = await fetch("https://api.geekflare.com/v1/account/status", {
+      method: "POST",
+      headers: { "x-api-key": key },
+      signal: AbortSignal.timeout(6000),
+    });
+    return r.ok ? { ok: true, label: "Connected" } : { ok: false, label: "Invalid key" };
+  } catch {
+    return { ok: false, label: "Timeout" };
+  }
+}
+
+async function checkPa11y() {
+  const url = process.env.PA11Y_SERVICE_URL || "http://localhost:3000";
+  try {
+    const r = await fetch(`${url}/tasks`, { signal: AbortSignal.timeout(4000) });
+    return r.ok ? { ok: true, label: "Online" } : { ok: false, label: "Offline" };
+  } catch {
+    return { ok: false, label: "Unreachable" };
+  }
+}
+
+async function checkObservatory() {
+  try {
+    const r = await fetch("https://observatory-api.mdn.mozilla.net/api/v2/scan?host=google.com", {
+      signal: AbortSignal.timeout(6000),
+    });
+    return r.ok ? { ok: true, label: "Connected" } : { ok: false, label: "Down" };
+  } catch {
+    return { ok: false, label: "Timeout" };
+  }
+}
+
 export async function GET() {
-  const [pageSpeed, cohere, api2pdf, safeBrowsing] = await Promise.all([
+  const [pageSpeed, cohere, api2pdf, safeBrowsing, debugbear, geekflare, pa11y, observatory] = await Promise.all([
     checkPageSpeed(),
     checkCohere(),
     checkApi2Pdf(),
     checkSafeBrowsing(),
+    checkDebugBear(),
+    checkGeekflare(),
+    checkPa11y(),
+    checkObservatory()
   ]);
 
   return NextResponse.json({
     apis: [
       { name: "PageSpeed API", ...pageSpeed, description: "Google Lighthouse audits" },
       { name: "Cohere AI", ...cohere, description: "AI summary generation" },
+      { name: "DebugBear", ...debugbear, description: "Professional performance monitoring" },
+      { name: "Geekflare", ...geekflare, description: "Infrastructure security telemetry" },
+      { name: "Mozilla Observatory", ...observatory, description: "Security header grading" },
+      { name: "Pa11y Service", ...pa11y, description: "Deep-dive accessibility engine" },
       { name: "API2PDF", ...api2pdf, description: "PDF report generation" },
       { name: "Safe Browsing", ...safeBrowsing, description: "Security threat detection" },
     ],
