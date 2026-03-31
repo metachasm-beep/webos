@@ -128,6 +128,29 @@ export function FeaturesNode({ node }: NodeProps) {
 }
 
 export function PricingNode({ node }: NodeProps) {
+  const handleCheckout = async (tier: string) => {
+    if (tier !== "Growth" && tier !== "Enterprise") return; // Only Pro tiers need payment
+    
+    try {
+      const resp = await fetch("/api/phonepe/pay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: tier === "Growth" ? 2900 : 9900,
+          transactionId: `TXN-${Date.now()}`
+        })
+      });
+      const data = await resp.json();
+      if (data.success && data.data.instrumentResponse.redirectInfo.url) {
+        window.location.href = data.data.instrumentResponse.redirectInfo.url;
+      } else {
+        alert("Payment Protocol Failure. Please try again.");
+      }
+    } catch (err) {
+      console.error("Neural Checkout Failure.", err);
+    }
+  };
+
   return (
     <section className="grid md:grid-cols-3 gap-8">
       {["Seed", "Growth", "Enterprise"].map((tier, i) => (
@@ -138,7 +161,7 @@ export function PricingNode({ node }: NodeProps) {
           <div className="space-y-6">
             <div className="space-y-1">
                <p className="text-[10px] font-bold uppercase tracking-widest text-primary">{tier}</p>
-               <h3 className="text-4xl font-heading font-bold italic">${i === 0 ? "49" : i === 1 ? "199" : "Custom"}</h3>
+               <h3 className="text-4xl font-heading font-bold italic">${i === 0 ? "0" : i === 1 ? "29" : "99"}</h3>
             </div>
             <ul className="space-y-3">
               {[1, 2, 3, 4].map((f) => (
@@ -149,8 +172,8 @@ export function PricingNode({ node }: NodeProps) {
               ))}
             </ul>
           </div>
-          <Button className={`w-full h-12 rounded-xl mt-12 font-bold uppercase tracking-widest text-[9px] ${i === 1 ? 'bg-primary' : 'bg-white/5 hover:bg-white/10'}`}>
-            Get Started
+          <Button onClick={() => handleCheckout(tier)} className={`w-full h-12 rounded-xl mt-12 font-bold uppercase tracking-widest text-[9px] ${i === 1 ? 'bg-primary' : i === 0 ? 'bg-white/5 opacity-50 cursor-not-allowed' : 'bg-white/5 hover:bg-white/10'}`}>
+            {i === 0 ? "Current Plan" : "Get Started"}
           </Button>
         </div>
       ))}

@@ -23,7 +23,7 @@ import {
 // Brand logos marquee list
 const BRANDS = [
   "Google", "Apple", "Nike", "Tesla", "Amazon", "Netflix", "Spotify",
-  "Airbnb", "Stripe", "Notion", "Figma", "Linear", "Vercel", "Shopify",
+  "Airbnb", "PhonePe", "Notion", "Figma", "Linear", "Vercel", "Shopify",
   "Atlassian", "Salesforce", "HubSpot", "Slack", "Zoom", "Canva",
 ];
 

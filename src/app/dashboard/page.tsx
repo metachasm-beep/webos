@@ -185,7 +185,7 @@ export default function DashboardPage() {
                       <div className="space-y-2">
                         {[
                           { domain: "apple.com", score: 98, date: "2026-03-31", profile: "Dominator" },
-                          { domain: "stripe.com", score: 94, date: "2026-03-30", profile: "Dominator" },
+                          { domain: "phonepe.com", score: 96, date: "2026-03-31", profile: "Titan" },
                           { domain: "example-corp.com", score: 42, date: "2026-03-29", profile: "Challenger" }
                         ].map((audit, i) => (
                           <div key={i} className="flex items-center justify-between p-6 rounded-2xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5 group">

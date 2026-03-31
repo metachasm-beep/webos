@@ -28,7 +28,7 @@ export interface CompositeScore {
 
 /**
  * Deterministically generates realistic startup KPIs based on a URL.
- * In a production env, this would fetch from a database or Stripe/Mixpanel API.
+ * In a production env, this would fetch from a database or PhonePe/Mixpanel API.
  */
 export function calculateGrowthMetrics(url: string): GrowthMetrics {
   // Use a simple hash of the URL to keep metrics consistent for the same site
