@@ -15,22 +15,31 @@ export async function runAuditAction(url: string) {
     ]);
 
 
-    // Integrate Growth Matrix Logic
+    // Integrate High-Fidelity Multi-Engine Scoring
     const growthMetrics = calculateGrowthMetrics(url);
-    const techScores = {
-      performance: data.lighthouseResult.categories.performance.score * 100,
-      seo: data.lighthouseResult.categories.seo.score * 100,
-      accessibility: data.lighthouseResult.categories.accessibility.score * 100,
-      bestPractices: data.lighthouseResult.categories["best-practices"].score * 100,
+    const techMetrics = {
+      lighthouse: {
+        performance: data.lighthouseResult.categories.performance.score * 100,
+        seo: data.lighthouseResult.categories.seo.score * 100,
+        accessibility: data.lighthouseResult.categories.accessibility.score * 100,
+        bestPractices: data.lighthouseResult.categories["best-practices"].score * 100,
+      },
+      debugbear: multiEngineData?.debugbear,
+      geekflare: multiEngineData?.geekflare,
+      observatory: multiEngineData?.observatory,
+      pa11y: multiEngineData?.pa11y
     };
     
-    const composite = calculateCompositeScore(growthMetrics, techScores);
+    const composite = calculateCompositeScore(growthMetrics, techMetrics);
     const summaryData = await generateAuditSummary(url, data, { metrics: growthMetrics, score: composite });
     
     return {
       success: true,
       metrics: {
-        ...techScores,
+        performance: techMetrics.lighthouse.performance,
+        seo: techMetrics.lighthouse.seo,
+        accessibility: techMetrics.lighthouse.accessibility,
+        bestPractices: techMetrics.lighthouse.bestPractices,
         composite: composite,
         growth: growthMetrics,
         lcp: data.lighthouseResult.audits["largest-contentful-paint"].displayValue,

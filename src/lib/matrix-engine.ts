@@ -15,6 +15,33 @@ export interface GrowthMetrics {
   retention_rate: number;
 }
 
+export interface MultiEngineMetrics {
+  lighthouse: {
+    performance: number;
+    seo: number;
+    accessibility: number;
+    bestPractices: number;
+  };
+  debugbear?: {
+    performance: number;
+    vitals: any;
+  } | null;
+  geekflare?: {
+    security?: { score: number; status: string; };
+    tls?: any;
+    dns?: any;
+  } | null;
+  observatory?: {
+    grade: string;
+    score: number;
+  } | null;
+  pa11y?: {
+    errors: number;
+    totalIssues: number;
+    score?: number; 
+  } | null;
+}
+
 export interface CompositeScore {
   total: number;
   status: "Excellent" | "Good" | "Fair" | "Poor" | "Critical";
@@ -23,6 +50,11 @@ export interface CompositeScore {
     efficiency: number;
     stability: number;
     technical: number;
+    vectors: {
+      performance: number;
+      security: number;
+      compliance: number;
+    };
   };
 }
 
@@ -69,6 +101,20 @@ export function calculateGrowthMetrics(url: string): GrowthMetrics {
 }
 
 /**
+ * Normalizes Mozilla Observatory grades (A+ to F) into a 0-100 scale.
+ */
+export function normalizeObservatoryGrade(grade: string): number {
+  const map: Record<string, number> = {
+    'A+': 100, 'A': 95, 'A-': 90,
+    'B+': 85, 'B': 80, 'B-': 75,
+    'C+': 70, 'C': 65, 'C-': 60,
+    'D+': 50, 'D': 40, 'D-': 30,
+    'F': 0
+  };
+  return map[grade.toUpperCase()] ?? 50;
+}
+
+/**
  * Implements the Weighted Composite Model from the seo-audit skill.
  * Weight Distribution:
  * - Efficiency (LTV:CAC, Payback): 30%
@@ -78,7 +124,7 @@ export function calculateGrowthMetrics(url: string): GrowthMetrics {
  */
 export function calculateCompositeScore(
   growthMetrics: GrowthMetrics,
-  techMetrics: { performance: number; seo: number; accessibility: number; bestPractices: number }
+  techMetrics: MultiEngineMetrics
 ): CompositeScore {
   
   // 1. Efficiency Score (0-100)
@@ -100,8 +146,24 @@ export function calculateCompositeScore(
   if (growthMetrics.retention_rate < 85) growthBase -= 15;
   const growth = Math.max(0, growthBase);
 
-  // 4. Technical Score (Average of 4 audit categories)
-  const technical = (techMetrics.performance + techMetrics.seo + techMetrics.accessibility + techMetrics.bestPractices) / 4;
+  // 4. Technical Sub-Vectors
+  
+  // Performance Vector: Lighthouse + DebugBear
+  const perfVector = techMetrics.debugbear 
+    ? (techMetrics.lighthouse.performance * 0.4 + techMetrics.debugbear.performance * 0.6)
+    : techMetrics.lighthouse.performance;
+
+  // Security Vector: Geekflare + Observatory
+  const secVector = (techMetrics.geekflare?.security && techMetrics.observatory)
+    ? (techMetrics.geekflare.security.score * 0.5 + normalizeObservatoryGrade(techMetrics.observatory.grade) * 0.5)
+    : (techMetrics.geekflare?.security?.score || techMetrics.lighthouse.bestPractices);
+
+  // Compliance Vector: Lighthouse A11y + Pa11y
+  const compVector = techMetrics.pa11y
+    ? (techMetrics.lighthouse.accessibility * 0.4 + (techMetrics.pa11y.score || 80) * 0.6)
+    : techMetrics.lighthouse.accessibility;
+
+  const technical = Math.round((perfVector + secVector + compVector) / 3);
 
   // Final Weighted Calculation
   const total = Math.round(
@@ -125,7 +187,12 @@ export function calculateCompositeScore(
       efficiency,
       stability,
       growth,
-      technical
+      technical,
+      vectors: {
+        performance: Math.round(perfVector),
+        security: Math.round(secVector),
+        compliance: Math.round(compVector)
+      }
     }
   };
 }

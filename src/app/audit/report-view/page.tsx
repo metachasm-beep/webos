@@ -36,18 +36,27 @@ export default async function ReportView({ searchParams }: Props) {
 
     
     const growth = calculateGrowthMetrics(url);
-    const techScores = {
-      performance: Math.round(metrics.lighthouseResult.categories.performance.score * 100),
-      seo: Math.round(metrics.lighthouseResult.categories.seo.score * 100),
-      accessibility: Math.round(metrics.lighthouseResult.categories.accessibility.score * 100),
-      bestPractices: Math.round(metrics.lighthouseResult.categories["best-practices"].score * 100),
+    const techMetrics = {
+      lighthouse: {
+        performance: Math.round(metrics.lighthouseResult.categories.performance.score * 100),
+        seo: Math.round(metrics.lighthouseResult.categories.seo.score * 100),
+        accessibility: Math.round(metrics.lighthouseResult.categories.accessibility.score * 100),
+        bestPractices: Math.round(metrics.lighthouseResult.categories["best-practices"].score * 100),
+      },
+      debugbear: multiEngine?.debugbear,
+      geekflare: multiEngine?.geekflare,
+      observatory: multiEngine?.observatory,
+      pa11y: multiEngine?.pa11y
     };
     
-    const composite = calculateCompositeScore(growth, techScores);
+    const composite = calculateCompositeScore(growth, techMetrics);
     summary = await generateAuditSummary(url, metrics, { metrics: growth, score: composite });
     
     scores = {
-      ...techScores,
+      performance: techMetrics.lighthouse.performance,
+      seo: techMetrics.lighthouse.seo,
+      accessibility: techMetrics.lighthouse.accessibility,
+      bestPractices: techMetrics.lighthouse.bestPractices,
       composite: composite.total,
     } as any;
     
@@ -191,9 +200,9 @@ export default async function ReportView({ searchParams }: Props) {
          <div className="scores">
            {[
              { label: "Composite", score: scores.composite },
-             { label: "Performance", score: scores.performance },
-             { label: "SEO", score: scores.seo },
-             { label: "Accessibility", score: scores.accessibility },
+             { label: "Performance", score: audits.composite.breakdown.vectors.performance },
+             { label: "Security", score: audits.composite.breakdown.vectors.security },
+             { label: "Compliance", score: audits.composite.breakdown.vectors.compliance },
            ].map((item) => (
              <div className="score-card" key={item.label}>
                <div className="score-num" style={{ color: scoreColor(item.score) }}>
@@ -214,6 +223,10 @@ export default async function ReportView({ searchParams }: Props) {
          <div className="section">
            <div className="section-title">Growth Matrix Telemetry</div>
            <div className="metrics-grid">
+             <div className="metric-row">
+               <span className="metric-key">Composite Matrix Grade</span>
+               <span className="metric-val" style={{ color: scoreColor(audits.composite.total) }}>{audits.composite.status} ({audits.composite.total}%)</span>
+             </div>
              <div className="metric-row">
                <span className="metric-key">LTV : CAC Ratio</span>
                <span className="metric-val">{audits.growth.ltv_cac}x</span>
