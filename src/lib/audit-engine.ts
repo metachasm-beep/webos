@@ -176,7 +176,7 @@ export async function createPdfReport(url: string, data: any) {
             font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: #ffffff;
             color: #111;
-            padding: 32px;
+            padding: 16px 24px;
             max-width: 860px;
             margin: 0 auto;
             position: relative;
@@ -196,48 +196,48 @@ export async function createPdfReport(url: string, data: any) {
             justify-content: space-between;
             align-items: flex-end;
             border-bottom: 1px solid rgba(0,0,0,0.05);
-            padding-bottom: 20px;
-            margin-bottom: 28px;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
           }
           .logo-container { display: flex; align-items: center; gap: 16px; }
-          .webos-logo { height: 48px; object-fit: contain; }
+          .webos-logo { height: 72px; width: auto; object-fit: contain; }
           .target-logo { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
-          .meta { text-align: right; font-size: 9px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.1em; }
-          .meta strong { display: block; color: #111827; font-size: 13px; font-weight: 900; margin-bottom: 4px; letter-spacing: -0.5px; }
+          .meta { text-align: right; font-size: 8px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.1em; }
+          .meta strong { display: block; color: #111827; font-size: 11px; font-weight: 900; margin-bottom: 2px; letter-spacing: -0.5px; }
           .scores {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 28px;
+            gap: 12px;
+            margin-bottom: 20px;
           }
           .score-card {
             background: linear-gradient(145deg, #ffffff 0%, #f9fafb 100%);
             border: 1px solid rgba(0,0,0,0.04);
-            border-radius: 16px;
-            padding: 20px 16px;
+            border-radius: 12px;
+            padding: 12px 10px;
             text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
           }
-          .score-num { font-size: 46px; font-weight: 900; letter-spacing: -2px; line-height: 1; margin-bottom: 8px; }
-          .score-label { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #6b7280; }
+          .score-num { font-size: 40px; font-weight: 900; letter-spacing: -2px; line-height: 1; margin-bottom: 6px; }
+          .score-label { font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #6b7280; }
           
           .main-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 28px;
+            gap: 20px;
           }
           
-          .section { margin-bottom: 24px; }
+          .section { margin-bottom: 16px; }
           .section-title {
             display: flex;
             align-items: center;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 0.25em;
             color: #111827;
-            padding-bottom: 8px;
-            margin-bottom: 14px;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
             position: relative;
           }
           .section-title::after {
@@ -245,19 +245,19 @@ export async function createPdfReport(url: string, data: any) {
             background: linear-gradient(90deg, #3b82f6 0%, transparent 100%);
             opacity: 0.3;
           }
-          .section-title svg { width: 16px; height: 16px; margin-right: 10px; color: #3b82f6; }
-          .summary-text { font-size: 12px; line-height: 1.7; color: #4b5563; }
+          .section-title svg { width: 14px; height: 14px; margin-right: 8px; color: #3b82f6; }
+          .summary-text { font-size: 10.5px; line-height: 1.5; color: #4b5563; }
           .metrics-grid { display: flex; flex-direction: column; width: 100%; }
           .metric-row {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.03); font-size: 11px;
+            padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.03); font-size: 9.5px;
           }
           .metric-row:last-child { border-bottom: none; }
           .metric-key { color: #6b7280; font-weight: 500; }
           .metric-val { font-weight: 800; color: #111; text-align: right; }
           .footer {
-            margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.05);
-            text-align: center; font-size: 9px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.3em; font-weight: 700;
+            margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.05);
+            text-align: center; font-size: 8px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.3em; font-weight: 700;
           }
         </style>
       </head>
