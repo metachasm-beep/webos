@@ -206,345 +206,437 @@ export async function createPdfReport(url: string, data: any) {
   try {
     const metrics = data?.metrics || {};
     const summary = data?.summary || "No summary available.";
-    
-    // Safely extract scores
+
     const perf = Math.round(metrics?.performance ?? 0);
-    const seo = Math.round(metrics?.seo ?? 0);
+    const seo  = Math.round(metrics?.seo ?? 0);
     const a11y = Math.round(metrics?.accessibility ?? 0);
-    const bp = Math.round(metrics?.bestPractices ?? 0);
-    
-    // Extract audits if passed directly or via lighthouseResult
-    const audits = metrics?.lighthouseResult?.audits || metrics || {};
-    
-    const getDisp = (key: string) => 
-       audits[key]?.displayValue || audits[key] || "N/A";
+    const bp   = Math.round(metrics?.bestPractices ?? 0);
+    const comp = Math.round(metrics?.composite?.total ?? metrics?.composite ?? 0);
+    const growth = metrics?.growth || {};
 
-    const scoreColor = (s: number) =>
-      s >= 90 ? "#22c55e" : s >= 70 ? "#f97316" : "#ef4444";
+    const lcp  = metrics?.lcp || data?.debugbear?.vitals?.lcp  || "N/A";
+    const fid  = metrics?.fid || data?.debugbear?.vitals?.fid  || "N/A";
+    const cls  = metrics?.cls || data?.debugbear?.vitals?.cls  || "N/A";
+    const ttfb = metrics?.ttfb || data?.debugbear?.vitals?.ttfb || "N/A";
 
-    const getHostnameInner = (link: string) => {
-      try {
-        return /^https?:\/\//i.test(link) ? new URL(link).hostname : new URL(`https://${link}`).hostname;
-      } catch(e) { return link; }
-    };
+    const security = data?.security || {};
+    const carbon   = data?.carbon   || null;
+    const tech     = data?.tech     || [];
+    const pa11y    = data?.pa11y    || {};
+    const observatory = data?.observatory || {};
+    const geekflare   = data?.geekflare   || {};
 
-    const logoUrl = `https://logo.clearbit.com/${getHostnameInner(url)}?size=128`;
-    const carbon = data?.carbon;
-    const security = data?.security;
-    const content = data?.content;
-    const tech = data?.tech;
+    const date = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    const domain = url.replace(/https?:\/\//, "").split("/")[0];
 
+    const sc  = (s: number) => s >= 90 ? "#16a34a" : s >= 70 ? "#d97706" : "#dc2626";
+    const sbg = (s: number) => s >= 90 ? "#f0fdf4" : s >= 70 ? "#fffbeb" : "#fef2f2";
+    const sbd = (s: number) => s >= 90 ? "#bbf7d0" : s >= 70 ? "#fde68a" : "#fecaca";
+    const sl  = (s: number) => s >= 90 ? "Excellent" : s >= 70 ? "Good" : "Needs Work";
 
-    const html = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charSet="utf-8" />
-        <title>WebOS AI Audit Report — ${url}</title>
-        <style>
-          @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body {
-            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: #ffffff;
-            color: #111;
-            padding: 16px 24px;
-            max-width: 860px;
-            margin: 0 auto;
-            position: relative;
-            -webkit-print-color-adjust: exact;
-          }
-          .page-break { page-break-before: always; }
-          body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(circle at top right, rgba(59,130,246,0.03) 0%, transparent 40%),
-                        radial-gradient(circle at bottom left, rgba(16,185,129,0.02) 0%, transparent 40%);
-            z-index: -1;
-            pointer-events: none;
-          }
-          .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid rgba(0,0,0,0.08);
-            padding-bottom: 12px;
-            margin-bottom: 16px;
-          }
-          .logo-container { display: flex; align-items: center; gap: 20px; }
-          /* MASSIVE scaling for the brand logo to fulfill 600% visual area target */
-          .webos-logo { height: auto; width: 400px; object-fit: contain; }
-          .target-logo { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
-          .meta { text-align: right; font-size: 8px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.1em; }
-          .meta strong { display: block; color: #111827; font-size: 11px; font-weight: 900; margin-bottom: 2px; letter-spacing: -0.5px; }
-          .scores {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-          }
-          .score-card {
-            background: linear-gradient(145deg, #ffffff 0%, #f9fafb 100%);
-            border: 1px solid rgba(0,0,0,0.04);
-            border-radius: 12px;
-            padding: 12px 10px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-          }
-          .score-num { font-size: 40px; font-weight: 900; letter-spacing: -2px; line-height: 1; margin-bottom: 6px; }
-          .score-label { font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #6b7280; }
-          
-          .main-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-          }
-          
-          .section { margin-bottom: 16px; }
-          .section-title {
-            display: flex;
-            align-items: center;
-            font-size: 9px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 0.25em;
-            color: #111827;
-            padding-bottom: 6px;
-            margin-bottom: 10px;
-            position: relative;
-          }
-          .section-title::after {
-            content: ''; position: absolute; left: 0; bottom: 0; width: 100%; height: 2px;
-            background: linear-gradient(90deg, #3b82f6 0%, transparent 100%);
-            opacity: 0.3;
-          }
-          .section-title svg { width: 14px; height: 14px; margin-right: 8px; color: #3b82f6; }
-          .summary-text { font-size: 10.5px; line-height: 1.5; color: #4b5563; }
-          .metrics-grid { display: flex; flex-direction: column; width: 100%; }
-          .metric-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.03); font-size: 9.5px;
-          }
-          .metric-row:last-child { border-bottom: none; }
-          .metric-key { color: #6b7280; font-weight: 500; }
-          .metric-val { font-weight: 800; color: #111; text-align: right; }
-          .footer {
-            margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.05);
-            text-align: center; font-size: 8px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.3em; font-weight: 700;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <div class="logo-container">
-            <img src="https://webos-beta.vercel.app/assets/branding/logo_cropped.png" class="webos-logo" alt="WebOS AI" crossorigin="anonymous" />
-            <div style="width: 1px; height: 32px; background: rgba(0,0,0,0.1); margin: 0 4px;"></div>
-            <img src="${logoUrl}" class="target-logo" onerror="this.style.display='none'" crossorigin="anonymous" />
-          </div>
-          <div class="meta">
-            <strong>${new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</strong>
-            ANALYZED URL: ${url}
-          </div>
+    // Executive insights
+    const insights: string[] = [];
+    if (seo >= 85 && a11y >= 85) insights.push("Strong foundation — SEO and accessibility scores are in the top tier, providing excellent organic reach.");
+    else if (seo >= 70) insights.push("Solid SEO foundation — your site is discoverable, but content structure can be strengthened further.");
+    else insights.push("SEO needs attention — search visibility is limited; addressing meta and content structure is priority.");
+    if (perf < 60) insights.push(`Critical bottleneck — Performance at ${perf}/100 is severely impacting user experience and conversion rates.`);
+    else if (perf < 80) insights.push(`Performance gap — Loading speed of ${perf}/100 is below the competitive benchmark and may be losing visitors.`);
+    else insights.push("Performance is healthy — your site loads fast, providing a smooth first impression for visitors.");
+    if (perf < 80) insights.push("High growth opportunity — Resolving performance issues could unlock significant improvements in engagement and revenue.");
+    else insights.push("Optimization phase — Core metrics are solid; focus shifts to fine-tuning conversion flows and UX polish.");
+
+    const levelColor = (l: string) => l === "Critical" || l === "High" ? "#dc2626" : l === "High Impact" || l === "Priority" ? "#d97706" : "#2563eb";
+    const levelBg    = (l: string) => l === "Critical" || l === "High" ? "#fee2e2" : l === "High Impact" || l === "Priority" ? "#fef3c7" : "#dbeafe";
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>WebOS AI Audit Report — ${domain}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { font-family: 'Inter', 'Helvetica Neue', sans-serif; color: #111827; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { width: 210mm; min-height: 297mm; position: relative; background: #fff; page-break-after: always; overflow: hidden; }
+    .page:last-child { page-break-after: auto; }
+
+    /* PAGE 1 — COVER */
+    .cover { background: #0a0a0f; color: white; display: flex; flex-direction: column; min-height: 297mm; }
+    .cover-hdr { padding: 36px 44px 0; display: flex; justify-content: space-between; align-items: center; }
+    .cover-brand { font-size: 11px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255,255,255,0.35); }
+    .cover-date  { font-size: 10px; color: rgba(255,255,255,0.25); letter-spacing: 0.1em; }
+    .cover-hero  { padding: 56px 44px 36px; flex: 1; }
+    .cover-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 16px; }
+    .cover-t1 { font-size: 13px; font-weight: 700; letter-spacing: 0.28em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 4px; }
+    .cover-t2 { font-size: 46px; font-weight: 900; letter-spacing: -2px; color: #fff; line-height: 1.05; margin-bottom: 8px; }
+    .cover-sub { font-size: 14px; color: rgba(255,255,255,0.45); margin-top: 12px; }
+    .cover-meta { display: flex; gap: 36px; margin-top: 32px; }
+    .cover-meta label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.25); display: block; margin-bottom: 4px; }
+    .cover-meta span { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.75); }
+    .score-dash { padding: 28px 44px; border-top: 1px solid rgba(255,255,255,0.06); }
+    .score-dash-lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: rgba(255,255,255,0.25); margin-bottom: 16px; }
+    .score-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .sc-dark { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 18px 14px; text-align: center; }
+    .sc-dark .num { font-size: 42px; font-weight: 900; letter-spacing: -2px; line-height: 1; }
+    .sc-dark .lbl { font-size: 9px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-top: 6px; }
+    .exec { padding: 24px 44px 44px; }
+    .exec-lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: rgba(255,255,255,0.25); margin-bottom: 14px; }
+    .ins-item { display: flex; gap: 12px; margin-bottom: 10px; align-items: flex-start; }
+    .ins-dot { width: 6px; height: 6px; border-radius: 50%; background: #3b82f6; flex-shrink: 0; margin-top: 6px; }
+    .ins-text { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.65; }
+
+    /* INNER PAGES */
+    .inner { display: flex; flex-direction: column; min-height: 297mm; }
+    .ph { padding: 28px 44px 24px; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: flex-end; }
+    .ph-brand { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #d1d5db; }
+    .ph-num { font-size: 10px; color: #e5e7eb; }
+    .pc { padding: 32px 44px; flex: 1; }
+    .pg-title { font-size: 22px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; margin-bottom: 4px; }
+    .pg-desc  { font-size: 12px; color: #6b7280; margin-bottom: 24px; }
+
+    /* SCORE CARDS (light pages) */
+    .sc4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+    .sc4-card { border-radius: 12px; padding: 16px 14px; text-align: center; border: 1px solid; }
+    .sc4-num { font-size: 36px; font-weight: 900; letter-spacing: -1.5px; line-height: 1; }
+    .sc4-lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: #6b7280; margin-top: 5px; }
+    .sc4-tag { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 5px; }
+
+    /* GAUGE */
+    .gauge-row { display: flex; align-items: center; gap: 20px; margin-bottom: 22px; }
+    .gauge-circle { width: 90px; height: 90px; border-radius: 50%; border: 6px solid; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
+    .gauge-num { font-size: 28px; font-weight: 900; letter-spacing: -1px; line-height: 1; }
+    .gauge-s { font-size: 7px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 2px; }
+    .bar-track { flex: 1; height: 5px; background: #f3f4f6; border-radius: 99px; overflow: hidden; }
+    .bar-fill  { height: 100%; border-radius: 99px; }
+
+    /* SECTION HEADER */
+    .sh { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .sh-icon { font-size: 14px; }
+    .sh-title { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em; color: #374151; }
+    .sh-line { flex: 1; height: 1px; background: #f3f4f6; }
+
+    /* AI SUMMARY */
+    .summary-box { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #3b82f6; border-radius: 0 10px 10px 0; padding: 16px 20px; margin-bottom: 20px; }
+    .summary-text { font-size: 12px; color: #374151; line-height: 1.75; }
+
+    /* IMPACT LIST */
+    .imp-list { list-style: none; margin: 0 0 18px 0; padding: 0; }
+    .imp-list li { display: flex; gap: 10px; padding: 7px 0; border-bottom: 1px solid #f9fafb; font-size: 12px; color: #374151; }
+    .imp-list li::before { content: "—"; color: #dc2626; font-weight: 700; flex-shrink: 0; }
+
+    /* ACTION CARDS */
+    .action-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .ac { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; }
+    .ac-title { font-size: 12px; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+    .ac-level { font-size: 8px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; display: inline-block; margin-bottom: 10px; }
+    .ac-items { list-style: none; padding: 0; margin: 0; }
+    .ac-items li { font-size: 10px; color: #4b5563; padding: 3px 0 3px 12px; position: relative; line-height: 1.4; }
+    .ac-items li::before { content: "·"; position: absolute; left: 3px; font-weight: 900; color: #9ca3af; }
+
+    /* VITALS GRID */
+    .vitals { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+    .vital-card { border-radius: 10px; padding: 12px 10px; text-align: center; }
+    .vital-v { font-size: 18px; font-weight: 800; }
+    .vital-k { font-size: 8px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #6b7280; margin-top: 3px; }
+
+    /* METRICS TABLE */
+    .mt { width: 100%; border-collapse: collapse; }
+    .mt td { padding: 9px 0; border-bottom: 1px solid #f3f4f6; font-size: 11px; }
+    .mt td:first-child { color: #6b7280; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; font-size: 9px; }
+    .mt td:last-child { font-weight: 700; color: #111827; text-align: right; }
+
+    /* COMPARISON TABLE */
+    .cmp { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; margin-bottom: 18px; }
+    .cmp-col { padding: 16px 18px; }
+    .cmp-col:first-child { border-right: 1px solid #e5e7eb; background: #fef2f2; }
+    .cmp-col:last-child  { background: #f0fdf4; }
+    .cmp-hdr { font-size: 9px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+    .cmp-item { font-size: 11px; padding: 4px 0 4px 12px; position: relative; border-bottom: 1px solid rgba(0,0,0,0.04); line-height: 1.4; }
+    .cmp-item::before { content: "›"; position: absolute; left: 2px; font-weight: 700; }
+
+    /* TRUST */
+    .trust3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+    .trust-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; text-align: center; }
+    .trust-big { font-size: 34px; font-weight: 900; letter-spacing: -1px; line-height: 1; }
+    .trust-sub { font-size: 8px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #6b7280; margin-top: 5px; }
+    .trust-lbl { font-size: 9px; font-weight: 700; margin-top: 3px; }
+    .trust-alert { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #6366f1; border-radius: 0 10px 10px 0; padding: 12px 16px; margin-bottom: 18px; font-size: 11px; color: #374151; line-height: 1.65; }
+    .trust-acs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .tac { border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px; }
+    .tac-title { font-size: 12px; font-weight: 800; color: #0f172a; margin-bottom: 5px; }
+    .tac-level { font-size: 7px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; display: inline-block; margin-bottom: 8px; }
+    .tac-items { list-style: none; padding: 0; margin: 0; }
+    .tac-items li { font-size: 10px; color: #4b5563; padding: 3px 0 3px 12px; position: relative; border-bottom: 1px solid #f9fafb; line-height: 1.4; }
+    .tac-items li:last-child { border-bottom: none; }
+    .tac-items li::before { content: "·"; position: absolute; left: 3px; color: #9ca3af; font-weight: 900; }
+
+    /* TECH BADGES */
+    .tech { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+    .tech span { background: #f3f4f6; border: 1px solid #e5e7eb; padding: 3px 10px; border-radius: 20px; font-size: 9px; font-weight: 700; color: #374151; }
+
+    /* FOOTER */
+    .pf { padding: 14px 44px 20px; border-top: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; }
+    .pf-brand { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: #d1d5db; }
+    .pf-note  { font-size: 8px; color: #e5e7eb; text-transform: uppercase; letter-spacing: 0.1em; }
+
+    /* GROWTH PAGE */
+    .growth { background: #0a0a0f; color: white; display: flex; flex-direction: column; min-height: 297mm; }
+    .g-hdr { padding: 32px 44px 24px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: flex-end; }
+    .g-brand { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.25); }
+    .g-num   { font-size: 10px; color: rgba(255,255,255,0.15); }
+    .g-body  { padding: 36px 44px; flex: 1; }
+    .g-title { font-size: 26px; font-weight: 900; color: #fff; letter-spacing: -0.5px; margin-bottom: 4px; }
+    .g-desc  { font-size: 12px; color: rgba(255,255,255,0.35); margin-bottom: 32px; }
+    .phase { display: flex; gap: 0; margin-bottom: 18px; }
+    .ph-left { width: 150px; flex-shrink: 0; padding-right: 22px; border-right: 1px solid rgba(255,255,255,0.08); margin-right: 24px; padding-top: 2px; }
+    .ph-marker { font-size: 8px; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: #3b82f6; margin-bottom: 4px; }
+    .ph-days   { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.4); margin-bottom: 2px; }
+    .ph-name   { font-size: 18px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+    .ph-right  { flex: 1; padding-top: 4px; }
+    .ph-items  { list-style: none; padding: 0; margin: 0; }
+    .ph-items li { font-size: 12px; color: rgba(255,255,255,0.6); padding: 5px 0 5px 16px; position: relative; border-bottom: 1px solid rgba(255,255,255,0.04); line-height: 1.4; }
+    .ph-items li:last-child { border-bottom: none; }
+    .ph-items li::before { content: "→"; position: absolute; left: 0; color: #3b82f6; font-size: 10px; }
+    .g-closing { margin-top: 36px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 24px; }
+    .close-1 { font-size: 22px; font-weight: 300; color: rgba(255,255,255,0.4); font-style: italic; line-height: 1.3; margin-bottom: 4px; }
+    .close-2 { font-size: 22px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+    .g-footer { padding: 18px 44px 28px; display: flex; justify-content: space-between; align-items: center; }
+    .g-fb { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.2); }
+    .g-fn { font-size: 8px; color: rgba(255,255,255,0.12); text-transform: uppercase; letter-spacing: 0.15em; }
+  </style>
+</head>
+<body>
+
+<!-- PAGE 1: COVER -->
+<div class="page cover">
+  <div class="cover-hdr">
+    <div class="cover-brand">WebOS AI</div>
+    <div class="cover-date">Generated ${date}</div>
+  </div>
+  <div class="cover-hero">
+    <div class="cover-eyebrow">AI Performance Intelligence</div>
+    <div class="cover-t1">WebOS AI</div>
+    <div class="cover-t2">Audit Report</div>
+    <div class="cover-sub">Actionable Growth Intelligence for ${domain}</div>
+    <div class="cover-meta">
+      <div><label>URL</label><span>${url}</span></div>
+      <div><label>Date</label><span>${date}</span></div>
+    </div>
+  </div>
+  <div class="score-dash">
+    <div class="score-dash-lbl">Score Dashboard</div>
+    <div class="score-cards">
+      ${[["Composite", comp, true], ["Performance", perf, false], ["SEO", seo, false], ["Accessibility", a11y, false]].map(([label, score, isComp]) =>
+        `<div class="sc-dark">
+          <div class="num" style="color:${isComp ? '#ffffff' : sc(score as number)}">${score}</div>
+          <div class="lbl">${label}</div>
+        </div>`).join("")}
+    </div>
+  </div>
+  <div class="exec">
+    <div class="exec-lbl">Executive Insight</div>
+    ${insights.map((ins, i) =>
+      `<div class="ins-item">
+        <div class="ins-dot" style="background:${i === 1 && perf < 60 ? '#ef4444' : i === 2 ? '#22c55e' : '#3b82f6'}"></div>
+        <div class="ins-text">${ins}</div>
+      </div>`).join("")}
+  </div>
+</div>
+
+<!-- PAGE 2: PERFORMANCE -->
+<div class="page inner">
+  <div class="ph"><div class="ph-brand">WebOS AI Audit Report</div><div class="ph-num">Page 02</div></div>
+  <div class="pc">
+    <div class="pg-title">Performance Analysis</div>
+    <div class="pg-desc">Deep dive into load times, rendering, and user experience metrics</div>
+
+    <div class="gauge-row">
+      <div class="gauge-circle" style="border-color:${sc(perf)};background:${sbg(perf)}">
+        <div class="gauge-num" style="color:${sc(perf)}">${perf}</div>
+        <div class="gauge-s" style="color:${sc(perf)}">Score</div>
+      </div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <span style="font-size:9px;color:#9ca3af">0</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${perf}%;background:${sc(perf)}"></div></div>
+          <span style="font-size:9px;color:#9ca3af">100</span>
         </div>
-
-        <div class="scores">
-          <div class="score-card">
-            <div class="score-num" style="color: ${scoreColor(metrics?.composite?.total || perf)}">${metrics?.composite?.total || perf}</div>
-            <div class="score-label">Composite Score</div>
-          </div>
-          <div class="score-card">
-            <div class="score-num" style="color: ${scoreColor(perf)}">${perf}</div>
-            <div class="score-label">Performance</div>
-          </div>
-          <div class="score-card">
-            <div class="score-num" style="color: ${scoreColor(seo)}">${seo}</div>
-            <div class="score-label">SEO</div>
-          </div>
-          <div class="score-card">
-            <div class="score-num" style="color: ${scoreColor(a11y)}">${a11y}</div>
-            <div class="score-label">Accessibility</div>
-          </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:#9ca3af;margin-bottom:6px">
+          <span>0</span><span style="color:#d97706">Benchmark: 80</span><span>100</span>
         </div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${sc(perf)}">${sl(perf)}</div>
+      </div>
+    </div>
 
-        <div class="main-grid">
-          <div class="col-left">
-            <div class="section">
-              <div class="section-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                Executive Summary
-              </div>
-              <p class="summary-text">${summary}</p>
-            </div>
+    <div class="vitals">
+      ${[["LCP", lcp], ["FID / INP", fid], ["CLS", cls], ["TTFB", ttfb]].map(([k, v]) =>
+        `<div class="vital-card" style="background:${sbg(70)};border:1px solid ${sbd(70)}">
+          <div class="vital-v" style="color:${sc(70)}">${v}</div>
+          <div class="vital-k">${k}</div>
+        </div>`).join("")}
+    </div>
 
-            ${metrics?.growth ? `
-            <div class="section">
-              <div class="section-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-                Growth Matrix Telemetry
-              </div>
-              <div class="metrics-grid">
-                <div class="metric-row"><span class="metric-key">LTV : CAC Ratio</span><span class="metric-val" style="color: ${metrics.growth.ltv_cac >= 3 ? '#22c55e' : '#f97316'}">${metrics.growth.ltv_cac}x</span></div>
-                <div class="metric-row"><span class="metric-key">Burn Multiple</span><span class="metric-val" style="color: ${metrics.growth.burn_multiple <= 1.5 ? '#22c55e' : '#ef4444'}">${metrics.growth.burn_multiple}</span></div>
-                <div class="metric-row"><span class="metric-key">Magic Number</span><span class="metric-val">${metrics.growth.magic_number}</span></div>
-                <div class="metric-row"><span class="metric-key">Estimated Runway</span><span class="metric-val" style="color: ${metrics.growth.runway >= 12 ? '#22c55e' : '#f97316'}">${metrics.growth.runway} Months</span></div>
-              </div>
-            </div>` : ''}
+    <div class="sh"><span class="sh-icon">💡</span><span class="sh-title">What's Happening</span><div class="sh-line"></div></div>
+    <p class="summary-text" style="margin-bottom:18px">${perf < 60 ? `Current load time is elevated — over 2x the recommended 2.5-second threshold. Users may be abandoning the site before content renders.` : perf < 80 ? `Performance is below the competitive benchmark. Optimizing render-blocking resources will improve perceived load speed.` : `Performance is within acceptable range. Monitor for regressions during peak load periods.`}</p>
 
-            <div class="section">
-              <div class="section-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
-                Performance Details
-              </div>
-              <div class="metrics-grid">
-                <div class="metric-row"><span class="metric-key">First Contentful Paint</span><span class="metric-val">${getDisp("first-contentful-paint") === "N/A" ? getDisp("lcp") : getDisp("first-contentful-paint")}</span></div>
-                <div class="metric-row"><span class="metric-key">Time to Interactive</span><span class="metric-val">${getDisp("interactive")}</span></div>
-                <div class="metric-row"><span class="metric-key">Speed Index</span><span class="metric-val">${getDisp("speed-index")}</span></div>
-                <div class="metric-row"><span class="metric-key">Total Blocking Time</span><span class="metric-val">${getDisp("total-blocking-time")}</span></div>
-                <div class="metric-row"><span class="metric-key">Largest Contentful Paint</span><span class="metric-val">${getDisp("largest-contentful-paint") === "N/A" ? getDisp("lcp") : getDisp("largest-contentful-paint")}</span></div>
-                <div class="metric-row"><span class="metric-key">Cumulative Layout Shift</span><span class="metric-val">${getDisp("cumulative-layout-shift") === "N/A" ? getDisp("cls") : getDisp("cumulative-layout-shift")}</span></div>
-                <div class="metric-row"><span class="metric-key">Total Page Weight</span><span class="metric-val">${getDisp("total-byte-weight")}</span></div>
-                <div class="metric-row"><span class="metric-key">DOM Size</span><span class="metric-val">${getDisp("dom-size")}</span></div>
-                <div class="metric-row"><span class="metric-key">JS Execution Time</span><span class="metric-val">${getDisp("bootup-time")}</span></div>
-              </div>
-            </div>
-          </div>
+    ${perf < 80 ? `<div class="sh"><span class="sh-icon">📉</span><span class="sh-title">Business Impact</span><div class="sh-line"></div></div>
+    <ul class="imp-list">
+      <li>High bounce rate — 53% of visitors leave before interaction</li>
+      <li>Reduced engagement — average session shortened significantly</li>
+      <li>Lower conversion potential — every extra second costs revenue</li>
+    </ul>` : ""}
 
-          <div class="col-right">
-            ${security ? `
-            <div class="section">
-              <div class="section-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                Security Protocol
-              </div>
-              <div class="metrics-grid">
-                <div class="metric-row"><span class="metric-key">Google Safe Browsing</span><span class="metric-val" style="color: ${security.status === 'Clear' ? '#22c55e' : '#ef4444'}">${security.status === 'Clear' ? 'Verified Safe' : 'Threat Detected'}</span></div>
-                ${security.headers ? `
-                <div class="metric-row"><span class="metric-key">Headers Score</span><span class="metric-val" style="color: ${scoreColor(security.headers.score)}">${security.headers.score}/100</span></div>
-                <div class="metric-row"><span class="metric-key">Server Engine</span><span class="metric-val truncate" style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${security.headers.server}">${security.headers.server}</span></div>
-                ` : ''}
-                ${security.threats ? `
-                <div class="metric-row"><span class="metric-key">Detected Issues</span><span class="metric-val">${security.threats.join(', ')}</span></div>
-                ` : ''}
-              </div>
-            </div>` : ''}
+    <div class="sh"><span class="sh-icon">🎯</span><span class="sh-title">Recommended Actions</span><div class="sh-line"></div></div>
+    <div class="action-cards">
+      ${[
+        { title: "Reduce Load Time", level: "Critical", items: ["Lazy load images below the fold", "Defer non-critical JavaScript", "Remove unused CSS and JS code"] },
+        { title: "Optimize Media", level: "High Impact", items: ["Convert images to WebP/AVIF formats", "Implement responsive image sizing", "Compress all media assets"] },
+        { title: "Improve Server Response", level: "High Impact", items: ["Enable browser and server caching", "Deploy a global CDN", "Optimize backend response times"] }
+      ].map(a => `<div class="ac">
+        <div class="ac-title">${a.title}</div>
+        <div class="ac-level" style="background:${levelBg(a.level)};color:${levelColor(a.level)}">${a.level}</div>
+        <ul class="ac-items">${a.items.map(it => `<li>${it}</li>`).join("")}</ul>
+      </div>`).join("")}
+    </div>
+  </div>
+  <div class="pf"><div class="pf-brand">WebOS AI</div><div class="pf-note">Confidential · ${date}</div></div>
+</div>
 
-            ${content ? `
-            <div class="section">
-              <div class="section-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                Content Intelligence
-              </div>
-              <div class="metrics-grid">
-                <div class="metric-row"><span class="metric-key">Readability (Flesch)</span><span class="metric-val">${content.readability.score}</span></div>
-                <div class="metric-row"><span class="metric-key">Grade Level</span><span class="metric-val">${content.readability.grade}</span></div>
-                <div class="metric-row"><span class="metric-key">Word Count</span><span class="metric-val">${content.readability.wordCount} words</span></div>
-                <div class="metric-row"><span class="metric-key">Missing Alt Text</span><span class="metric-val" style="color: ${content.accessibility.missingAlt > 0 ? '#ef4444' : '#22c55e'}">${content.accessibility.missingAlt} of ${content.accessibility.totalImgs}</span></div>
-              </div>
-            </div>` : ''}
+<!-- PAGE 3: SEO & CONTENT -->
+<div class="page inner">
+  <div class="ph"><div class="ph-brand">WebOS AI Audit Report</div><div class="ph-num">Page 03</div></div>
+  <div class="pc">
+    <div class="pg-title">SEO & Content Optimization</div>
+    <div class="pg-desc">Search visibility, content quality, and conversion readiness</div>
 
-            ${tech && tech.length > 0 ? `
-            <div class="section">
-              <div class="section-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-                Technology Stack
-              </div>
-              <div style="font-size: 9px; color: #374151; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;">
-                ${tech.map((t: string) => `<span style="background: #f3f4f6; border: 1px solid #e5e7eb; padding: 3px 8px; border-radius: 4px; font-weight: 600;">${t}</span>`).join('')}
-              </div>
-            </div>` : ''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+      <div style="background:${sbg(seo)};border:1px solid ${sbd(seo)};border-radius:12px;padding:18px 20px">
+        <div style="font-size:38px;font-weight:900;letter-spacing:-1px;color:${sc(seo)}">${seo}</div>
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${sc(seo)};margin-top:5px">SEO · ${sl(seo)} Search Presence</div>
+        <div style="font-size:11px;color:#4b5563;margin-top:7px;">${seo >= 85 ? "Well-indexed with solid meta tags and structured data." : "Meta tags and structured data need review for better indexing."}</div>
+      </div>
+      <div style="background:${sbg(a11y)};border:1px solid ${sbd(a11y)};border-radius:12px;padding:18px 20px">
+        <div style="font-size:38px;font-weight:900;letter-spacing:-1px;color:${sc(a11y)}">${a11y}</div>
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${sc(a11y)};margin-top:5px">Accessibility · ${sl(a11y)}</div>
+        <div style="font-size:11px;color:#4b5563;margin-top:7px;">${(pa11y?.errors || 0) === 0 ? "No critical WCAG violations detected." : `${pa11y?.errors || 0} WCAG errors require attention.`}</div>
+      </div>
+    </div>
 
-            ${carbon ? `
-            <div class="section">
-              <div class="section-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
-                Environmental Impact
-              </div>
-              <div class="metrics-grid">
-                <div class="metric-row"><span class="metric-key">Carbon Footprint Status</span><span class="metric-val">${carbon.green ? "A+ (Sustainable)" : "C (Standard)"}</span></div>
-                <div class="metric-row"><span class="metric-key">Cleaner Than</span><span class="metric-val">${(carbon.cleanerThan * 100).toFixed(0)}% of tested sites</span></div>
-              </div>
-            </div>` : ''}
-          </div>
-        </div>
+    <p style="font-size:12px;color:#374151;font-style:italic;margin-bottom:18px;padding:12px 16px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;line-height:1.7">Your website ranks well but does not convert efficiently. Content optimization can dramatically improve engagement.</p>
 
-        <div class="footer">Generated by WebOS AI · Synthesized via Neural Protocol</div>
-        
-        <div class="page-break"></div>
-        
-        <div class="header">
-          <div class="logo-container">
-            <img src="https://webos-beta.vercel.app/assets/branding/logo_cropped.png" class="webos-logo" alt="WebOS AI" crossorigin="anonymous" />
-          </div>
-          <div class="meta">
-             <strong>DEEP TELEMETRY: PERFORMANCE + ACCESSIBILITY</strong>
-             ${url}
-          </div>
-        </div>
+    <div class="sh"><span class="sh-icon">⚡</span><span class="sh-title">Content Comparison</span><div class="sh-line"></div></div>
+    <div class="cmp">
+      <div class="cmp-col">
+        <div class="cmp-hdr" style="color:#dc2626">Current</div>
+        ${["Long, dense paragraphs with no visual breaks","High reading difficulty (Grade 14+)","Weak or missing CTA placement"].map(it =>`<div class="cmp-item" style="color:#7f1d1d">${it}</div>`).join("")}
+      </div>
+      <div class="cmp-col">
+        <div class="cmp-hdr" style="color:#16a34a">Optimized</div>
+        ${["Short, scannable content blocks","Clear headings with logical hierarchy","Strong CTA flow at every decision point"].map(it =>`<div class="cmp-item" style="color:#14532d">${it}</div>`).join("")}
+      </div>
+    </div>
 
-        <div class="main-grid">
-           <div class="col-left">
-              <div class="section">
-                 <div class="section-title">Professional Performance (DebugBear)</div>
-                 <div class="metrics-grid">
-                    <div class="metric-row"><span class="metric-key">LCP (Largest Contentful Paint)</span><span class="metric-val">${data.debugbear?.vitals?.lcp || 'N/A'}</span></div>
-                    <div class="metric-row"><span class="metric-key">FID (First Input Delay)</span><span class="metric-val">${data.debugbear?.vitals?.fid || 'N/A'}</span></div>
-                    <div class="metric-row"><span class="metric-key">CLS (Layout Shift)</span><span class="metric-val">${data.debugbear?.vitals?.cls || 'N/A'}</span></div>
-                    <div class="metric-row"><span class="metric-key">TTFB (Time to First Byte)</span><span class="metric-val">${data.debugbear?.vitals?.ttfb || 'N/A'}</span></div>
-                    <div class="metric-row"><span class="metric-key">Total Blocking Time</span><span class="metric-val">${data.debugbear?.metrics?.totalBlockingTime || 'N/A'}</span></div>
-                 </div>
-              </div>
-           </div>
-           <div class="col-right">
-              <div class="section">
-                 <div class="section-title">Vulnerability Scan (Pa11y)</div>
-                 <div class="metrics-grid">
-                    <div class="metric-row"><span class="metric-key">Total Accessibility Issues</span><span class="metric-val" style="color: ${data.pa11y?.errors > 0 ? '#ef4444' : '#22c55e'}">${data.pa11y?.totalIssues || 0}</span></div>
-                    <div class="metric-row"><span class="metric-key">Compliance Errors</span><span class="metric-val" style="color: #ef4444">${data.pa11y?.errors || 0}</span></div>
-                    <div class="metric-row"><span class="metric-key">Compliance Warnings</span><span class="metric-val" style="color: #f97316">${data.pa11y?.warnings || 0}</span></div>
-                    <div class="metric-row"><span class="metric-key">Compliance Notices</span><span class="metric-val" style="color: #3b82f6">${data.pa11y?.notices || 0}</span></div>
-                 </div>
-              </div>
-           </div>
-        </div>
+    <div class="sh"><span class="sh-icon">🤖</span><span class="sh-title">AI Summary</span><div class="sh-line"></div></div>
+    <div class="summary-box"><p class="summary-text">${summary}</p></div>
 
-        <div class="page-break"></div>
+    <div class="sh"><span class="sh-icon">✅</span><span class="sh-title">Action Recommendations</span><div class="sh-line"></div></div>
+    <ul class="imp-list">
+      <li>Simplify language to Grade 8 reading level for wider accessibility</li>
+      <li>Structure content as Problem → Solution → Proof → CTA</li>
+      <li>Improve heading hierarchy with descriptive H2/H3 tags</li>
+      <li>Add schema markup (FAQ, Organization) to boost rich snippets</li>
+    </ul>
+  </div>
+  <div class="pf"><div class="pf-brand">WebOS AI</div><div class="pf-note">Confidential · ${date}</div></div>
+</div>
 
-        <div class="header">
-          <div class="logo-container">
-            <img src="https://webos-beta.vercel.app/assets/branding/logo_cropped.png" class="webos-logo" alt="WebOS AI" crossorigin="anonymous" />
-          </div>
-          <div class="meta">
-             <strong>NETWORK SEC + INFRA (GEEKFLARE + OBSERVATORY)</strong>
-             ${url}
-          </div>
-        </div>
+<!-- PAGE 4: TRUST & INFRA -->
+<div class="page inner">
+  <div class="ph"><div class="ph-brand">WebOS AI Audit Report</div><div class="ph-num">Page 04</div></div>
+  <div class="pc">
+    <div class="pg-title">Accessibility, Trust & Infrastructure</div>
+    <div class="pg-desc">Compliance, security posture, and technical trustworthiness</div>
 
-        <div class="main-grid">
-           <div class="col-left">
-              <div class="section">
-                 <div class="section-title">Network Infrastructure (Geekflare)</div>
-                 <div class="metrics-grid">
-                    <div class="metric-row"><span class="metric-key">TLS/SSL Grade</span><span class="metric-val">${data.geekflare?.tls?.score || 'Provisioned'}</span></div>
-                    <div class="metric-row"><span class="metric-key">SSL Expiry</span><span class="metric-val">${data.geekflare?.tls?.expiry || 'N/A'}</span></div>
-                    <div class="metric-row"><span class="metric-key">DNS Propagation</span><span class="metric-val">Synced</span></div>
-                 </div>
-              </div>
-           </div>
-           <div class="col-right">
-              <div class="section">
-                 <div class="section-title">Security Header Grading (Mozilla)</div>
-                 <div class="metrics-grid">
-                    <div class="metric-row"><span class="metric-key">Observatory Grade</span><span class="metric-val" style="font-size: 18px; font-weight: 900;">${data.observatory?.grade || 'N/A'}</span></div>
-                    <div class="metric-row"><span class="metric-key">Tests Passed</span><span class="metric-val" style="color: #22c55e">${data.observatory?.tests_passed || 0}</span></div>
-                    <div class="metric-row"><span class="metric-key">Tests Failed</span><span class="metric-val" style="color: #ef4444">${data.observatory?.tests_failed || 0}</span></div>
-                 </div>
-              </div>
-           </div>
-        </div>
-      </body>
-    </html>
-    `;
+    <div class="trust3">
+      <div class="trust-card">
+        <div class="trust-big" style="color:${sc(a11y)}">${a11y}</div>
+        <div class="trust-sub">Accessibility Score</div>
+        <div class="trust-lbl" style="color:${sc(a11y)}">${sl(a11y)}</div>
+      </div>
+      <div class="trust-card">
+        <div class="trust-big" style="color:${security?.status === "Clear" ? "#16a34a" : "#dc2626"};font-size:16px;margin-top:8px">${security?.status === "Clear" ? "Verified" : "Risk"}</div>
+        <div class="trust-sub">Safe Browsing Status</div>
+        <div class="trust-lbl" style="color:${security?.status === "Clear" ? "#16a34a" : "#dc2626"}">${security?.status === "Clear" ? "No Threats" : "Risk Detected"}</div>
+      </div>
+      <div class="trust-card">
+        <div class="trust-big" style="color:${sc(security?.headers?.score || 0)}">${security?.headers?.score || "N/A"}</div>
+        <div class="trust-sub">Headers Score</div>
+        <div class="trust-lbl" style="color:${sc(security?.headers?.score || 0)}">${sl(security?.headers?.score || 0)}</div>
+      </div>
+    </div>
+
+    <div class="trust-alert">Compliance is ${a11y >= 90 ? "strong across the board" : "partially established"}, but optimization is ${a11y >= 95 ? "complete" : "incomplete"} — ${(pa11y?.errors || 0) > 0 ? `${pa11y.errors} WCAG errors and ` : ""}key headers and interaction patterns need attention.</div>
+
+    <div class="sh"><span class="sh-icon">🔐</span><span class="sh-title">Trust Optimization</span><div class="sh-line"></div></div>
+    <div class="trust-acs">
+      ${[
+        { title: "Interaction Clarity", level: (pa11y?.errors || 0) > 3 ? "High" : "Moderate", items: ["Improve focus indicators for keyboard users", "Add ARIA labels to interactive elements", "Ensure all form fields have visible labels"] },
+        { title: "Accessibility Experience", level: a11y < 90 ? "Priority" : "Enhancement", items: ["Increase color contrast ratios to AAA", "Add skip navigation links", "Ensure all images have descriptive alt text"] },
+        { title: "Security Headers", level: (security?.headers?.score || 0) < 70 ? "Critical" : "High Impact", items: ["Implement Content Security Policy (CSP)", "Enable HTTP Strict Transport Security (HSTS)", "Add X-Content-Type-Options headers"] }
+      ].map(a => `<div class="tac">
+        <div class="tac-title">${a.title}</div>
+        <div class="tac-level" style="background:${levelBg(a.level)};color:${levelColor(a.level)}">${a.level}</div>
+        <ul class="tac-items">${a.items.map(it => `<li>${it}</li>`).join("")}</ul>
+      </div>`).join("")}
+    </div>
+
+    ${tech && tech.length > 0 ? `<div class="sh" style="margin-top:18px"><span class="sh-icon">🛠</span><span class="sh-title">Technology Stack</span><div class="sh-line"></div></div>
+    <div class="tech">${tech.slice(0,10).map((t: string) => `<span>${t}</span>`).join("")}</div>` : ""}
+
+    <div class="sh" style="margin-top:${tech?.length ? "0" : "18"}px"><span class="sh-icon">📊</span><span class="sh-title">Key Metrics</span><div class="sh-line"></div></div>
+    <table class="mt">
+      <tr><td>Observatory Grade</td><td style="font-size:16px;font-weight:900;color:${(observatory?.score||0)>70?'#22c55e':'#f97316'}">${observatory?.grade || "N/A"}</td></tr>
+      <tr><td>TLS/SSL Score</td><td>${geekflare?.tls?.score || "Provisioned"}</td></tr>
+      <tr><td>Carbon Footprint</td><td>${carbon?.green ? "✅ Green Hosted" : "⚠️ Standard"}</td></tr>
+      <tr><td>Accessibility Issues</td><td style="color:${(pa11y?.errors||0)>0?'#ef4444':'#22c55e'}">${pa11y?.errors||0} errors · ${pa11y?.warnings||0} warnings</td></tr>
+    </table>
+  </div>
+  <div class="pf"><div class="pf-brand">WebOS AI</div><div class="pf-note">Confidential · ${date}</div></div>
+</div>
+
+<!-- PAGE 5: 90-DAY GROWTH PLAN -->
+<div class="page growth">
+  <div class="g-hdr"><div class="g-brand">WebOS AI Audit Report</div><div class="g-num">Page 05</div></div>
+  <div class="g-body">
+    <div class="g-title">90-Day Website Growth Plan</div>
+    <div class="g-desc">A structured roadmap to transform performance into measurable growth</div>
+    ${[
+      { phase: "Phase 1", days: "0–7 Days", label: "Quick Wins", items: ["Image optimization & compression", "Implement lazy loading", "Remove unused scripts & styles"] },
+      { phase: "Phase 2", days: "7–30 Days", label: "Foundation", items: ["CDN implementation & caching", "Content restructuring & readability", "Add conversion elements & CTAs"] },
+      { phase: "Phase 3", days: "30–90 Days", label: "Scale", items: ["Performance monitoring & alerting", "UX improvements & A/B testing", "Scaling optimization & infrastructure"] }
+    ].map(ph => `<div class="phase">
+      <div class="ph-left">
+        <div class="ph-marker">${ph.phase}</div>
+        <div class="ph-days">— ${ph.days}</div>
+        <div class="ph-name">${ph.label}</div>
+      </div>
+      <div class="ph-right">
+        <ul class="ph-items">${ph.items.map(it => `<li>${it}</li>`).join("")}</ul>
+      </div>
+    </div>`).join("")}
+    <div class="g-closing">
+      <div class="close-1">This is not a report.</div>
+      <div class="close-2">This is a growth system.</div>
+    </div>
+  </div>
+  <div class="g-footer">
+    <div class="g-fb">WebOS AI</div>
+    <div class="g-fn">Generated by WebOS AI · ${date}</div>
+  </div>
+</div>
+
+</body>
+</html>`;
 
     const response = await fetch("https://v2.api2pdf.com/chrome/pdf/html", {
       method: "POST",
@@ -552,7 +644,8 @@ export async function createPdfReport(url: string, data: any) {
       body: JSON.stringify({
         html,
         inline: true,
-        fileName: `WebOS_AI_Audit_${new URL(normalizeUrl(url)).hostname}.pdf`,
+        fileName: `WebOS_AI_Audit_${domain}.pdf`,
+        options: { marginTop: "0mm", marginBottom: "0mm", marginLeft: "0mm", marginRight: "0mm", printBackground: true }
       }),
     });
 
@@ -564,6 +657,11 @@ export async function createPdfReport(url: string, data: any) {
     return { status: "Error", message: "PDF generation is offline. Your scores above are still accurate." };
   }
 }
+
+
+
+
+
 
 export async function fetchCarbonMetrics(url: string) {
   try {
