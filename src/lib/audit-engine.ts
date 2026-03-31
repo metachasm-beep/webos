@@ -172,10 +172,10 @@ export async function createPdfReport(url: string, data: any) {
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: #ffffff;
             color: #111;
-            padding: 48px;
+            padding: 24px;
             max-width: 860px;
             margin: 0 auto;
           }
@@ -184,104 +184,75 @@ export async function createPdfReport(url: string, data: any) {
             justify-content: space-between;
             align-items: center;
             border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 28px;
-            margin-bottom: 36px;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
           }
-          .logo {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            margin-right: 16px;
-            object-fit: cover;
-          }
-          .brand-container { display: flex; align-items: center; }
-          .brand { font-size: 28px; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; }
-          .brand span { color: #3b82f6; }
-          .meta { text-align: right; font-size: 10px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.1em; }
-          .meta strong { display: block; color: #374151; font-size: 11px; margin-bottom: 4px; }
+          .logo-container { display: flex; align-items: center; gap: 12px; }
+          .webos-logo { height: 32px; object-fit: contain; }
+          .target-logo { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: 1px solid #eee; }
+          .meta { text-align: right; font-size: 9px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.1em; }
+          .meta strong { display: block; color: #374151; font-size: 11px; margin-bottom: 2px; }
           .scores {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 40px;
+            gap: 16px;
+            margin-bottom: 24px;
           }
           .score-card {
             border: 1px solid #e5e7eb;
-            border-radius: 14px;
-            padding: 28px 20px;
+            border-radius: 10px;
+            padding: 16px 12px;
             text-align: center;
+            background: #fafafa;
           }
-          .score-num {
-            font-size: 52px;
-            font-weight: 900;
-            letter-spacing: -2px;
-            line-height: 1;
+          .score-num { font-size: 40px; font-weight: 900; letter-spacing: -1.5px; line-height: 1; margin-bottom: 6px; }
+          .score-label { font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #6b7280; }
+          
+          .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
           }
-          .score-label {
-            font-size: 9px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            color: #9ca3af;
-            margin-top: 10px;
-          }
-          .section { margin-bottom: 36px; }
+          
+          .section { margin-bottom: 20px; }
           .section-title {
+            display: flex;
+            align-items: center;
             font-size: 9px;
-            font-weight: 700;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.2em;
-            color: #6b7280;
-            border-left: 3px solid #3b82f6;
-            padding-left: 10px;
-            margin-bottom: 16px;
+            color: #4b5563;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 6px;
+            margin-bottom: 12px;
           }
-          .summary-text {
-            font-size: 14px;
-            line-height: 1.75;
-            color: #374151;
-          }
-          .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0 40px;
-          }
+          .section-title svg { width: 14px; height: 14px; margin-right: 8px; color: #3b82f6; }
+          .summary-text { font-size: 11px; line-height: 1.6; color: #4b5563; }
+          .metrics-grid { display: flex; flex-direction: column; width: 100%; }
           .metric-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #f3f4f6;
-            font-size: 11px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 6px 0; border-bottom: 1px dashed #e5e7eb; font-size: 10px;
           }
-          .metric-key { color: #9ca3af; text-transform: uppercase; letter-spacing: 0.08em; }
-          .metric-val { font-weight: 700; color: #111; }
+          .metric-row:last-child { border-bottom: none; }
+          .metric-key { color: #6b7280; font-weight: 500; }
+          .metric-val { font-weight: 700; color: #111; text-align: right; }
           .footer {
-            margin-top: 60px;
-            padding-top: 24px;
-            border-top: 1px solid #f3f4f6;
-            text-align: center;
-            font-size: 9px;
-            color: #d1d5db;
-            text-transform: uppercase;
-            letter-spacing: 0.25em;
+            margin-top: 24px; padding-top: 16px; border-top: 1px solid #f3f4f6;
+            text-align: center; font-size: 8px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.25em;
           }
         </style>
       </head>
       <body>
         <div class="header">
-          <div class="brand-container">
-            <img src="${logoUrl}" class="logo" onerror="this.style.display='none'" />
-            <div>
-              <div class="brand">WebOS AI <span>Audit</span></div>
-              <div style="font-size: 9px; color: #9ca3af; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.12em;">
-                Website Performance Report
-              </div>
-            </div>
+          <div class="logo-container">
+            <img src="https://webos-beta.vercel.app/assets/branding/logo_full.png" class="webos-logo" alt="WebOS AI" />
+            <div style="width: 1px; height: 24px; background: #e5e7eb; margin: 0 4px;"></div>
+            <img src="${logoUrl}" class="target-logo" onerror="this.style.display='none'" />
           </div>
           <div class="meta">
-            <strong>${new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</strong>
-            ${url}
+            <strong>${new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</strong>
+            ANALYZED URL: ${url}
           </div>
         </div>
 
@@ -304,164 +275,108 @@ export async function createPdfReport(url: string, data: any) {
           </div>
         </div>
 
-        <div class="section">
-          <div class="section-title">Executive Summary</div>
-          <p class="summary-text">${summary}</p>
-        </div>
+        <div class="main-grid">
+          <div class="col-left">
+            <div class="section">
+              <div class="section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Executive Summary
+              </div>
+              <p class="summary-text">${summary}</p>
+            </div>
 
-        ${metrics?.growth ? `
-        <div class="section">
-          <div class="section-title">Growth Matrix Telemetry</div>
-          <div class="metrics-grid">
-            <div class="metric-row">
-              <span class="metric-key">LTV : CAC Ratio</span>
-              <span class="metric-val" style="color: ${metrics.growth.ltv_cac >= 3 ? '#22c55e' : '#f97316'}">${metrics.growth.ltv_cac}x</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Burn Multiple</span>
-              <span class="metric-val" style="color: ${metrics.growth.burn_multiple <= 1.5 ? '#22c55e' : '#ef4444'}">${metrics.growth.burn_multiple}</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Magic Number</span>
-              <span class="metric-val">${metrics.growth.magic_number}</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Estimated Runway</span>
-              <span class="metric-val" style="color: ${metrics.growth.runway >= 12 ? '#22c55e' : '#f97316'}">${metrics.growth.runway} Months</span>
+            ${metrics?.growth ? `
+            <div class="section">
+              <div class="section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                Growth Matrix Telemetry
+              </div>
+              <div class="metrics-grid">
+                <div class="metric-row"><span class="metric-key">LTV : CAC Ratio</span><span class="metric-val" style="color: ${metrics.growth.ltv_cac >= 3 ? '#22c55e' : '#f97316'}">${metrics.growth.ltv_cac}x</span></div>
+                <div class="metric-row"><span class="metric-key">Burn Multiple</span><span class="metric-val" style="color: ${metrics.growth.burn_multiple <= 1.5 ? '#22c55e' : '#ef4444'}">${metrics.growth.burn_multiple}</span></div>
+                <div class="metric-row"><span class="metric-key">Magic Number</span><span class="metric-val">${metrics.growth.magic_number}</span></div>
+                <div class="metric-row"><span class="metric-key">Estimated Runway</span><span class="metric-val" style="color: ${metrics.growth.runway >= 12 ? '#22c55e' : '#f97316'}">${metrics.growth.runway} Months</span></div>
+              </div>
+            </div>` : ''}
+
+            <div class="section">
+              <div class="section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                Performance Details
+              </div>
+              <div class="metrics-grid">
+                <div class="metric-row"><span class="metric-key">First Contentful Paint</span><span class="metric-val">${getDisp("first-contentful-paint") === "N/A" ? getDisp("lcp") : getDisp("first-contentful-paint")}</span></div>
+                <div class="metric-row"><span class="metric-key">Time to Interactive</span><span class="metric-val">${getDisp("interactive")}</span></div>
+                <div class="metric-row"><span class="metric-key">Speed Index</span><span class="metric-val">${getDisp("speed-index")}</span></div>
+                <div class="metric-row"><span class="metric-key">Total Blocking Time</span><span class="metric-val">${getDisp("total-blocking-time")}</span></div>
+                <div class="metric-row"><span class="metric-key">Largest Contentful Paint</span><span class="metric-val">${getDisp("largest-contentful-paint") === "N/A" ? getDisp("lcp") : getDisp("largest-contentful-paint")}</span></div>
+                <div class="metric-row"><span class="metric-key">Cumulative Layout Shift</span><span class="metric-val">${getDisp("cumulative-layout-shift") === "N/A" ? getDisp("cls") : getDisp("cumulative-layout-shift")}</span></div>
+                <div class="metric-row"><span class="metric-key">Total Page Weight</span><span class="metric-val">${getDisp("total-byte-weight")}</span></div>
+                <div class="metric-row"><span class="metric-key">DOM Size</span><span class="metric-val">${getDisp("dom-size")}</span></div>
+                <div class="metric-row"><span class="metric-key">JS Execution Time</span><span class="metric-val">${getDisp("bootup-time")}</span></div>
+              </div>
             </div>
           </div>
-        </div>
-        ` : ''}
 
-        <div class="section">
-          <div class="section-title">Performance Details</div>
-          <div class="metrics-grid">
-            <div class="metric-row">
-              <span class="metric-key">First Contentful Paint</span>
-              <span class="metric-val">${getDisp("first-contentful-paint") === "N/A" ? getDisp("lcp") : getDisp("first-contentful-paint")}</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Time to Interactive</span>
-              <span class="metric-val">${getDisp("interactive")}</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Speed Index</span>
-              <span class="metric-val">${getDisp("speed-index")}</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Total Blocking Time</span>
-              <span class="metric-val">${getDisp("total-blocking-time")}</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Largest Contentful Paint</span>
-              <span class="metric-val">${getDisp("largest-contentful-paint") === "N/A" ? getDisp("lcp") : getDisp("largest-contentful-paint")}</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Cumulative Layout Shift</span>
-              <span class="metric-val">${getDisp("cumulative-layout-shift") === "N/A" ? getDisp("cls") : getDisp("cumulative-layout-shift")}</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Server Response Time</span>
-              <span class="metric-val">${getDisp("server-response-time")}</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Total Page Weight</span>
-              <span class="metric-val">${getDisp("total-byte-weight")}</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">DOM Size</span>
-              <span class="metric-val">${getDisp("dom-size")}</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">JS Execution Time</span>
-              <span class="metric-val">${getDisp("bootup-time")}</span>
-            </div>
+          <div class="col-right">
+            ${security ? `
+            <div class="section">
+              <div class="section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                Security Protocol
+              </div>
+              <div class="metrics-grid">
+                <div class="metric-row"><span class="metric-key">Google Safe Browsing</span><span class="metric-val" style="color: ${security.status === 'Clear' ? '#22c55e' : '#ef4444'}">${security.status === 'Clear' ? 'Verified Safe' : 'Threat Detected'}</span></div>
+                ${security.headers ? `
+                <div class="metric-row"><span class="metric-key">Headers Score</span><span class="metric-val" style="color: ${scoreColor(security.headers.score)}">${security.headers.score}/100</span></div>
+                <div class="metric-row"><span class="metric-key">Server Engine</span><span class="metric-val truncate" style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${security.headers.server}">${security.headers.server}</span></div>
+                ` : ''}
+                ${security.threats ? `
+                <div class="metric-row"><span class="metric-key">Detected Issues</span><span class="metric-val">${security.threats.join(', ')}</span></div>
+                ` : ''}
+              </div>
+            </div>` : ''}
+
+            ${content ? `
+            <div class="section">
+              <div class="section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                Content Intelligence
+              </div>
+              <div class="metrics-grid">
+                <div class="metric-row"><span class="metric-key">Readability (Flesch)</span><span class="metric-val">${content.readability.score}</span></div>
+                <div class="metric-row"><span class="metric-key">Grade Level</span><span class="metric-val">${content.readability.grade}</span></div>
+                <div class="metric-row"><span class="metric-key">Word Count</span><span class="metric-val">${content.readability.wordCount} words</span></div>
+                <div class="metric-row"><span class="metric-key">Missing Alt Text</span><span class="metric-val" style="color: ${content.accessibility.missingAlt > 0 ? '#ef4444' : '#22c55e'}">${content.accessibility.missingAlt} of ${content.accessibility.totalImgs}</span></div>
+              </div>
+            </div>` : ''}
+
+            ${tech && tech.length > 0 ? `
+            <div class="section">
+              <div class="section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                Technology Stack
+              </div>
+              <div style="font-size: 9px; color: #374151; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;">
+                ${tech.map((t: string) => `<span style="background: #f3f4f6; border: 1px solid #e5e7eb; padding: 3px 8px; border-radius: 4px; font-weight: 600;">${t}</span>`).join('')}
+              </div>
+            </div>` : ''}
+
+            ${carbon ? `
+            <div class="section">
+              <div class="section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+                Environmental Impact
+              </div>
+              <div class="metrics-grid">
+                <div class="metric-row"><span class="metric-key">Carbon Footprint Status</span><span class="metric-val">${carbon.green ? "A+ (Sustainable)" : "C (Standard)"}</span></div>
+                <div class="metric-row"><span class="metric-key">Cleaner Than</span><span class="metric-val">${(carbon.cleanerThan * 100).toFixed(0)}% of tested sites</span></div>
+              </div>
+            </div>` : ''}
           </div>
         </div>
 
-        ${security ? `
-        <div class="section">
-          <div class="section-title">Security Protocol</div>
-          <div class="metrics-grid">
-            <div class="metric-row">
-              <span class="metric-key">Google Safe Browsing</span>
-              <span class="metric-val" style="color: ${security.status === 'Clear' ? '#22c55e' : '#ef4444'}">
-                ${security.status === 'Clear' ? 'Verified Safe' : 'Threat Detected'}
-              </span>
-            </div>
-            ${security.headers ? `
-            <div class="metric-row">
-              <span class="metric-key">Security Headers Score</span>
-              <span class="metric-val" style="color: ${scoreColor(security.headers.score)}">${security.headers.score}/100</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Server Engine</span>
-              <span class="metric-val">${security.headers.server}</span>
-            </div>
-            ` : ''}
-            ${security.threats ? `
-            <div class="metric-row">
-              <span class="metric-key">Detected Issues</span>
-              <span class="metric-val">${security.threats.join(', ')}</span>
-            </div>
-            ` : ''}
-          </div>
-        </div>
-        ` : ''}
-
-        ${content ? `
-        <div class="section">
-          <div class="section-title">Content Intelligence</div>
-          <div class="metrics-grid">
-            <div class="metric-row">
-              <span class="metric-key">Readability (Flesch)</span>
-              <span class="metric-val">${content.readability.score}</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Grade Level</span>
-              <span class="metric-val">${content.readability.grade}</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Word Count</span>
-              <span class="metric-val">${content.readability.wordCount} words</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Missing Alt Text</span>
-              <span class="metric-val" style="color: ${content.accessibility.missingAlt > 0 ? '#ef4444' : '#22c55e'}">
-                ${content.accessibility.missingAlt} of ${content.accessibility.totalImgs} images
-              </span>
-            </div>
-          </div>
-        </div>
-        ` : ''}
-
-        ${tech && tech.length > 0 ? `
-        <div class="section">
-          <div class="section-title">Technology Stack</div>
-          <div style="font-size: 11px; color: #374151; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;">
-            ${tech.map((t: string) => `<span style="background: #f3f4f6; padding: 4px 10px; border-radius: 6px; font-weight: 600;">${t}</span>`).join('')}
-          </div>
-        </div>
-        ` : ''}
-
-
-        ${carbon ? `
-        <div class="section">
-          <div class="section-title">Environmental Impact</div>
-          <div class="metrics-grid">
-            <div class="metric-row">
-              <span class="metric-key">Carbon Footprint Status</span>
-              <span class="metric-val">${carbon.green ? "A+ (Sustainable)" : "C (Standard)"}</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-key">Cleaner Than</span>
-              <span class="metric-val">${(carbon.cleanerThan * 100).toFixed(0)}% of tested sites</span>
-            </div>
-          </div>
-        </div>
-        ` : ''}
-
-        <div class="footer">Generated by WebOS AI · webos-ai.com</div>
+        <div class="footer">Generated by WebOS AI · Synthesized via Neural Protocol</div>
       </body>
     </html>
     `;
