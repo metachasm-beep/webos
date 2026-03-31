@@ -10,12 +10,20 @@ import { authOptions } from "@/lib/auth";
 export async function runAuditAction(url: string) {
   try {
     const data = await fetchPageSpeedData(url);
-    const [carbonData, securityData, localData, multiEngineData] = await Promise.all([
+
+    // Use allSettled so one failing engine never kills the whole audit
+    const [carbonResult, securityResult, localResult, multiEngineResult] = await Promise.allSettled([
       fetchCarbonMetrics(url),
       checkSafeBrowsing(url),
       runLocalAudit(url),
       fetchMultiEngineMetrics(url)
     ]);
+
+    const carbonData    = carbonResult.status      === "fulfilled" ? carbonResult.value      : null;
+    const securityData  = securityResult.status    === "fulfilled" ? securityResult.value    : null;
+    const localData     = localResult.status       === "fulfilled" ? localResult.value       : null;
+    const multiEngineData = multiEngineResult.status === "fulfilled" ? multiEngineResult.value : { pa11y: null, debugbear: null, geekflare: null, observatory: null };
+
 
 
     // Integrate High-Fidelity Multi-Engine Scoring
