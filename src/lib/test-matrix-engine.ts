@@ -10,14 +10,16 @@ async function testMatrixEngine() {
     const growth = calculateGrowthMetrics(url);
     console.log("Growth Metrics:", JSON.stringify(growth, null, 2));
 
-    const techScores = {
-      performance: 92,
-      seo: 88,
-      accessibility: 95,
-      bestPractices: 85
+    const techMetrics = {
+      lighthouse: {
+        performance: 92,
+        seo: 88,
+        accessibility: 95,
+        bestPractices: 85
+      }
     };
 
-    const composite = calculateCompositeScore(growth, techScores);
+    const composite = calculateCompositeScore(growth, techMetrics);
     console.log("Composite Score:", JSON.stringify(composite, null, 2));
 
     // Verify consistency (deterministic simulation)
