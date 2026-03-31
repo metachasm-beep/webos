@@ -320,11 +320,12 @@ export default function Home() {
         <div className="container px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-12">
             <div className="space-y-4 text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-4">
-                <div className="h-10 w-10 bg-primary/20 rounded-xl flex items-center justify-center">
-                  <Zap className="h-6 w-6 text-primary" />
-                </div>
-                <span className="text-2xl font-heading font-bold text-glow-soft">TurtleLabs <span className="text-primary italic">WebOS</span></span>
+              <div className="flex flex-col items-center justify-center md:items-start gap-6">
+                <img 
+                  src="/assets/branding/logo_full.png" 
+                  alt="WebOS AI Logo" 
+                  className="h-16 w-auto object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+                />
               </div>
               <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-bold">Audit. Build. Dominate.</p>
               <div className="space-y-1 pt-4">

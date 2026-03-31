@@ -39,8 +39,12 @@ const lato = Lato({
 });
 
 export const metadata: Metadata = {
-  title: "WebOS | High-Performance Business Matrix",
-  description: "Enterprise-grade neural optimization for global digital operations.",
+  title: "WebOS AI | Audit. Build. Dominate.",
+  description: "WebOS AI is the ultimate business growth engine. Audit your website, build high-performance sections, and dominate your niche with AI.",
+  icons: {
+    icon: "/assets/branding/icon.png",
+    apple: "/assets/branding/icon.png",
+  },
 };
 
 export const viewport = {

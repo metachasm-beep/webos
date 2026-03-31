@@ -17,10 +17,14 @@ export function Navbar() {
     >
       <div className="glass rounded-3xl px-8 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center group-hover:rotate-12 transition-all shadow-[0_0_20px_rgba(59,130,246,0.4)]">
-            <Zap className="h-6 w-6 text-primary-foreground fill-current" />
+          <div className="h-10 w-10 flex items-center justify-center group-hover:rotate-12 transition-all drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+            <img 
+              src="/assets/branding/icon.png" 
+              alt="WebOS AI Icon" 
+              className="h-full w-full object-contain"
+            />
           </div>
-          <span className="text-2xl font-heading font-bold tracking-tight text-glow-soft">TurtleLabs <span className="text-primary italic">WebOS</span></span>
+          <span className="text-2xl font-heading font-bold tracking-tight text-glow-soft">WebOS <span className="text-primary italic">AI</span></span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-10">
