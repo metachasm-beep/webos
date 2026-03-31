@@ -38,6 +38,8 @@ export async function runAuditAction(url: string) {
     
     const result = {
       success: true,
+      degraded: data._degraded || false,
+      degradedReason: data._degradedReason || null,
       metrics: {
         performance: techMetrics.lighthouse.performance,
         seo: techMetrics.lighthouse.seo,
@@ -45,9 +47,9 @@ export async function runAuditAction(url: string) {
         bestPractices: techMetrics.lighthouse.bestPractices,
         composite: composite,
         growth: growthMetrics,
-        lcp: data.lighthouseResult.audits["largest-contentful-paint"].displayValue,
-        fid: data.lighthouseResult.audits["max-potential-fid"]?.displayValue || "N/A",
-        cls: data.lighthouseResult.audits["cumulative-layout-shift"].displayValue,
+        lcp: data.lighthouseResult.audits?.["largest-contentful-paint"]?.displayValue || "N/A",
+        fid: data.lighthouseResult.audits?.["max-potential-fid"]?.displayValue || "N/A",
+        cls: data.lighthouseResult.audits?.["cumulative-layout-shift"]?.displayValue || "N/A",
       },
       summary: summaryData,
       carbon: carbonData,

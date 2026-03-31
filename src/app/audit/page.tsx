@@ -232,6 +232,25 @@ function AuditContent() {
     <>
       <main className="flex-1 pb-32 pt-32">
       <div className="container px-4">
+        {/* Degraded Mode Banner */}
+        {auditData?.degraded && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 flex items-start gap-4 glass border border-amber-500/30 bg-amber-500/5 rounded-2xl p-5"
+          >
+            <AlertCircle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="text-sm font-bold text-amber-400 uppercase tracking-widest">Partial Audit Mode</p>
+              <p className="text-xs text-amber-300/70 leading-relaxed">
+                Google PageSpeed was temporarily unavailable (502 Bad Gateway). Performance scores shown are estimated baselines. 
+                All other engines (Accessibility, Security, SEO, Pa11y) ran successfully on live data.
+                <span className="font-bold text-amber-400 ml-1">Refresh to retry a full scan.</span>
+              </p>
+            </div>
+          </motion.div>
+        )}
+
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

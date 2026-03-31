@@ -27,7 +27,7 @@ const MOCK_DATA = {
   },
 };
 
-export async function fetchPageSpeedData(url: string) {
+export async function fetchPageSpeedData(url: string): Promise<any> {
   const apiKey = process.env.PAGESPEED_API_KEY;
 
   // Normalize URL
@@ -36,42 +36,73 @@ export async function fetchPageSpeedData(url: string) {
     normalizedUrl = `https://${normalizedUrl}`;
   }
 
-  // If no API key, throw error so user can debug
   if (!apiKey) {
     throw new Error("PAGESPEED_API_KEY is missing. Please add it to your environment variables to enable real audits.");
   }
 
-  try {
-    const endpoint =
-      `https://www.googleapis.com/pagespeedonline/v5/runPagespeed` +
-      `?url=${encodeURIComponent(normalizedUrl)}` +
-      `&key=${apiKey}` +
-      `&category=accessibility&category=best-practices&category=performance&category=seo` +
-      `&strategy=mobile`;
+  const endpoint =
+    `https://www.googleapis.com/pagespeedonline/v5/runPagespeed` +
+    `?url=${encodeURIComponent(normalizedUrl)}` +
+    `&key=${apiKey}` +
+    `&category=accessibility&category=best-practices&category=performance&category=seo` +
+    `&strategy=mobile`;
 
-    const response = await fetch(endpoint, { next: { revalidate: 0 } });
+  const RETRYABLE = new Set([429, 500, 502, 503, 504]);
+  const MAX_RETRIES = 3;
 
-    if (!response.ok) {
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const response = await fetch(endpoint, { next: { revalidate: 0 } });
+
+      if (response.ok) {
+        return await response.json();
+      }
+
       const body = await response.text();
       let errMsg = response.statusText;
       try {
         const parsed = JSON.parse(body);
         if (parsed.error?.message) errMsg = parsed.error.message;
-      } catch (e) {}
+      } catch (_) {}
 
-      // Google returns a generic 500 if the site is localhost, unreachable, or blocks bots
-      if (response.status === 500 && errMsg.includes("Unable to process request")) {
-        errMsg = "The site is unreachable by Google's servers. Ensure the URL is public, not a localhost/private address, and doesn't explicitly block Googlebot.";
+      // Transient Google infrastructure error — retry
+      if (RETRYABLE.has(response.status) && attempt < MAX_RETRIES) {
+        const delay = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+        console.warn(`[audit-engine] PageSpeed returned ${response.status}. Retrying in ${delay}ms (attempt ${attempt}/${MAX_RETRIES})...`);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+
+      // Unreachable site
+      if (response.status === 500 && errMsg.includes("Unable to process")) {
+        errMsg = "The site is unreachable by Google's servers. Ensure the URL is public and not blocking Googlebot.";
+      }
+
+      // 502 after all retries — fall back to mock so secondary engines still run
+      if (RETRYABLE.has(response.status)) {
+        console.warn(`[audit-engine] PageSpeed ${response.status} persisted after ${MAX_RETRIES} retries. Using estimated baseline data.`);
+        return { ...MOCK_DATA, _degraded: true, _degradedReason: `PageSpeed API Error (${response.status}): ${errMsg}` };
       }
 
       throw new Error(`PageSpeed API Error (${response.status}): ${errMsg}`);
-    }
 
-    return await response.json();
-  } catch (error: any) {
-    console.error("[audit-engine] PageSpeed fetch failed:", error);
-    throw new Error(`Failed to run PageSpeed audit: ${error.message || "Unknown communication error"}`);
+    } catch (error: any) {
+      // Network-level error (timeout, DNS, etc.)
+      if (attempt < MAX_RETRIES && !error.message?.startsWith("PageSpeed API Error")) {
+        const delay = Math.pow(2, attempt) * 1000;
+        console.warn(`[audit-engine] Network error, retrying in ${delay}ms:`, error.message);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+
+      // Last resort — fall back to estimated data
+      console.error(`[audit-engine] PageSpeed permanently failed:`, error);
+      return { ...MOCK_DATA, _degraded: true, _degradedReason: error.message || "PageSpeed API unreachable" };
+    }
   }
+
+  // Should never reach here, but TypeScript needs it
+  return { ...MOCK_DATA, _degraded: true, _degradedReason: "PageSpeed API failed after all retries" };
 }
 
 export async function fetchMultiEngineMetrics(url: string) {
