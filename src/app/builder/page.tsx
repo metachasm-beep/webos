@@ -24,13 +24,13 @@ import {
   Quote,
   CheckCircle2,
   DollarSign,
-  Briefcase
+  Briefcase,
+  Palette
 } from "lucide-react";
 import Squares from "@/components/reactbits/Squares";
 import ShinyText from "@/components/reactbits/ShinyText";
 
 import { BUSINESS_TEMPLATES, Template } from "@/lib/templates";
-
 
 import { 
   Tooltip, 
@@ -41,12 +41,57 @@ import {
 
 import { RenderNode } from "@/components/BuilderComponents";
 
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { SortableNode } from "@/components/SortableNode";
+import { AriaCoPilot } from "@/components/AriaCoPilot";
+
+// Theme Configuration
+const GLOBAL_THEMES = {
+  emerald: {
+    primary: "oklch(0.75 0.15 150)", // Vivid Emerald
+    accent: "oklch(0.85 0.1 190)",
+    bg: "oklch(0.05 0.01 150)",
+    label: "Emerald Synthesis"
+  },
+  sapphire: {
+    primary: "oklch(0.65 0.2 250)", // Deep Sapphire
+    accent: "oklch(0.75 0.15 190)",
+    bg: "oklch(0.05 0.01 250)",
+    label: "Sapphire Protocol"
+  },
+  ruby: {
+    primary: "oklch(0.6 0.25 20)", // Crimson Ruby
+    accent: "oklch(0.7 0.15 40)",
+    bg: "oklch(0.05 0.01 20)",
+    label: "Ruby Matrix"
+  },
+  obsidian: {
+    primary: "oklch(0.98 0 0)", // White/Silver
+    accent: "oklch(0.6 0 0)",
+    bg: "oklch(0.02 0 0)", // Pure Black
+    label: "Pure Obsidian"
+  }
+};
 
 // Tooltip Helper
 const ActionTooltip = ({ children, label }: { children: React.ReactNode, label: string }) => (
   <TooltipProvider>
     <Tooltip>
-      <TooltipTrigger>
+      <TooltipTrigger asChild>
         {children}
       </TooltipTrigger>
       <TooltipContent className="bg-black border border-white/10 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5">
@@ -64,6 +109,19 @@ export default function BuilderPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [nodes, setNodes] = useState<any[]>([]);
   const [selectedNodeIndex, setSelectedNodeIndex] = useState<number | null>(null);
+  const [activeTheme, setActiveTheme] = useState<keyof typeof GLOBAL_THEMES>("sapphire");
+
+  // DND Sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Typography Lab State
   const [activePairing, setActivePairing] = useState("classic");
@@ -88,25 +146,29 @@ export default function BuilderPage() {
   const [matrixData, setMatrixData] = useState<any>(null);
   const [showMatrixDashboard, setShowMatrixDashboard] = useState(false);
 
-
-  const containerRef = useRef<HTMLDivElement>(null);
-
   const [isMounted, setIsMounted] = useState(false);
-
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Update CSS Variables for real-time font config
+  // Theme & Typography Orchestration
   useEffect(() => {
     if (!isMounted) return;
+    
+    // Apply Typography
     const pair = pairings[activePairing as keyof typeof pairings];
     document.documentElement.style.setProperty('--font-heading', `var(${pair.heading})`);
     document.documentElement.style.setProperty('--font-body', `var(${pair.body})`);
-  }, [activePairing, isMounted]);
+    
+    // Apply Global Theme
+    const theme = GLOBAL_THEMES[activeTheme];
+    document.documentElement.style.setProperty('--primary', theme.primary);
+    document.documentElement.style.setProperty('--accent', theme.accent);
+    document.documentElement.style.setProperty('--background', theme.bg);
+  }, [activePairing, activeTheme, isMounted]);
 
-  // Update CSS Variables for real-time config
+  // Update Config CSS Variables
   useEffect(() => {
     if (!isMounted) return;
     document.documentElement.style.setProperty('--canvas-blur', `${blurValue}px`);
@@ -114,11 +176,19 @@ export default function BuilderPage() {
     document.documentElement.style.setProperty('--chroma-shift', `${chromaShift}deg`);
   }, [blurValue, meshIntensity, chromaShift, isMounted]);
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setNodes((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
 
-  if (!isMounted) return null;
-
-  const handleGenerate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGenerate = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!prompt || isGenerating) return;
     setIsGenerating(true);
     try {
@@ -133,6 +203,7 @@ export default function BuilderPage() {
         headers: { "Content-Type": "application/json" }
       });
       const newNode = await resp.json();
+      if (!newNode.id) newNode.id = `node-${Date.now()}`;
       setNodes([newNode, ...nodes]);
       setPrompt("");
     } catch (e) {
@@ -172,7 +243,6 @@ export default function BuilderPage() {
 
   const handleSyncMatrix = () => {
     setIsSyncing(true);
-    // Simulate complex matrix synthesis 2.0
     setTimeout(() => {
       setMatrixData({
         seo: { score: 84, trend: "up", alert: "none" },
@@ -185,23 +255,31 @@ export default function BuilderPage() {
     }, 2000);
   };
 
-
   const handleFlushCanvas = () => {
     if (confirm("Are you sure you want to flush the Neural Canvas sequence? This cannot be undone.")) {
       setNodes([]);
     }
   };
 
-  const handleApplyHeuristic = () => {
-    if (nodes.length === 0) return;
-    // Simple heuristic: Boost contrast of the most recent node's background if it's dark
-    const newNodes = [...nodes];
-    const latest = { ...newNodes[0] };
-    if (latest.style === "dark-saas") {
-      alert("Heuristic Applied: Contrast optimized for Synthesis.");
-    }
-    setNodes(newNodes);
+  const handleAriaMutation = (mutations: any[]) => {
+    setNodes(prev => {
+      let newNodes = [...prev];
+      mutations.forEach(m => {
+        if (m.action === 'add') {
+          if (!m.node.id) m.node.id = `node-${Date.now()}-${Math.random()}`;
+          newNodes = [m.node, ...newNodes];
+        } else if (m.action === 'update' && m.id) {
+          const idx = newNodes.findIndex(n => n.id === m.id);
+          if (idx !== -1) newNodes[idx] = { ...newNodes[idx], ...m.updates };
+        } else if (m.action === 'delete' && m.id) {
+          newNodes = newNodes.filter(n => n.id !== m.id);
+        }
+      });
+      return newNodes;
+    });
   };
+
+  if (!isMounted) return null;
 
   return (
     <div className="flex flex-col h-screen overflow-hidden relative font-body selection:bg-primary/20">
@@ -224,27 +302,23 @@ export default function BuilderPage() {
       />
       
       <div className="flex-1 flex pt-16">
-
-        {/* Primitives Panel */}
+        {/* Sidebar Panel */}
         <aside className="w-80 glass border-r border-white/5 flex flex-col relative z-20 overflow-hidden">
           <div className="p-8 border-b border-white/5 space-y-1">
             <h2 className="text-xl font-heading font-bold italic tracking-tight">Design Board</h2>
             <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">Section Creation Tools</p>
           </div>
 
-          
           <div className="flex-1 overflow-y-auto p-6 space-y-8 relative">
             <AnimatePresence mode="wait">
               {activeTab === "typography" ? (
                 <motion.div 
                    key="typography"
-                   initial={{ x: -20, opacity: 0 }}
-                   animate={{ x: 0, opacity: 1 }}
-                   exit={{ x: -20, opacity: 0 }}
+                   initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
                    className="space-y-6"
                 >
                   <Button variant="ghost" onClick={() => setActiveTab(null)} className="p-0 h-auto text-[10px] uppercase font-bold tracking-widest gap-2 text-muted-foreground hover:text-white">
-                    <ChevronRight className="h-3 w-3 rotate-180" /> Back to Genesis
+                    <ChevronRight className="h-3 w-3 rotate-180" /> Back
                   </Button>
                   <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">Typography Lab</h3>
                   <div className="space-y-3">
@@ -252,11 +326,35 @@ export default function BuilderPage() {
                       <div 
                         key={key}
                         onClick={() => setActivePairing(key)}
-                        className={`p-4 rounded-2xl border cursor-pointer transition-all ${activePairing === key ? 'bg-primary/10 border-primary shadow-[0_0_20px_rgba(var(--primary),0.1)]' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}
+                        className={`p-4 rounded-2xl border cursor-pointer transition-all ${activePairing === key ? 'bg-primary/10 border-primary' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}
                       >
                         <div className="text-xs font-bold mb-1">{pair.label}</div>
                         <div className="text-[10px] text-muted-foreground opacity-60">Heading: {pair.heading.replace('--font-heading-', '')}</div>
-                        <div className="text-[10px] text-muted-foreground opacity-60">Body: {pair.body.replace('--font-body-', '')}</div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              ) : activeTab === "themes" ? (
+                <motion.div 
+                   key="themes"
+                   initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
+                   className="space-y-6"
+                >
+                  <Button variant="ghost" onClick={() => setActiveTab(null)} className="p-0 h-auto text-[10px] uppercase font-bold tracking-widest gap-2 text-muted-foreground hover:text-white">
+                    <ChevronRight className="h-3 w-3 rotate-180" /> Back
+                  </Button>
+                  <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">Global Themes</h3>
+                  <div className="space-y-3">
+                    {Object.entries(GLOBAL_THEMES).map(([key, theme]) => (
+                      <div 
+                        key={key}
+                        onClick={() => setActiveTheme(key as any)}
+                        className={`p-4 rounded-2xl border cursor-pointer transition-all ${activeTheme === key ? 'bg-primary/10 border-primary' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="h-4 w-4 rounded-full" style={{ backgroundColor: theme.primary }} />
+                          <div className="text-xs font-bold">{theme.label}</div>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -264,39 +362,26 @@ export default function BuilderPage() {
               ) : activeTab === "asset-lab" ? (
                 <motion.div 
                    key="asset-lab"
-                   initial={{ x: -20, opacity: 0 }}
-                   animate={{ x: 0, opacity: 1 }}
-                   exit={{ x: -20, opacity: 0 }}
+                   initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
                    className="space-y-6"
                 >
                   <Button variant="ghost" onClick={() => setActiveTab(null)} className="p-0 h-auto text-[10px] uppercase font-bold tracking-widest gap-2 text-muted-foreground hover:text-white">
-                    <ChevronRight className="h-3 w-3 rotate-180" /> Back to Tools
+                    <ChevronRight className="h-3 w-3 rotate-180" /> Back
                   </Button>
-                  <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">AI Image Creator</h3>
-                   <div className="glass-dark border border-white/5 p-6 rounded-3xl space-y-4">
-                      <div className="h-32 w-full rounded-2xl bg-white/5 flex items-center justify-center border border-dashed border-white/10 overflow-hidden relative">
-                         {synthesizedAsset ? (
-                            <img src={synthesizedAsset.url} className="w-full h-full object-cover opacity-60" alt="Synthesized" />
-                         ) : (
-                            <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
-                         )}
-                      </div>
-                      <p className="text-[10px] text-muted-foreground text-center">AI image generator {isSynthesizingAsset ? "active..." : "ready."}</p>
-                      <Button 
-                        onClick={handleSynthesizeAsset}
-                        disabled={isSynthesizingAsset || !prompt}
-                        className="w-full h-10 rounded-xl bg-accent text-black font-bold uppercase tracking-widest text-[9px]"
-                      >
-                        {isSynthesizingAsset ? "Generating..." : "Create Image"}
-                      </Button>
-                   </div>
+                  <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">AI Asset Lab</h3>
+                  <div className="glass-dark border border-white/5 p-6 rounded-3xl space-y-4 text-center">
+                    <div className="h-32 w-full rounded-2xl bg-white/5 flex items-center justify-center border border-dashed border-white/10 overflow-hidden relative">
+                       {synthesizedAsset ? <img src={synthesizedAsset.url} className="w-full h-full object-cover opacity-60" /> : <ImageIcon className="h-8 w-8 text-muted-foreground/30" />}
+                    </div>
+                    <Button onClick={handleSynthesizeAsset} disabled={isSynthesizingAsset || !prompt} className="w-full bg-accent text-black font-bold uppercase tracking-widest text-[9px]">
+                      {isSynthesizingAsset ? "Generating..." : "Synthesize Image"}
+                    </Button>
+                  </div>
                 </motion.div>
               ) : activeTab === "templates" ? (
                 <motion.div 
                    key="templates"
-                   initial={{ x: -20, opacity: 0 }}
-                   animate={{ x: 0, opacity: 1 }}
-                   exit={{ x: -20, opacity: 0 }}
+                   initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
                    className="space-y-6"
                 >
                   <div className="flex items-center justify-between">
@@ -306,241 +391,78 @@ export default function BuilderPage() {
                        <button onClick={() => setSubTab('modules')} className={`text-[8px] uppercase font-bold tracking-widest ${subTab === 'modules' ? 'text-primary' : 'text-muted-foreground'}`}>Modules</button>
                     </div>
                   </div>
-
-                  
                   {subTab === 'templates' ? (
-                    <div className="space-y-4">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                        <input 
-                          type="text" 
-                          placeholder="Search 50+ templates..." 
-                          className="w-full bg-white/5 border border-white/10 rounded-xl pl-8 pr-4 py-2 text-[10px] outline-none"
-                        />
-                      </div>
-
-                      <div className="space-y-2 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
-                        {BUSINESS_TEMPLATES.map((tmpl, idx) => (
-                          <motion.div 
-                            key={tmpl.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.03 }}
-                            onClick={() => {
-                              setPrompt(tmpl.prompt);
-                              setStyle(tmpl.style);
-                              setFramework(tmpl.framework);
-                              setActiveTab(null);
-                            }}
-                            className="p-4 rounded-2xl border border-white/5 bg-white/5 hover:bg-primary/10 hover:border-primary/30 transition-all cursor-pointer group"
-                          >
-                            <div className="flex justify-between items-start mb-1">
-                              <div className="text-xs font-bold group-hover:text-primary transition-colors">{tmpl.name}</div>
-                              <span className="text-[8px] bg-white/5 px-2 py-0.5 rounded-full text-muted-foreground uppercase">{tmpl.category}</span>
-                            </div>
-                            <p className="text-[9px] text-muted-foreground leading-relaxed">{tmpl.description}</p>
-                          </motion.div>
-                        ))}
-                      </div>
+                    <div className="space-y-3 max-h-[450px] overflow-y-auto custom-scrollbar">
+                      {BUSINESS_TEMPLATES.map((tmpl) => (
+                        <div key={tmpl.id} onClick={() => { setPrompt(tmpl.prompt); setStyle(tmpl.style); setFramework(tmpl.framework); setActiveTab(null); }} className="p-4 rounded-2xl border border-white/5 bg-white/5 hover:bg-primary/10 transition-all cursor-pointer">
+                          <div className="text-xs font-bold">{tmpl.name}</div>
+                          <p className="text-[9px] text-muted-foreground">{tmpl.description}</p>
+                        </div>
+                      ))}
                     </div>
-
                   ) : (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-2">
-                        {[
-                          { name: "Hero Deep", type: "hero", icon: Layout },
-                          { name: "Features Grid", type: "features", icon: Layers },
-                          { name: "Pricing Table", type: "pricing", icon: DollarSign },
-                          { name: "Service Grid", type: "service", icon: Briefcase },
-                          { name: "Testimonial", type: "testimonial", icon: Quote },
-                          { name: "Lead Magnet", type: "lead-magnet", icon: Sparkles },
-                          { name: "CTA Block", type: "cta", icon: MousePointer2 },
-                        ].map((mod, i) => (
-                          <div 
-                            key={i}
-                            onClick={() => {
-                              const dummyNode = {
-                                type: mod.type,
-                                heading: `Modern ${mod.name}`,
-                                subheading: "Professional section for your business.",
-                                ctaText: "Get Started",
-                                visualData: { variant: "glass", intensity: 50, accentColor: "#3b82f6" }
-                              };
-                              setNodes([dummyNode, ...nodes]);
-                              setActiveTab(null);
-                            }}
-                            className="p-3 rounded-2xl border border-white/5 bg-white/5 hover:bg-primary/10 hover:border-primary/30 transition-all cursor-pointer text-center space-y-2 group"
-                          >
-                            <mod.icon className="h-5 w-5 mx-auto text-muted-foreground group-hover:text-primary transition-colors" />
-                            <div className="text-[9px] font-bold uppercase tracking-widest leading-tight">{mod.name}</div>
-                          </div>
-                        ))}
-                      </div>
-                      <p className="text-[8px] text-muted-foreground text-center italic">Modules are pre-built and load instantly.</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { name: "Hero", type: "hero", icon: Layout },
+                        { name: "Features", type: "features", icon: Layers },
+                        { name: "Pricing", type: "pricing", icon: DollarSign },
+                        { name: "Services", type: "service", icon: Briefcase },
+                        { name: "Testimonial", type: "testimonial", icon: Quote },
+                        { name: "Lead Magnet", type: "lead-magnet", icon: Sparkles },
+                        { name: "CTA", type: "cta", icon: MousePointer2 },
+                      ].map((mod, i) => (
+                        <div key={i} onClick={() => { const d = { id: `node-${Date.now()}-${mod.type}`, type: mod.type, heading: `Modern ${mod.name}`, subheading: "Clean section design.", ctaText: "Get Started" }; setNodes([d, ...nodes]); setActiveTab(null); }} className="p-3 rounded-2xl border border-white/5 bg-white/5 hover:bg-primary/10 text-center space-y-2 cursor-pointer group">
+                           <mod.icon className="h-5 w-5 mx-auto text-muted-foreground group-hover:text-primary transition-colors" />
+                           <div className="text-[9px] font-bold uppercase">{mod.name}</div>
+                        </div>
+                      ))}
                     </div>
                   )}
-
                 </motion.div>
-
               ) : (
-                <motion.div 
-                   key="main"
-                   initial={{ opacity: 0 }}
-                   animate={{ opacity: 1 }}
-                   exit={{ opacity: 0 }}
-                   className="space-y-8"
-                >
+                <motion.div key="main" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
                    {selectedNodeIndex !== null ? (
-                     <motion.div 
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="space-y-6"
-                     >
+                     <div className="space-y-6">
                         <Button variant="ghost" onClick={() => setSelectedNodeIndex(null)} className="p-0 h-auto text-[10px] uppercase font-bold tracking-widest gap-2 text-muted-foreground hover:text-white">
-                          <ChevronRight className="h-3 w-3 rotate-180" /> Back to Tools
+                          <ChevronRight className="h-3 w-3 rotate-180" /> Back
                         </Button>
-                        <div className="space-y-1">
-                          <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">Node Inspector</h3>
-                          <p className="text-[9px] text-muted-foreground uppercase tracking-widest">Editing: {nodes[selectedNodeIndex]?.type}</p>
-                        </div>
-
+                        <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">Node Inspector</h3>
                         <div className="space-y-4">
-                           <div className="space-y-2">
-                              <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block px-1">Heading</label>
-                              <input 
-                                type="text"
-                                value={nodes[selectedNodeIndex]?.heading || ""}
-                                onChange={(e) => {
-                                  const newNodes = [...nodes];
-                                  newNodes[selectedNodeIndex].heading = e.target.value;
-                                  setNodes(newNodes);
-                                }}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary/50"
-                              />
+                           <div className="space-y-1">
+                              <label className="text-[9px] font-bold text-muted-foreground uppercase">Heading</label>
+                              <input type="text" value={nodes[selectedNodeIndex]?.heading || ""} onChange={(e) => { const n = [...nodes]; n[selectedNodeIndex].heading = e.target.value; setNodes(n); }} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs outline-none" />
                            </div>
-                           <div className="space-y-2">
-                              <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block px-1">Subheading</label>
-                              <textarea 
-                                value={nodes[selectedNodeIndex]?.subheading || ""}
-                                onChange={(e) => {
-                                  const newNodes = [...nodes];
-                                  newNodes[selectedNodeIndex].subheading = e.target.value;
-                                  setNodes(newNodes);
-                                }}
-                                className="w-full h-24 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary/50"
-                              />
-                           </div>
-                           <div className="grid grid-cols-2 gap-3">
-                              <div className="space-y-2">
-                                <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block px-1">Accent</label>
-                                <input 
-                                  type="color"
-                                  value={nodes[selectedNodeIndex]?.visualData?.accentColor || "#3b82f6"}
-                                  onChange={(e) => {
-                                    const newNodes = [...nodes];
-                                    if (!newNodes[selectedNodeIndex].visualData) newNodes[selectedNodeIndex].visualData = {};
-                                    newNodes[selectedNodeIndex].visualData.accentColor = e.target.value;
-                                    setNodes(newNodes);
-                                  }}
-                                  className="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-2 py-1 outline-none cursor-pointer"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground block px-1">Refine AI</label>
-                                <Button className="w-full h-10 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 p-0">
-                                   <Sparkles className="h-4 w-4" />
-                                </Button>
-                              </div>
+                           <div className="space-y-1">
+                              <label className="text-[9px] font-bold text-muted-foreground uppercase">Subheading</label>
+                              <textarea value={nodes[selectedNodeIndex]?.subheading || ""} onChange={(e) => { const n = [...nodes]; n[selectedNodeIndex].subheading = e.target.value; setNodes(n); }} className="w-full h-20 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs outline-none" />
                            </div>
                         </div>
-                     </motion.div>
+                     </div>
                    ) : (
                      <>
                       <div className="space-y-4">
-                        <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">Design Tools</h3>
+                        <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">Synthesis Protocol</h3>
                         <div className="space-y-2">
                           {[
-                            { icon: BookOpen, label: "Business Templates", desc: "Choose from 50+ industries", tooltip: "Quickly start with a pre-made business goal", id: "templates" },
-                            { icon: Sparkles, label: "AI Generator", desc: "Create section with a description", tooltip: "Describe what you want to build", id: "generator" },
-                            { icon: Type, label: "Font Settings", desc: "Change website typography", tooltip: "Pick beautiful font pairings", id: "typography" },
-                            { icon: ImageIcon, label: "AI Image Creator", desc: "Generate custom website images", tooltip: "Create high-quality assets with AI", id: "asset-lab" }
+                            { icon: BookOpen, label: "Templates", id: "templates" },
+                            { icon: Palette, label: "Themes", id: "themes" },
+                            { icon: Type, label: "Typography", id: "typography" },
+                            { icon: ImageIcon, label: "Asset Lab", id: "asset-lab" }
                           ].map((item, i) => (
-                            <ActionTooltip key={i} label={item.tooltip}>
-                              <div 
-                                onClick={() => setActiveTab(item.id)}
-                                className="glass-dark border border-white/5 p-4 rounded-2xl flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-all group"
-                              >
-                                <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
-                                  <item.icon className="h-5 w-5" />
-                                </div>
-                                <div>
-                                  <div className="text-xs font-bold">{item.label}</div>
-                                  <div className="text-[9px] text-muted-foreground mt-0.5">{item.desc}</div>
-                                </div>
-                              </div>
-                            </ActionTooltip>
+                            <div key={i} onClick={() => setActiveTab(item.id)} className="glass-dark border border-white/5 p-4 rounded-2xl flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-all group">
+                              <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:text-primary transition-colors"><item.icon className="h-5 w-5" /></div>
+                              <div className="text-xs font-bold">{item.label}</div>
+                            </div>
                           ))}
                         </div>
                       </div>
-
-
-                       <div className="space-y-4 pb-20">
-                        <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">Add New Section</h3>
+                      <div className="space-y-4 pb-20">
+                        <h3 className="text-[10px] uppercase font-bold text-primary">AI Synthesis</h3>
                         <form onSubmit={handleGenerate} className="space-y-3">
-                          <textarea 
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
-                            placeholder="Describe your website goal (e.g., 'A modern law firm' or 'A cozy cafe')..."
-                            className="w-full h-32 glass-dark border border-white/10 rounded-2xl p-4 text-xs font-body focus:border-primary/50 outline-none transition-colors"
-                          />
-
-                          <div className="grid grid-cols-2 gap-2">
-                            <div className="space-y-1">
-                              <label className="text-[8px] font-bold text-muted-foreground uppercase px-2">Sales Strategy</label>
-                              <select 
-                                value={framework} 
-                                onChange={(e) => setFramework(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] outline-none"
-                              >
-                                <option value="PAS">Problem/Solution</option>
-                                <option value="AIDA">Attention/Sales</option>
-                                <option value="BAB">Bridge/Outcome</option>
-                              </select>
-                            </div>
-                            <div className="space-y-1">
-                              <label className="text-[8px] font-bold text-muted-foreground uppercase px-2">Page Look</label>
-                              <select 
-                                value={style} 
-                                onChange={(e) => setStyle(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] outline-none"
-                              >
-                                <option value="dark-saas">Dark Modern</option>
-                                <option value="clean-minimal">Clean Minimal</option>
-                              </select>
-                            </div>
-                          </div>
-
-                          <div className="space-y-1">
-                            <label className="text-[8px] font-bold text-muted-foreground uppercase px-2">Who is this for?</label>
-                            <input 
-                              type="text"
-                              value={targetAudience}
-                              onChange={(e) => setTargetAudience(e.target.value)}
-                              placeholder="e.g., Small business owners, CTOs"
-                              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] outline-none"
-                            />
-                          </div>
-
-                          <ActionTooltip label="Build your website section using AI">
-                            <Button 
-                              type="submit" 
-                              disabled={isGenerating}
-                              className="w-full rounded-xl bg-primary text-white text-[10px] font-bold uppercase tracking-widest h-12 shadow-2xl shadow-primary/20"
-                            >
-                              {isGenerating ? "Building..." : "Generate Section"}
-                              <Sparkles className="ml-2 h-4 w-4" />
-                            </Button>
-                          </ActionTooltip>
+                          <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Describe a section..." className="w-full h-24 glass-dark border border-white/10 rounded-2xl p-4 text-xs font-body focus:border-primary/50 outline-none transition-colors" />
+                          <Button type="submit" disabled={isGenerating} className="w-full rounded-xl bg-primary text-white text-[10px] font-bold uppercase tracking-widest h-12">
+                            {isGenerating ? "Synthesizing..." : "Generate Section"}
+                          </Button>
                         </form>
                       </div>
                      </>
@@ -548,258 +470,83 @@ export default function BuilderPage() {
                 </motion.div>
               )}
             </AnimatePresence>
-
-            {/* Workplace Action Buttons (Moved from Header) */}
-            <div className="mt-auto p-2 space-y-2 border-t border-white/5 pt-6">
-                <Button 
-                  variant="outline" 
-                  onClick={handleExportJSON}
-                  className="w-full rounded-2xl border-white/5 bg-white/5 text-[10px] font-bold uppercase tracking-widest h-10 gap-2 hover:bg-white/10"
-                >
-                  <Download className="h-3 w-3" />
-                  Export JSON
-                </Button>
-                <button 
-                  onClick={() => setIsIsometric(!isIsometric)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-[11px] font-bold uppercase tracking-wider ${isIsometric ? 'bg-accent/20 text-accent' : 'hover:bg-white/5 text-muted-foreground'}`}
-                >
-                  <Layers className="h-4 w-4" />
-                  {isIsometric ? "Standard View" : "Isometric View"}
-                </button>
-                <Button 
-                  onClick={handleSyncMatrix}
-                  disabled={isSyncing}
-                  className="w-full rounded-2xl bg-primary/20 text-primary border border-primary/20 text-[10px] font-bold uppercase tracking-widest h-10 gap-2 hover:bg-primary/30"
-                >
-                  <RefreshCcw className={`h-3 w-3 ${isSyncing ? 'animate-spin' : ''}`} />
-                  {isSyncing ? "Syncing..." : "Sync Matrix"}
-                </Button>
-            </div>
           </div>
         </aside>
 
-        {/* Neural Canvas Workspace */}
-        <main className="flex-1 bg-black/5 relative p-12 overflow-y-auto z-0" style={{ filter: `hue-rotate(${chromaShift}deg)` }}>
+        {/* Canvas Workspace */}
+        <main className="flex-1 bg-black/5 relative p-12 overflow-y-auto" style={{ filter: `hue-rotate(${chromaShift}deg)` }}>
           <div className="max-w-4xl mx-auto space-y-12">
-             <div className="flex items-center justify-between">
-               <div className="flex gap-4">
-                  <div className="glass px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary animate-ping" />
-                    <ShinyText text="Live Preview" speed={3} className="text-primary font-bold" />
-                  </div>
-                  <div className="glass-dark px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    <ShinyText text="Draft: V.2.1.0" speed={10} disabled color="rgba(255,255,255,0.4)" />
-                  </div>
-               </div>
+            <div className="flex gap-4">
+              <div className="glass px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-ping" />
+                Live Canvas
+              </div>
             </div>
 
-
-
-            {/* Simulated Glass Website Section */}
             <div className={`space-y-12 pb-32 transition-all duration-700 ${isIsometric ? 'perspective-isometry' : ''}`}
-                 style={isIsometric ? { 
-                    perspective: '2000px', 
-                    transform: 'rotateX(20deg) rotateY(-10deg) scale(0.9)',
-                    transformStyle: 'preserve-3d'
-                 } : {}}>
-              <AnimatePresence>
-                {nodes.length === 0 ? (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="glass-card min-h-[400px] flex flex-col items-center justify-center text-center p-12 space-y-6"
-                  >
-                    <div className="h-20 w-20 rounded-full border border-dashed border-white/10 flex items-center justify-center">
-                      <Plus className="h-8 w-8 text-muted-foreground/30" />
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-2xl font-heading font-bold italic">Design Board Empty</h3>
-                      <p className="text-muted-foreground text-sm max-w-xs mx-auto">Choose a template or describe a section to start building your website.</p>
-                    </div>
-                  </motion.div>
-                ) : (
-                  nodes.map((node, i) => (
-                    <motion.div 
-                      key={i} 
-                      className="relative group"
-                      initial={{ opacity: 0, y: 50 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      style={isIsometric ? { transformStyle: 'preserve-3d', translateZ: i * 20 } : {}}
-                    >
-                      <div className="absolute -left-16 top-0 h-full flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <ActionTooltip label="Remove this node from the synthesis sequence">
-                           <Button 
-                             variant="ghost" 
-                             className="h-10 w-10 p-0 text-red-400 hover:bg-red-500/10 rounded-full glass" 
-                             onClick={() => setNodes(nodes.filter((_, idx) => idx !== i))}
-                           >
-                             <Trash2 className="h-4 w-4" />
-                           </Button>
-                         </ActionTooltip>
-                         <ActionTooltip label="Inspect Node Metadata">
-                           <Button variant="ghost" className="h-10 w-10 p-0 text-primary hover:bg-primary/10 rounded-full glass">
-                             <Maximize2 className="h-4 w-4" />
-                           </Button>
-                         </ActionTooltip>
+                 style={isIsometric ? { transform: 'rotateX(20deg) rotateY(-10deg) scale(0.9)', transformStyle: 'preserve-3d' } : {}}>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={nodes.map(n => n.id)} strategy={verticalListSortingStrategy}>
+                  <AnimatePresence>
+                    {nodes.length === 0 ? (
+                      <div className="glass-card min-h-[400px] flex flex-col items-center justify-center text-center p-12 space-y-4 border border-dashed border-white/10 opacity-40">
+                         <Plus className="h-12 w-12" />
+                         <p className="text-xl font-heading italic">Awaiting Synthesis Sequence</p>
                       </div>
-                      <div 
-                        onClick={() => setSelectedNodeIndex(i)}
-                        className={`transition-all ${selectedNodeIndex === i ? 'ring-2 ring-primary ring-offset-4 ring-offset-black rounded-[40px]' : ''}`}
-                      >
-                         <RenderNode node={node} idx={i} />
-                      </div>
-                    </motion.div>
-                  ))
-                )}
-              </AnimatePresence>
-            </div>
-
-
-            {/* Matrix 2.0 Dashboard Overlay */}
-            <AnimatePresence>
-              {showMatrixDashboard && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black/80 backdrop-blur-xl"
-                >
-                  <div className="glass-card max-w-4xl w-full p-12 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4">
-                       <Button variant="ghost" onClick={() => setShowMatrixDashboard(false)} className="rounded-full hover:bg-white/10">
-                          <Plus className="h-6 w-6 rotate-45" />
-                       </Button>
-                    </div>
-
-                    <div className="space-y-12">
-                      <div className="flex flex-col items-center text-center space-y-4">
-                        <div className="px-4 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Executive Summary: Synthesized</div>
-                        <h2 className="text-5xl font-heading font-bold italic tracking-tighter">Growth Matrix 2.0</h2>
-                        <p className="text-muted-foreground text-sm max-w-md">Real-time business performance orchestration across all platform vectors.</p>
-                      </div>
-
-                      <div className="grid grid-cols-4 gap-6">
-                        {[
-                          { label: "SEO Health", value: matrixData?.seo.score + "%", trend: matrixData?.seo.trend, color: "text-green-400" },
-                          { label: "Performance", value: matrixData?.performance.score, trend: matrixData?.performance.trend, color: "text-blue-400" },
-                          { label: "Form Friction", value: matrixData?.friction.score, trend: matrixData?.friction.trend, color: "text-orange-400" },
-                          { label: "Conversion Est.", value: matrixData?.conversion.score + "%", trend: matrixData?.conversion.trend, color: "text-accent" },
-                        ].map((kpi, i) => (
-                          <div key={i} className="glass-dark p-6 rounded-[24px] space-y-2 border border-white/5 relative group hover:border-primary/50 transition-all">
-                             <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{kpi.label}</p>
-                             <div className="flex items-end gap-2">
-                                <span className={`text-3xl font-heading font-bold italic ${kpi.color}`}>{kpi.value}</span>
-                                <span className={`text-[10px] pb-1 ${kpi.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
-                                  {kpi.trend === 'up' ? '▲' : '▼'}
-                                </span>
-                             </div>
+                    ) : (
+                      nodes.map((node, i) => (
+                        <SortableNode key={node.id} id={node.id} index={i} isIsometric={isIsometric}>
+                          <div className="relative group">
+                            <div className="absolute -left-20 top-0 h-full flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                               <Button variant="ghost" size="icon" className="h-10 w-10 text-red-500 rounded-full glass" onClick={() => setNodes(nodes.filter(n => n.id !== node.id))}>
+                                 <Trash2 className="h-4 w-4" />
+                               </Button>
+                               <Button variant="ghost" size="icon" className="h-10 w-10 text-primary rounded-full glass" onClick={() => setSelectedNodeIndex(i)}>
+                                 <Settings2 className="h-4 w-4" />
+                               </Button>
+                            </div>
+                            <RenderNode node={node} idx={i} />
                           </div>
-                        ))}
-                      </div>
-
-                      <div className="p-8 glass-dark border border-white/5 rounded-[32px] space-y-6">
-                         <div className="flex items-center gap-3">
-                            <Sparkles className="h-5 w-5 text-accent" />
-                            <h4 className="text-xs font-bold uppercase tracking-widest italic text-accent">Strategic Alerts</h4>
-                         </div>
-                         <div className="space-y-3">
-                            <div className="flex items-center gap-4 text-xs font-body group">
-                               <div className="h-2 w-2 rounded-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]" />
-                               <span className="text-muted-foreground group-hover:text-white transition-colors">Form Friction Index is climbing. Recommendation: Reduce field count to increase top-of-funnel flow.</span>
-                            </div>
-                            <div className="flex items-center gap-4 text-xs font-body group">
-                               <div className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
-                               <span className="text-muted-foreground group-hover:text-white transition-colors">SEO Health Index is optimal. Genesis Protocol successfully indexed all spatial tokens.</span>
-                            </div>
-                         </div>
-                      </div>
-
-                      <div className="flex justify-center">
-                         <Button className="h-14 rounded-2xl px-12 bg-primary text-white font-bold uppercase tracking-widest text-[10px] shadow-2xl shadow-primary/20">
-                            Apply Matrix Remediations
-                         </Button>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                        </SortableNode>
+                      ))
+                    )}
+                  </AnimatePresence>
+                </SortableContext>
+              </DndContext>
+            </div>
           </div>
         </main>
 
-
-        {/* Global Config Panel */}
+        {/* Global Toolbar */}
         <aside className="w-80 glass border-l border-white/5 p-8 space-y-12 relative z-20">
-          <div className="space-y-4">
-            <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">Appearance</h3>
-            <div className="space-y-6">
-              {[
-                { id: 'blur', label: "Background Blur", value: `${blurValue}px`, percent: blurValue / 64 * 100, onChange: setBlurValue, max: 64 },
-                { id: 'mesh', label: "Gradient Strength", value: `${meshIntensity}%`, percent: meshIntensity, onChange: setMeshIntensity, max: 100 },
-                { id: 'chroma', label: "Color Shift", value: `${chromaShift}°`, percent: chromaShift / 360 * 100, onChange: setChromaShift, max: 360 }
-              ].map((config, i) => (
-                <div key={i} className="space-y-3">
-                  <div className="flex justify-between text-[11px] font-bold font-body">
-                    <span className="text-muted-foreground uppercase tracking-widest">{config.label}</span>
-                    <span className="text-primary">{config.value}</span>
-                  </div>
-                  <div className="relative h-6 flex items-center cursor-pointer group">
-                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={false}
-                        animate={{ width: `${config.percent}%` }}
-                        className="h-full bg-primary rounded-full" 
-                      />
-                    </div>
-                    <input 
-                      type="range"
-                      min="0"
-                      max={config.max}
-                      value={config.id === 'blur' ? blurValue : config.id === 'mesh' ? meshIntensity : chromaShift}
-                      onChange={(e) => config.onChange(parseInt(e.target.value))}
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                    />
-                  </div>
+          <div className="space-y-6">
+            <h3 className="text-[10px] uppercase font-bold text-muted-foreground">Appearance</h3>
+            {[
+              { id: 'blur', label: "Blur", value: `${blurValue}px`, val: blurValue, onChange: setBlurValue, max: 64 },
+              { id: 'mesh', label: "Mesh", value: `${meshIntensity}%`, val: meshIntensity, onChange: setMeshIntensity, max: 100 },
+              { id: 'chroma', label: "Hue", value: `${chromaShift}°`, val: chromaShift, onChange: setChromaShift, max: 360 }
+            ].map((config) => (
+              <div key={config.id} className="space-y-2">
+                <div className="flex justify-between text-[10px] font-bold">
+                  <span className="uppercase">{config.label}</span>
+                  <span className="text-primary">{config.value}</span>
                 </div>
-              ))}
-
-            </div>
+                <input type="range" min="0" max={config.max} value={config.val} onChange={(e) => config.onChange(parseInt(e.target.value))} className="w-full accent-primary h-1 bg-white/10 rounded-full outline-none" />
+              </div>
+            ))}
           </div>
 
-          <div className="pt-8 border-t border-white/5 space-y-6">
-             <div className="p-6 glass-dark border border-white/5 rounded-3xl space-y-4 relative group hover:border-accent/30 transition-colors">
-                <div className="flex items-center gap-3">
-                   <Sparkles className="h-5 w-5 text-accent" />
-                   <span className="text-xs font-bold uppercase tracking-widest italic text-accent">AI Suggestions</span>
-                </div>
-                <p className="text-[10px] text-muted-foreground leading-relaxed">Try increasing the contrast on your main button to help it stand out!</p>
-                <ActionTooltip label="Automatically improve this section">
-                  <Button 
-                    variant="ghost" 
-                    onClick={handleApplyHeuristic}
-                    className="w-full text-[10px] font-bold uppercase tracking-widest text-accent hover:bg-accent/5 p-0 text-left justify-start gap-3 mt-2"
-                  >
-                    Optimize Design <ChevronRight className="h-3 w-3" />
-                  </Button>
-                </ActionTooltip>
-             </div>
-          </div>
-
-          <div className="absolute bottom-12 left-8 right-8 space-y-4">
-             <ActionTooltip label="Reset the entire Neural Canvas workspace">
-               <Button 
-                 variant="destructive" 
-                 onClick={handleFlushCanvas}
-                 className="w-full h-12 rounded-2xl gap-3 text-[10px] bg-red-500/10 text-red-500 hover:bg-red-500/20 border-white/5 border shadow-none font-bold uppercase tracking-widest"
-               >
-                  <Wind className="h-4 w-4" />
-                  Reset Designer
-               </Button>
-             </ActionTooltip>
+          <div className="mt-auto space-y-4">
+             <Button onClick={handleSyncMatrix} className="w-full bg-primary/20 text-primary border border-primary/20 hover:bg-primary/30 h-12 uppercase font-bold tracking-widest text-[10px]">
+               {isSyncing ? "Syncing..." : "Sync Matrix"}
+             </Button>
+             <Button variant="outline" onClick={handleExportJSON} className="w-full border-white/10 bg-white/5 h-12 uppercase font-bold tracking-widest text-[10px]">Export Project</Button>
+             <Button variant="destructive" onClick={handleFlushCanvas} className="w-full bg-red-500/10 text-red-500 border-none h-12 uppercase font-bold tracking-widest text-[10px]">Flush Canvas</Button>
           </div>
         </aside>
       </div>
+
+      <AriaCoPilot onMutation={handleAriaMutation} currentNodes={nodes} />
     </div>
   );
 }

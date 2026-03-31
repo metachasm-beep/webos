@@ -10,7 +10,7 @@ import { MatrixTooltip } from "@/components/MatrixTooltip";
 import { ApiStatusPanel } from "@/components/ApiStatusPanel";
 import { SslLabsScanner } from "@/components/SslLabsScanner";
 import { SvelteBridgeGlowCard, SvelteBridgeTypist } from "@/components/SvelteBridge";
-import { Leaf, ShieldCheck, Zap, Globe, ArrowRight, Activity, AlertCircle, ChevronRight, CheckCircle2, Cpu, Fingerprint } from "lucide-react";
+import { Leaf, ShieldCheck, Zap, Globe, ArrowRight, Activity, AlertCircle, ChevronRight, CheckCircle2, Cpu, Fingerprint, Share2 } from "lucide-react";
 
 const CACHE_KEY = (url: string) => `audit_cache_${encodeURIComponent(url)}`;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -300,6 +300,22 @@ function AuditContent() {
               >
                 {isGeneratingPdf ? "Generating PDF..." : "Download Report"}
                 <ArrowRight className="ml-3 h-4 w-4 opacity-30 group-hover:opacity-100" />
+              </Button>
+
+              <Button 
+                 onClick={() => {
+                   const score = Math.round(scores.composite?.total || scores.performance);
+                   const domain = getHostname(url);
+                   const profile = scores.performance > 90 ? "Dominator" : "Challenger";
+                   const ogUrl = `/api/audit/og?score=${score}&domain=${domain}&profile=${profile}`;
+                   const shareUrl = `https://twitter.com/intent/tweet?text=I%20just%20audited%20my%20website%20using%20WebOS%20AI.%20My%20Matrix%20Score%3A%20${score}%25!%20Check%20your%20benchmark%20here%3A&url=${encodeURIComponent(window.location.href)}`;
+                   window.open(shareUrl, '_blank');
+                 }}
+                 size="lg"
+                 className="rounded-full px-10 h-16 bg-accent/20 border border-accent/30 text-accent hover:bg-accent/30 font-bold uppercase tracking-widest text-xs transition-all flex items-center gap-3"
+              >
+                 <Share2 className="h-4 w-4" />
+                 Viral Share
               </Button>
             </div>
           </div>
