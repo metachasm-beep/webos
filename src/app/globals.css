@@ -99,10 +99,13 @@
     @apply bg-white/5 backdrop-blur-[32px] border border-white/10 shadow-[0_4px_24px_-1px_rgba(0,0,0,0.4)];
   }
   .glass-dark {
-    @apply bg-black/40 backdrop-blur-[40px] border border-white/5;
+    @apply bg-black/60 backdrop-blur-xl border border-white/5;
   }
   .glass-card {
-    @apply rounded-3xl p-8 border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-3xl;
+    @apply rounded-[40px] p-8 border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-3xl shadow-2xl transition-all duration-500;
+  }
+  .glass-card:hover {
+    @apply border-white/20 bg-white/5 -translate-y-2;
   }
   .mesh-gradient {
     position: absolute;
@@ -125,15 +128,22 @@
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
+  .perspective-isometry {
+    perspective: 2000px;
+    transform-style: preserve-3d;
+  }
   .antigravity-glass {
     @apply bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.1)];
   }
   .antigravity-float {
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    @apply transition-all duration-700;
+    animation: bg-float 6s ease-in-out infinite;
   }
-  .antigravity-float:hover {
-    transform: translateY(-8px) scale(1.02);
-  }
+}
+
+@keyframes bg-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
 }
 
 

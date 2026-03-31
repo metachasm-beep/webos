@@ -87,6 +87,7 @@ export const viewport = {
 import { AuthProvider } from "@/components/AuthProvider";
 import { SmoothScroll } from "@/components/SmoothScroll";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import Script from "next/script";
 
 export default function RootLayout({
@@ -119,9 +120,11 @@ export default function RootLayout({
         )}
         <AuthProvider>
           <TooltipProvider>
-            <SmoothScroll>
-              {children}
-            </SmoothScroll>
+            <ErrorBoundary>
+              <SmoothScroll>
+                {children}
+              </SmoothScroll>
+            </ErrorBoundary>
           </TooltipProvider>
         </AuthProvider>
       </body>

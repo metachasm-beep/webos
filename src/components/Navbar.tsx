@@ -30,6 +30,7 @@ export function Navbar() {
         <nav className="hidden md:flex items-center gap-10">
           {[
             { label: "Audit", href: "/#audit" },
+            { label: "Workspaces", href: "/dashboard" },
             { label: "Builder", href: "/builder" },
             { label: "Features", href: "/#features" }
           ].map((link) => (

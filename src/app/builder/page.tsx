@@ -58,6 +58,7 @@ import {
 } from '@dnd-kit/sortable';
 import { SortableNode } from "@/components/SortableNode";
 import { AriaCoPilot } from "@/components/AriaCoPilot";
+import { uploadBrandAsset } from "@/lib/storage";
 
 // Theme Configuration
 const GLOBAL_THEMES = {
@@ -149,6 +150,10 @@ export default function BuilderPage() {
   const [projectName, setProjectName] = useState("Untethered Synthesis");
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const [isMounted, setIsMounted] = useState(false);
 
@@ -305,6 +310,59 @@ export default function BuilderPage() {
     }
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !projectId) return;
+    setIsUploading(true);
+    try {
+      const url = await uploadBrandAsset(file, `${projectId}/logo-${Date.now()}`);
+      setLogoUrl(url);
+    } catch (err) {
+      console.error("Logo Upload Failure.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFaviconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !projectId) return;
+    setIsUploading(true);
+    try {
+      const url = await uploadBrandAsset(file, `${projectId}/favicon-${Date.now()}`);
+      setFaviconUrl(url);
+    } catch (err) {
+      console.error("Favicon Upload Failure.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleExportStandalone = async () => {
+    if (!projectId || nodes.length === 0) return;
+    setIsExporting(true);
+    try {
+      const resp = await fetch(`/api/builder/export?id=${projectId}`, {
+        method: "GET",
+      });
+      if (resp.ok) {
+        const blob = await resp.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `webos_synthesis_${projectId}.html`;
+        a.click();
+      } else {
+        const data = await resp.json();
+        alert(data.error || "Export failed. Pro Tier required?");
+      }
+    } catch (err) {
+      console.error("Export Protocol Failure.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleAriaMutation = (mutations: any[]) => {
     setNodes(prev => {
       let newNodes = [...prev];
@@ -433,6 +491,34 @@ export default function BuilderPage() {
                     </Button>
                   </div>
                 </motion.div>
+              ) : activeTab === "branding" ? (
+                <motion.div 
+                   key="branding"
+                   initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
+                   className="space-y-6"
+                >
+                  <Button variant="ghost" onClick={() => setActiveTab(null)} className="p-0 h-auto text-[10px] uppercase font-bold tracking-widest gap-2 text-muted-foreground hover:text-white">
+                    <ChevronRight className="h-3 w-3 rotate-180" /> Back
+                  </Button>
+                  <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">Brand Identity</h3>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                       <label className="text-[9px] font-bold text-muted-foreground uppercase">Logo Identity</label>
+                       <div className="h-24 w-full rounded-2xl bg-white/5 border border-white/5 p-4 flex items-center justify-center relative overflow-hidden">
+                          {logoUrl ? <img src={logoUrl} className="max-h-full max-w-full object-contain" /> : <Plus className="h-4 w-4 opacity-30" />}
+                          <input type="file" onChange={handleLogoUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
+                       </div>
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[9px] font-bold text-muted-foreground uppercase">Favicon Icon (32x32)</label>
+                       <div className="h-16 w-16 rounded-xl bg-white/5 border border-white/5 p-2 flex items-center justify-center relative overflow-hidden">
+                          {faviconUrl ? <img src={faviconUrl} className="w-full h-full object-contain" /> : <ImageIcon className="h-4 w-4 opacity-30" />}
+                          <input type="file" onChange={handleFaviconUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
+                       </div>
+                    </div>
+                    {isUploading && <p className="text-[8px] text-primary animate-pulse uppercase font-bold text-center">Neural Sync in Progress...</p>}
+                  </div>
+                </motion.div>
               ) : activeTab === "templates" ? (
                 <motion.div 
                    key="templates"
@@ -502,6 +588,7 @@ export default function BuilderPage() {
                             { icon: BookOpen, label: "Templates", id: "templates" },
                             { icon: Palette, label: "Themes", id: "themes" },
                             { icon: Type, label: "Typography", id: "typography" },
+                            { icon: Briefcase, label: "Branding", id: "branding" },
                             { icon: ImageIcon, label: "Asset Lab", id: "asset-lab" }
                           ].map((item, i) => (
                             <div key={i} onClick={() => setActiveTab(item.id)} className="glass-dark border border-white/5 p-4 rounded-2xl flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-all group">
@@ -595,7 +682,10 @@ export default function BuilderPage() {
              <Button onClick={handleSyncMatrix} className="w-full bg-primary/20 text-primary border border-primary/20 hover:bg-primary/30 h-12 uppercase font-bold tracking-widest text-[10px]">
                {isSyncing ? "Syncing..." : "Sync Matrix"}
              </Button>
-             <Button variant="outline" onClick={handleExportJSON} className="w-full border-white/10 bg-white/5 h-12 uppercase font-bold tracking-widest text-[10px]">Export Project</Button>
+             <Button onClick={handleExportStandalone} disabled={isExporting} className="w-full bg-accent text-black hover:bg-accent/80 h-12 uppercase font-bold tracking-widest text-[10px]">
+               {isExporting ? "Exporting..." : "Export Standalone"}
+             </Button>
+             <Button variant="outline" onClick={handleExportJSON} className="w-full border-white/10 bg-white/5 h-12 uppercase font-bold tracking-widest text-[10px]">Export JSON</Button>
              <Button variant="destructive" onClick={handleFlushCanvas} className="w-full bg-red-500/10 text-red-500 border-none h-12 uppercase font-bold tracking-widest text-[10px]">Flush Canvas</Button>
           </div>
         </aside>
