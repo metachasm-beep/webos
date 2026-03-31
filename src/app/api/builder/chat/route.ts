@@ -13,54 +13,32 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Aria requires Neural Authorization (COHERE_API_KEY)." }, { status: 401 });
     }
 
-    const systemPrompt = `
-    [SYSTEM ROLE: ARIA - NEURAL DESIGN CO-PILOT]
-    [OBJECTIVE: ORCHESTRATE DESIGN MUTATIONS VIA CONVERSATION]
-    
-    CURRENT CANVAS STATE (JSON):
-    ${JSON.stringify(context.nodes)}
+    const simplifiedNodes = context.nodes.map((node: any) => ({
+      id: node.id,
+      type: node.type,
+      heading: node.heading
+    }));
 
-    TASK:
-    - User message: "${message}"
-    - You must output VALID MUTATION COMMANDS to update the canvas.
-    - Each mutation must follow this schema:
-      {
-        "action": "add" | "update" | "delete",
-        "id": "String (for update/delete)",
-        "node": "Node Object (for add)",
-        "updates": "Partial Node Object (for update)"
-      }
+    const systemPrompt = `ARIA - NEURAL DESIGN CO-PILOT.
+CONTEXT: ${JSON.stringify(simplifiedNodes)}
+USER: "${message}"
 
-    RULES:
-    1. If the user wants to add a section, generate a full node object with high-impact copy.
-    2. If the user wants to change existing sections (e.g., "make all headers italics"), output "update" actions for those nodes.
-    3. Use professional, premium vocabulary.
-    4. RESPOND WITH RAW JSON ONLY.
-
-    AVAILABLE NODE TYPES: hero, features, pricing, service, testimonial, lead-magnet, cta.
-    `;
+OUTPUT: VALID JSON ONLY.
+SCHEMA: { "mutations": [{ "action": "add"|"update"|"delete", "id": "str", "node": {}, "updates": {} }] }
+TYPES: hero, features, pricing, service, testimonial, lead-magnet, cta.
+- "add": generate full node object with high-impact copy.
+- "update": apply logic to existing nodes.
+- Professional/premium vocabulary.`;
 
     const response = await cohere.chat({
-      model: "command-r-08-2024",
+      model: "command-r7b-12-2024", // Fastest high-quality model
       message: systemPrompt,
-      maxTokens: 1500,
-      temperature: 0.5,
+      maxTokens: 600,
+      temperature: 0.3,
+      responseFormat: { type: "json_object" }
     });
 
-    const text = response.text;
-    const jsonStart = text.indexOf('{');
-    const jsonEnd = text.lastIndexOf('}') + 1;
-    const jsonStr = text.substring(jsonStart, jsonEnd);
-    
-    // We might have multiple mutations in an array, or a single object.
-    // Aria should ideally return { "mutations": [...] }
-    let parsed = JSON.parse(jsonStr);
-    
-    if (!parsed.mutations) {
-      // Wrap if it's a single mutation
-      parsed = { mutations: [parsed] };
-    }
-
+    const parsed = JSON.parse(response.text);
     return NextResponse.json(parsed);
   } catch (error: any) {
     console.error("Aria Sync Error:", error);
