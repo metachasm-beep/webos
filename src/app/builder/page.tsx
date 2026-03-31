@@ -503,15 +503,21 @@ export default function BuilderPage() {
                   <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">Brand Identity</h3>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                       <label className="text-[9px] font-bold text-muted-foreground uppercase">Logo Identity</label>
-                       <div className="h-24 w-full rounded-2xl bg-white/5 border border-white/5 p-4 flex items-center justify-center relative overflow-hidden">
+                       <div className="flex justify-between items-center">
+                          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Logo Identity</label>
+                          <span className="text-[8px] text-muted-foreground/40 font-bold uppercase tracking-widest">Max 5MB</span>
+                       </div>
+                       <div className="h-24 w-full rounded-2xl bg-white/5 border border-white/5 p-4 flex items-center justify-center relative overflow-hidden group">
                           {logoUrl ? <img src={logoUrl} className="max-h-full max-w-full object-contain" /> : <Plus className="h-4 w-4 opacity-30" />}
                           <input type="file" onChange={handleLogoUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
                        </div>
                     </div>
                     <div className="space-y-2">
-                       <label className="text-[9px] font-bold text-muted-foreground uppercase">Favicon Icon (32x32)</label>
-                       <div className="h-16 w-16 rounded-xl bg-white/5 border border-white/5 p-2 flex items-center justify-center relative overflow-hidden">
+                       <div className="flex justify-between items-center">
+                          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Favicon Icon</label>
+                          <span className="text-[8px] text-muted-foreground/40 font-bold uppercase tracking-widest">Max 5MB</span>
+                       </div>
+                       <div className="h-16 w-16 rounded-xl bg-white/5 border border-white/5 p-2 flex items-center justify-center relative overflow-hidden group">
                           {faviconUrl ? <img src={faviconUrl} className="w-full h-full object-contain" /> : <ImageIcon className="h-4 w-4 opacity-30" />}
                           <input type="file" onChange={handleFaviconUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
                        </div>

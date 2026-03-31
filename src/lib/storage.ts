@@ -1,6 +1,12 @@
 import { supabase } from './supabase';
 
 export async function uploadBrandAsset(file: File, path: string) {
+  // Cap at 5MB
+  const MAX_SIZE = 5 * 1024 * 1024;
+  if (file.size > MAX_SIZE) {
+    throw new Error("Asset exceeds synthesis limit (5MB).");
+  }
+
   try {
     const { data, error } = await supabase.storage
       .from('branding')
