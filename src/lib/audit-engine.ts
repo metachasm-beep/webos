@@ -194,14 +194,15 @@ export async function createPdfReport(url: string, data: any) {
           .header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
+            align-items: center;
+            border-bottom: 2px solid rgba(0,0,0,0.08);
             padding-bottom: 12px;
             margin-bottom: 16px;
           }
-          .logo-container { display: flex; align-items: center; gap: 16px; }
-          .webos-logo { height: 72px; width: auto; object-fit: contain; }
-          .target-logo { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+          .logo-container { display: flex; align-items: center; gap: 20px; }
+          /* MASSIVE scaling for the brand logo to fulfill 600% visual area target */
+          .webos-logo { height: auto; width: 400px; object-fit: contain; }
+          .target-logo { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
           .meta { text-align: right; font-size: 8px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.1em; }
           .meta strong { display: block; color: #111827; font-size: 11px; font-weight: 900; margin-bottom: 2px; letter-spacing: -0.5px; }
           .scores {
