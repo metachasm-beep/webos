@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     }
 
     const prompt = `
-    You are a high-level business growth consultant for TurtleLabs. Write a clear, friendly 3-sentence executive summary
+    You are a high-level business growth consultant for WebOS AI. Write a clear, friendly 3-sentence executive summary
     for the following audit of ${url}. 
     
     Incorporate both the Technical Health and the Business Growth Matrix in your synthesis.

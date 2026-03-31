@@ -16,7 +16,7 @@ export function ContactForm() {
     // Simulation of matrix synchronization
     await new Promise((resolve) => setTimeout(resolve, 2000));
     setPending(false);
-    alert("Protocol Synchronized. TurtleLabs will initiate contact shortly.");
+    alert("Protocol Synchronized. WebOS AI strategist will initiate contact shortly.");
   };
 
   return (
@@ -29,7 +29,7 @@ export function ContactForm() {
             className="text-5xl font-heading font-bold italic tracking-tighter"
           >
             SYNCHRONIZE <br />
-            <span className="text-primary text-glow-soft">WITH TURTLELABS</span>
+            <span className="text-primary text-glow-soft">WITH WEBOS AI</span>
           </motion.h2>
           <p className="text-muted-foreground font-body leading-relaxed max-w-md">
             The growth matrix is expanding. Connect with our core infrastructure to accelerate your digital footprint.

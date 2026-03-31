@@ -239,7 +239,7 @@ function AuditContent() {
         >
           <div className="flex items-center gap-3 text-primary font-bold text-xs uppercase tracking-[0.3em]">
             <Globe className="h-4 w-4" />
-            Website Audit Report for {url}
+            WebOS AI Audit Report for {url}
           </div>
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-12">
             <div className="space-y-4">
@@ -666,7 +666,7 @@ function AuditContent() {
             <div className="glass-card bg-primary text-primary-foreground border-none relative overflow-hidden p-10 space-y-8">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16" />
               <div className="space-y-4 relative z-10">
-                <h3 className="text-4xl font-heading font-bold italic">TurtleLabs <span className="text-glow-soft">Pro</span></h3>
+                <h3 className="text-4xl font-heading font-bold italic">WebOS AI <span className="text-glow-soft">Pro</span></h3>
                 <p className="text-primary-foreground/70 text-sm font-body leading-relaxed">Get continuous monitoring, automated fixes, and priority support — all in one dashboard.</p>
               </div>
               <ul className="space-y-4 relative z-10">
