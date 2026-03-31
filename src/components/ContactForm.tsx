@@ -1,4 +1,4 @@
-"use client";
+"use client"; // v1.0.1-branding-final
 
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -43,7 +43,7 @@ export function ContactForm() {
             </div>
             <div className="space-y-1">
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Protocol Email</p>
-              <p className="font-heading font-bold">info@turtlelabs.co.in</p>
+              <p className="font-heading font-bold">hello@webos-ai.com</p>
             </div>
           </div>
 

@@ -1,4 +1,4 @@
-"use client";
+"use client"; // v1.0.1-branding-final
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";

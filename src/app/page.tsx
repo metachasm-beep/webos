@@ -330,7 +330,7 @@ export default function Home() {
               <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-bold">Audit. Build. Dominate.</p>
               <div className="space-y-1 pt-4">
                 <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-bold">Contact</p>
-                <p className="text-sm font-heading font-bold">info@turtlelabs.co.in</p>
+                <p className="text-sm font-heading font-bold">hello@webos-ai.com</p>
                 <p className="text-sm font-heading font-bold">+91 6309052625</p>
               </div>
             </div>
