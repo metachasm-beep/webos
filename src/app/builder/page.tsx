@@ -31,6 +31,9 @@ import Squares from "@/components/reactbits/Squares";
 import ShinyText from "@/components/reactbits/ShinyText";
 
 import { BUSINESS_TEMPLATES, Template } from "@/lib/templates";
+import { 
+  SECTION_TEMPLATES as CATEGORICAL_SECTIONS 
+} from "@/lib/templates";
 
 import { 
   Tooltip, 
@@ -120,7 +123,8 @@ export default function BuilderPage() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSynthesizingAsset, setIsSynthesizingAsset] = useState(false);
   const [synthesizedAsset, setSynthesizedAsset] = useState<any>(null);
-  const [subTab, setSubTab] = useState<'templates' | 'modules'>('templates');
+  const [subTab, setSubTab] = useState<'templates' | 'sections'>('templates');
+  const [selectedCategory, setSelectedCategory] = useState<keyof typeof CATEGORICAL_SECTIONS>('HERO');
   const [isIsometric, setIsIsometric] = useState(false);
   const [matrixData, setMatrixData] = useState<any>(null);
   const [showMatrixDashboard, setShowMatrixDashboard] = useState(false);
@@ -331,10 +335,11 @@ export default function BuilderPage() {
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !projectId) return;
+    if (!file) return;
+    const uploadId = projectId || `temp-${Date.now()}`;
     setIsUploading(true);
     try {
-      const url = await uploadBrandAsset(file, `${projectId}/logo-${Date.now()}`);
+      const url = await uploadBrandAsset(file, `${uploadId}/logo-${Date.now()}`);
       setLogoUrl(url);
     } catch (err) {
       console.error("Logo Upload Failure.");
@@ -345,10 +350,11 @@ export default function BuilderPage() {
 
   const handleFaviconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !projectId) return;
+    if (!file) return;
+    const uploadId = projectId || `temp-${Date.now()}`;
     setIsUploading(true);
     try {
-      const url = await uploadBrandAsset(file, `${projectId}/favicon-${Date.now()}`);
+      const url = await uploadBrandAsset(file, `${uploadId}/favicon-${Date.now()}`);
       setFaviconUrl(url);
     } catch (err) {
       console.error("Favicon Upload Failure.");
@@ -637,12 +643,13 @@ export default function BuilderPage() {
                   <div className="flex items-center justify-between">
                     <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">Library</h3>
                     <div className="flex gap-2">
-                       <button onClick={() => setSubTab('templates')} className={`text-[8px] uppercase font-bold tracking-widest ${subTab === 'templates' ? 'text-primary' : 'text-muted-foreground'}`}>Templates</button>
-                       <button onClick={() => setSubTab('modules')} className={`text-[8px] uppercase font-bold tracking-widest ${subTab === 'modules' ? 'text-primary' : 'text-muted-foreground'}`}>Modules</button>
+                       <button onClick={() => setSubTab('templates')} className={`text-[8px] uppercase font-bold tracking-widest ${subTab === 'templates' ? 'text-primary underline' : 'text-muted-foreground'}`}>Site Presets</button>
+                       <button onClick={() => setSubTab('sections')} className={`text-[8px] uppercase font-bold tracking-widest ${subTab === 'sections' ? 'text-primary underline' : 'text-muted-foreground'}`}>Wix Mode</button>
                     </div>
                   </div>
+                  
                   {subTab === 'templates' ? (
-                    <div className="space-y-3 max-h-[450px] overflow-y-auto custom-scrollbar">
+                    <div className="grid grid-cols-1 gap-3">
                       {BUSINESS_TEMPLATES.map((tmpl) => (
                         <div key={tmpl.id} onClick={() => { setPrompt(tmpl.prompt); setStyle(tmpl.style); setFramework(tmpl.framework); setActiveTab(null); }} className="p-4 rounded-2xl border border-white/5 bg-white/5 hover:bg-primary/10 transition-all cursor-pointer">
                           <div className="text-xs font-bold">{tmpl.name}</div>
@@ -650,22 +657,45 @@ export default function BuilderPage() {
                         </div>
                       ))}
                     </div>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        { name: "Hero", type: "hero", icon: Layout },
-                        { name: "Features", type: "features", icon: Layers },
-                        { name: "Pricing", type: "pricing", icon: DollarSign },
-                        { name: "Services", type: "service", icon: Briefcase },
-                        { name: "Testimonial", type: "testimonial", icon: Quote },
-                        { name: "Lead Magnet", type: "lead-magnet", icon: Sparkles },
-                        { name: "CTA", type: "cta", icon: MousePointer2 },
-                      ].map((mod, i) => (
-                        <div key={i} onClick={() => { const d = { id: `node-${Date.now()}-${mod.type}`, type: mod.type, heading: `Modern ${mod.name}`, subheading: "Clean section design.", ctaText: "Get Started" }; setNodes([d, ...nodes]); setActiveTab(null); }} className="p-3 rounded-2xl border border-white/5 bg-white/5 hover:bg-primary/10 text-center space-y-2 cursor-pointer group">
-                           <mod.icon className="h-5 w-5 mx-auto text-muted-foreground group-hover:text-primary transition-colors" />
-                           <div className="text-[9px] font-bold uppercase">{mod.name}</div>
-                        </div>
-                      ))}
+                   ) : (
+                    <div className="space-y-6">
+                       <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                          {Object.keys(CATEGORICAL_SECTIONS).map((cat) => {
+                             const CatIcon = cat === 'HERO' ? Layout : cat === 'SERVICES' ? Layers : cat === 'ABOUT' ? Quote : cat === 'PRICING' ? DollarSign : Sparkles;
+                             return (
+                               <button 
+                                  key={cat}
+                                  onClick={() => setSelectedCategory(cat as any)}
+                                  className={`flex items-center gap-2 whitespace-nowrap px-4 py-2 rounded-xl text-[8px] font-bold uppercase tracking-widest border transition-all ${selectedCategory === cat ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'border-white/5 bg-white/5 text-muted-foreground hover:border-white/10'}`}
+                               >
+                                  <CatIcon className="h-3 w-3" />
+                                  {cat}
+                               </button>
+                             );
+                          })}
+                       </div>
+                       
+                       <div className="grid grid-cols-1 gap-2 max-h-[400px] overflow-y-auto no-scrollbar pb-10">
+                          {CATEGORICAL_SECTIONS[selectedCategory].map((section: any) => (
+                             <div 
+                                key={section.id}
+                                onClick={() => {
+                                   const newNode = { ...section, id: `node-${Date.now()}-${section.id}` };
+                                   setNodes([newNode, ...nodes]);
+                                   setActiveTab(null);
+                                }}
+                                className="glass-dark border border-white/5 p-4 rounded-3xl flex items-center gap-5 cursor-pointer hover:bg-white/10 hover:border-primary/30 transition-all group"
+                             >
+                                <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center group-hover:text-primary transition-colors">
+                                   <Plus className="h-5 w-5" />
+                                </div>
+                                <div>
+                                   <div className="text-[11px] font-bold leading-tight">{section.name}</div>
+                                   <div className="text-[8px] text-muted-foreground uppercase font-bold tracking-widest opacity-40">{section.type}</div>
+                                </div>
+                             </div>
+                          ))}
+                       </div>
                     </div>
                   )}
                 </motion.div>

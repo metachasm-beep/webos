@@ -29,6 +29,7 @@ import {
 import { Button } from "@/components/ui/button";
 import ShinyText from "./reactbits/ShinyText";
 import StarBorder from "./reactbits/StarBorder";
+import { ContactFormNode } from "./ContactFormNode";
 
 interface NodeProps {
   node: any;
@@ -398,6 +399,7 @@ export function RenderNode({ node, idx, onContentChange }: { node: any, idx: num
   if (type.includes("lead") || type.includes("magnet") || type.includes("capture")) return <LeadMagnetNode node={node} onContentChange={onContentChange} />;
   if (type.includes("service")) return <ServiceGridNode node={node} onContentChange={onContentChange} />;
   if (type.includes("testimonial")) return <TestimonialNode node={node} onContentChange={onContentChange} />;
+  if (type.includes("contact")) return <ContactFormNode node={node} />;
   
   // High-fidelity fallback that guesses based on structure if type is weird
   if (node.heading && node.ctaText && !node.features) return <HeroNode node={node} onContentChange={onContentChange} />;

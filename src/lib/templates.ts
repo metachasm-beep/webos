@@ -83,3 +83,26 @@ export const BUSINESS_TEMPLATES: Template[] = [
   { id: 'personal-trainer', name: 'Coach Alex', category: 'Health', description: 'Personal branding for trainers.', prompt: 'Transform your body and mind with 1-on-1 coaching.', style: 'dark-saas', framework: 'PAS' },
   { id: 'barber-shop', name: 'Sharp Cut', category: 'Services', description: 'Classic and cool barber shop.', prompt: 'Premium haircuts and traditional hot towel shaves.', style: 'dark-saas', framework: 'AIDA' },
 ];
+
+export const SECTION_TEMPLATES = {
+  HERO: [
+    { id: 'hero-standard', icon: 'Layout', name: 'Standard Hero', type: 'hero', heading: 'Transform Your Digital Matrix', subheading: 'High-performance synthesis for the modern enterprise.', ctaText: 'Deploy Now' },
+    { id: 'hero-neon', icon: 'Zap', name: 'Neon Variant', type: 'hero', variant: 'neon', heading: 'Genesis Synthesis', subheading: 'Boutique aesthetics for high-fidelity brands.', ctaText: 'Synthesize' },
+    { id: 'hero-minimal', icon: 'Type', name: 'Clean Minimal', type: 'hero', heading: 'Pure Design', subheading: 'Less complexity, more impact.', ctaText: 'Explore' }
+  ],
+  SERVICES: [
+    { id: 'services-grid', icon: 'Layers', name: 'Service Grid', type: 'service', heading: 'Strategic Solutions', subheading: 'High-fidelity execution across all vectors.' },
+    { id: 'features-standard', icon: 'CheckCircle2', name: 'Feature Set', type: 'features', heading: 'Core Capabilities', subheading: 'Engineered for exponential growth.' }
+  ],
+  ABOUT: [
+    { id: 'about-testimonial', icon: 'Users', name: 'Client Proof', type: 'testimonial', quote: 'WebOS has revolutionized our conversion matrix.', author: 'Sarah Jenkins', role: 'CTO' },
+    { id: 'about-service', icon: 'Globe', name: 'Global Impact', type: 'service', heading: 'Founded on Innovation', subheading: 'Pioneering the future of digital architecture.' }
+  ],
+  PRICING: [
+    { id: 'pricing-tiered', icon: 'ShieldCheck', name: 'Tiered Matrix', type: 'pricing', heading: 'Scale Your Success', subheading: 'Transparent synthesis for every stage.' }
+  ],
+  CONTACT: [
+    { id: 'contact-standard', icon: 'Send', name: 'Contact Form', type: 'contact', heading: 'Initiate Link', subheading: 'Our neural core is ready to process your request.' },
+    { id: 'contact-magnet', icon: 'Sparkles', name: 'Lead Magnet', type: 'lead-magnet', heading: 'Join the Vanguard', subheading: 'Get exclusive strategic updates.' }
+  ]
+};
