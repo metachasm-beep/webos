@@ -3,6 +3,9 @@
 import { fetchPageSpeedData, generateAuditSummary, createPdfReport as createPdfReportEngine, fetchCarbonMetrics, checkSafeBrowsing, runLocalAudit, fetchMultiEngineMetrics } from "@/lib/audit-engine";
 
 import { calculateGrowthMetrics, calculateCompositeScore } from "@/lib/matrix-engine";
+import { supabase } from "@/lib/supabase";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
 export async function runAuditAction(url: string) {
   try {
@@ -33,7 +36,7 @@ export async function runAuditAction(url: string) {
     const composite = calculateCompositeScore(growthMetrics, techMetrics);
     const summaryData = await generateAuditSummary(url, data, { metrics: growthMetrics, score: composite });
     
-    return {
+    const result = {
       success: true,
       metrics: {
         performance: techMetrics.lighthouse.performance,
@@ -54,11 +57,36 @@ export async function runAuditAction(url: string) {
       },
       content: localData?.content,
       tech: localData?.tech,
-      pa11y: multiEngineData.pa11y,
-      debugbear: multiEngineData.debugbear,
-      geekflare: multiEngineData.geekflare,
       observatory: multiEngineData.observatory,
     };
+
+    // 4. Persistence Registry Sync (Silent)
+    try {
+      const session = await getServerSession(authOptions);
+      if (session?.user?.email) {
+        await supabase.from('audits').insert({
+          user_email: session.user.email,
+          url,
+          composite_score: composite.total,
+          status: composite.status,
+          performance_vector: composite.breakdown.vectors.performance,
+          security_vector: composite.breakdown.vectors.security,
+          compliance_vector: composite.breakdown.vectors.compliance,
+          summary: summaryData,
+          metrics: {
+            pa11y: multiEngineData.pa11y?.totalIssues,
+            debugbear: multiEngineData.debugbear?.performance,
+            geekflare: multiEngineData.geekflare?.security?.score,
+            observatory: multiEngineData.observatory?.score
+          },
+          created_at: new Date().toISOString()
+        });
+      }
+    } catch (persistError) {
+      console.warn("Audit Registry out of sync. Proceeding with ephemeral report.", persistError);
+    }
+
+    return result;
 
   } catch (error: any) {
     console.error("Audit failed:", error);

@@ -24,22 +24,30 @@ import ShinyText from "@/components/reactbits/ShinyText";
 
 export default function DashboardPage() {
   const [projects, setProjects] = useState<any[]>([]);
+  const [audits, setAudits] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'projects' | 'audits'>('projects');
 
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchData = async () => {
       try {
-        const resp = await fetch("/api/projects");
-        const data = await resp.json();
-        if (!data.error) setProjects(data);
+        const [projResp, auditResp] = await Promise.all([
+          fetch("/api/projects"),
+          fetch("/api/audits")
+        ]);
+        
+        const projData = await projResp.json();
+        const auditData = await auditResp.json();
+        
+        if (!projData.error) setProjects(projData);
+        if (!auditData.error) setAudits(auditData);
       } catch (err) {
         console.error("Dashboard Sync failure.", err);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchProjects();
+    fetchData();
   }, []);
 
   return (
@@ -79,12 +87,12 @@ export default function DashboardPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-           {[
-             { label: "Active Project Sequence", value: projects.length, icon: Layers, color: "text-blue-400" },
-             { label: "Matrix Audits Completed", value: "12", icon: Activity, color: "text-emerald-400" },
-             { label: "Strategic Tier", value: "Dominator", icon: ShieldCheck, color: "text-accent" },
-             { label: "Neural Logic Credits", value: "840/1000", icon: Zap, color: "text-orange-400" }
-           ].map((stat, i) => (
+            {[
+              { label: "Active Project Sequence", value: projects.length, icon: Layers, color: "text-blue-400" },
+              { label: "Matrix Audits Completed", value: audits.length, icon: Activity, color: "text-emerald-400" },
+              { label: "Strategic Tier", value: audits[0]?.status || "Evaluating", icon: ShieldCheck, color: "text-accent" },
+              { label: "Neural Logic Credits", value: "840/1000", icon: Zap, color: "text-orange-400" }
+            ].map((stat, i) => (
              <div key={i} className="glass-card p-6 flex flex-col justify-between hover:border-primary/30 transition-all cursor-crosshair group">
                 <div className="flex justify-between items-start">
                    <stat.icon className={`h-5 w-5 ${stat.color} opacity-40 group-hover:opacity-100 transition-opacity`} />
@@ -183,25 +191,27 @@ export default function DashboardPage() {
                       </div>
 
                       <div className="space-y-2">
-                        {[
-                          { domain: "apple.com", score: 98, date: "2026-03-31", profile: "Dominator" },
-                          { domain: "phonepe.com", score: 96, date: "2026-03-31", profile: "Titan" },
-                          { domain: "example-corp.com", score: 42, date: "2026-03-29", profile: "Challenger" }
-                        ].map((audit, i) => (
-                          <div key={i} className="flex items-center justify-between p-6 rounded-2xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5 group">
-                             <div className="flex items-center gap-8">
-                                <div className={`text-2xl font-heading font-bold italic w-12 ${audit.score > 90 ? 'text-emerald-400' : 'text-orange-400'}`}>{audit.score}%</div>
-                                <div>
-                                   <div className="text-sm font-bold">{audit.domain}</div>
-                                   <div className="text-[10px] text-muted-foreground uppercase tracking-widest">{audit.date}</div>
+                        {audits.length === 0 ? (
+                          <div className="py-12 text-center text-muted-foreground italic text-[10px]">No historical telemetry found. Initialize an audit to begin registry.</div>
+                        ) : (
+                          audits.map((audit, i) => (
+                            <Link href={`/audit/report-view?url=${encodeURIComponent(audit.url)}`} key={audit.id || i}>
+                              <div className="flex items-center justify-between p-6 rounded-2xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5 group">
+                                <div className="flex items-center gap-8">
+                                  <div className={`text-2xl font-heading font-bold italic w-12 ${audit.composite_score > 90 ? 'text-emerald-400' : 'text-orange-400'}`}>{audit.composite_score}%</div>
+                                  <div>
+                                    <div className="text-sm font-bold">{new URL(audit.url).hostname}</div>
+                                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest">{new Date(audit.created_at).toLocaleDateString()}</div>
+                                  </div>
                                 </div>
-                             </div>
-                             <div className="flex items-center gap-12">
-                                <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{audit.profile}</div>
-                                <Button variant="ghost" size="icon" className="group-hover:text-primary"><ExternalLink className="h-4 w-4" /></Button>
-                             </div>
-                          </div>
-                        ))}
+                                <div className="flex items-center gap-12">
+                                  <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{audit.status}</div>
+                                  <Button variant="ghost" size="icon" className="group-hover:text-primary"><ExternalLink className="h-4 w-4" /></Button>
+                                </div>
+                              </div>
+                            </Link>
+                          ))
+                        )}
                       </div>
                    </div>
                 </motion.div>
@@ -217,11 +227,17 @@ export default function DashboardPage() {
                  <h4 className="text-xs font-bold uppercase tracking-[0.3em] italic text-accent">Strategic Recommendations</h4>
               </div>
               <div className="glass-card p-10 bg-accent/5 border-accent/20 space-y-6 relative overflow-hidden group">
-                 <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <Zap className="h-48 w-48 text-accent" />
-                 </div>
-                 <p className="text-xl font-heading italic leading-relaxed">"Your Performance Index has dropped by 4% since the last synthesis. We recommend auditing your image compression protocols."</p>
-                 <Button className="rounded-full bg-accent text-black font-bold uppercase tracking-widest text-[10px] h-12 shadow-2xl shadow-accent/20">Optimize Portfolio</Button>
+                  <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:opacity-10 transition-opacity">
+                     <Zap className="h-48 w-48 text-accent" />
+                  </div>
+                  <p className="text-xl font-heading italic leading-relaxed">
+                    {audits.length > 0 
+                      ? audits[0].summary 
+                      : "\"Ready for your first strategic synthesis. Initialize an audit to generate neural insights.\""}
+                  </p>
+                  <Link href="/audit">
+                     <Button className="rounded-full bg-accent text-black font-bold uppercase tracking-widest text-[10px] h-12 shadow-2xl shadow-accent/20 border-none hover:bg-accent/80">Execute New Audit</Button>
+                  </Link>
               </div>
            </div>
 
