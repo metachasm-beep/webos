@@ -4,7 +4,7 @@
  * https://github.com/pa11y/pa11y-webservice
  */
 
-const PA11Y_API = process.env.PA11Y_SERVICE_URL || "http://localhost:3000";
+const PA11Y_API = process.env.PA11Y_SERVICE_URL;
 
 export interface Pa11yResult {
   totalIssues: number;

@@ -114,7 +114,7 @@ async function checkApify() {
 }
 
 async function checkPa11y() {
-  const url = process.env.PA11Y_SERVICE_URL || "http://localhost:3000";
+  const url = process.env.PA11Y_SERVICE_URL;
   try {
     const r = await fetch(`${url}/tasks`, { signal: AbortSignal.timeout(4000) });
     return r.ok ? { ok: true, label: "Online" } : { ok: false, label: "Offline" };

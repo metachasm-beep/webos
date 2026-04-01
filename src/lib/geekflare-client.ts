@@ -47,8 +47,8 @@ export async function fetchGeekflareMetrics(url: string): Promise<GeekflareResul
       dns: dns.data || dns,
       performance: performance.data || performance,
       security: {
-        score: (tls.data?.score || 80),
-        status: tls.data?.status || "Provisioned"
+        score: tls.data?.score || 0,
+        status: tls.data?.status || (tls.Status === "SUCCESS" ? "Clear" : "Offline")
       }
     };
 
