@@ -72,7 +72,7 @@ async function checkSafeBrowsing() {
 }
 
 async function checkDebugBear() {
-  const key = process.env.DEBUGBEAR_API_KEY || "lHNwhuHNDtJRFvqZrsQPBxLcB";
+  const key = process.env.DEBUGBEAR_API_KEY;
   try {
     const r = await fetch("https://www.debugbear.com/api/v1/projects", {
       headers: { Authorization: `Bearer ${key}` },

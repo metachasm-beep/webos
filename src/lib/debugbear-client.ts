@@ -4,7 +4,7 @@
  * https://www.debugbear.com/docs/api
  */
 
-const DEBUGBEAR_API_KEY = process.env.DEBUGBEAR_API_KEY || "lHNwhuHNDtJRFvqZrsQPBxLcB";
+const DEBUGBEAR_API_KEY = process.env.DEBUGBEAR_API_KEY;
 
 export interface DebugBearResult {
   performance: number;
