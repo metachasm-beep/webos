@@ -85,11 +85,11 @@ async function checkDebugBear() {
 }
 
 async function checkGeekflare() {
-  const key = process.env.GEEKFLARE_API_KEY || "y10MkLTwhdiVObpbwMhVLY8sNal2PKLe";
+  const key = process.env.GEEKFLARE_API_KEY;
   try {
     const r = await fetch("https://api.geekflare.com/v1/account/status", {
       method: "POST",
-      headers: { "x-api-key": key },
+      headers: { "x-api-key": key as string },
       signal: AbortSignal.timeout(6000),
     });
     return r.ok ? { ok: true, label: "Connected" } : { ok: false, label: "Invalid key" };
