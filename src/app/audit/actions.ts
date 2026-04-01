@@ -101,7 +101,7 @@ export async function runAuditAction(url: string) {
     const localData       = localResult.status       === "fulfilled" ? localResult.value       : null;
     const multiEngineData = multiEngineResult.status === "fulfilled"
       ? multiEngineResult.value
-      : { pa11y: null, debugbear: null, geekflare: null, observatory: null };
+      : { pa11y: null, debugbear: null, geekflare: null, observatory: null, apify: null };
 
     // Derive all scores from available engines (no PageSpeed)
     const performanceScore  = derivePerformanceScore(multiEngineData.debugbear);
@@ -170,6 +170,7 @@ export async function runAuditAction(url: string) {
       content: localData?.content,
       tech:    localData?.tech,
       observatory: multiEngineData.observatory,
+      apify:       multiEngineData.apify,
     };
 
     // Persistence (silent — never blocks result)

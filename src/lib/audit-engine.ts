@@ -5,6 +5,7 @@ import { fetchPa11yMetrics } from "./pa11y-client";
 import { fetchDebugBearMetrics } from "./debugbear-client";
 import { fetchGeekflareMetrics } from "./geekflare-client";
 import { fetchObservatoryMetrics } from "./observatory-client";
+import { runApifyActor, waitForApifyRun, getApifyDataset } from "./apify-client";
 
 
 const cohere = new CohereClient({
@@ -133,13 +134,50 @@ export async function fetchPageSpeedData(url: string): Promise<any> {
 }
 
 export async function fetchMultiEngineMetrics(url: string) {
-  const [pa11y, debugbear, geekflare, observatory] = await Promise.all([
+  const [pa11y, debugbear, geekflare, observatory, apify] = await Promise.allSettled([
     fetchPa11yMetrics(url),
     fetchDebugBearMetrics(url),
     fetchGeekflareMetrics(url),
-    fetchObservatoryMetrics(url)
+    fetchObservatoryMetrics(url),
+    fetchApifyMetrics(url)
   ]);
-  return { pa11y, debugbear, geekflare, observatory };
+  
+  return { 
+    pa11y:       pa11y.status === "fulfilled" ? pa11y.value : null, 
+    debugbear:   debugbear.status === "fulfilled" ? debugbear.value : null, 
+    geekflare:   geekflare.status === "fulfilled" ? geekflare.value : null, 
+    observatory: observatory.status === "fulfilled" ? observatory.value : null,
+    apify:       apify.status === "fulfilled" ? apify.value : null
+  };
+}
+
+export async function fetchApifyMetrics(url: string) {
+  if (!process.env.APIFY_API_KEY) return null;
+
+  try {
+    // Trigger the SEO Audit actor (Fast Audit - 3 pages)
+    const run = await runApifyActor("apify/seo-audit-tool", {
+      startUrls: [{ url }],
+      maxPagesPerCrawl: 3,
+      proxyConfiguration: { useApifyProxy: true }
+    });
+
+    if (!run) return null;
+
+    // We wait up to 20 seconds for the deep crawl to finish
+    // If it's slower, we return the run metadata so the UI can poll if needed
+    const finished = await waitForApifyRun(run.id, 20000);
+    
+    if (finished) {
+      const items = await getApifyDataset(run.defaultDatasetId);
+      return { status: "SUCCEEDED", findings: items };
+    }
+
+    return { status: "PROCESSING", runId: run.id, datasetId: run.defaultDatasetId };
+  } catch (error) {
+    console.error("[Apify] Audit fetch error:", error);
+    return null;
+  }
 }
 
 export async function generateAuditSummary(url: string, metrics: any, growth?: any) {
@@ -225,6 +263,7 @@ export async function createPdfReport(url: string, data: any) {
     const pa11y    = data?.pa11y    || {};
     const observatory = data?.observatory || {};
     const geekflare   = data?.geekflare   || {};
+    const apify       = data?.apify       || null;
 
     const date = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
     const domain = url.replace(/https?:\/\//, "").split("/")[0];
@@ -546,6 +585,16 @@ export async function createPdfReport(url: string, data: any) {
       <li>Improve heading hierarchy with descriptive H2/H3 tags</li>
       <li>Add schema markup (FAQ, Organization) to boost rich snippets</li>
     </ul>
+
+    ${apify?.findings?.length ? `
+    <div class="sh" style="margin-top:20px"><span class="sh-icon">🔍</span><span class="sh-title">Deep Crawl Findings (Apify)</span><div class="sh-line"></div></div>
+    <div style="background:#fefce8;border:1px solid #fef08a;border-radius:10px;padding:12px 16px;margin-top:10px">
+      <div style="font-size:11px;font-weight:700;color:#854d0e;margin-bottom:8px">Multi-Page Technical SEO Issues:</div>
+      <ul style="margin:0;padding-left:18px;font-size:11px;color:#713f12;line-height:1.6">
+        ${apify.findings.slice(0, 4).map((f: any) => `<li>${f.message || f.description || "Issue detected in deep crawl"}</li>`).join("")}
+      </ul>
+    </div>
+    ` : ""}
   </div>
   <div class="pf"><div class="pf-brand">WebOS AI</div><div class="pf-note">Confidential · ${date}</div></div>
 </div>

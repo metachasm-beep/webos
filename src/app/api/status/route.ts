@@ -98,6 +98,21 @@ async function checkGeekflare() {
   }
 }
 
+async function checkApify() {
+  const key = process.env.APIFY_API_KEY;
+  if (!key) return { ok: false, label: "No API key" };
+  try {
+    const r = await fetch("https://api.apify.com/v2/users/me?token=" + key, {
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!r.ok) return { ok: false, label: "Invalid Key" };
+    const { data } = await r.json();
+    return { ok: true, label: `${data.plan.id} Plan` };
+  } catch {
+    return { ok: false, label: "Timeout" };
+  }
+}
+
 async function checkPa11y() {
   const url = process.env.PA11Y_SERVICE_URL || "http://localhost:3000";
   try {
@@ -120,7 +135,7 @@ async function checkObservatory() {
 }
 
 export async function GET() {
-  const [pageSpeed, cohere, api2pdf, safeBrowsing, debugbear, geekflare, pa11y, observatory] = await Promise.all([
+  const [pageSpeed, cohere, api2pdf, safeBrowsing, debugbear, geekflare, pa11y, observatory, apify] = await Promise.all([
     checkPageSpeed(),
     checkCohere(),
     checkApi2Pdf(),
@@ -128,7 +143,8 @@ export async function GET() {
     checkDebugBear(),
     checkGeekflare(),
     checkPa11y(),
-    checkObservatory()
+    checkObservatory(),
+    checkApify()
   ]);
 
   return NextResponse.json({
@@ -141,6 +157,7 @@ export async function GET() {
       { name: "Pa11y Service", ...pa11y, description: "Deep-dive accessibility engine" },
       { name: "API2PDF", ...api2pdf, description: "PDF report generation" },
       { name: "Safe Browsing", ...safeBrowsing, description: "Security threat detection" },
+      { name: "Apify", ...apify, description: "Deep-crawl SEO engine" },
     ],
   });
 }

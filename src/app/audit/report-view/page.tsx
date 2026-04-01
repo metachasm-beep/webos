@@ -38,7 +38,7 @@ export default async function ReportView({ searchParams }: Props) {
     const local       = localResult.status       === "fulfilled" ? localResult.value       : null;
     const multiEngine = multiEngineResult.status === "fulfilled"
       ? multiEngineResult.value
-      : { pa11y: null, debugbear: null, geekflare: null, observatory: null };
+      : { pa11y: null, debugbear: null, geekflare: null, observatory: null, apify: null };
 
     const perfScore  = derivePerf(multiEngine.debugbear);
     const a11yScore  = deriveA11y(multiEngine.pa11y);
@@ -66,6 +66,7 @@ export default async function ReportView({ searchParams }: Props) {
       content: local?.content, tech: local?.tech,
       pa11y: multiEngine.pa11y, debugbear: multiEngine.debugbear,
       geekflare: multiEngine.geekflare, observatory: multiEngine.observatory,
+      apify: multiEngine.apify,
     };
 
   } catch (e) {
@@ -546,6 +547,25 @@ export default async function ReportView({ searchParams }: Props) {
               <div style={{ marginTop: "20px", padding: "16px 20px", background: "#f0f9ff", border: "1px solid #bae6fd", borderLeft: "4px solid #0284c7", borderRadius: "0 10px 10px 0" }}>
                 <div style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#0369a1", marginBottom: "8px" }}>AI Summary</div>
                 <div style={{ fontSize: "12px", color: "#0c4a6e", lineHeight: 1.7 }}>{summary}</div>
+              </div>
+            )}
+
+            {audits.apify?.findings?.length > 0 && (
+              <div style={{ marginTop: "20px", padding: "16px 20px", background: "#fefce8", border: "1px solid #fef08a", borderLeft: "4px solid #854d0e", borderRadius: "0 10px 10px 0" }}>
+                <div style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#854d0e", marginBottom: "8px" }}>Deep Crawl Findings (Apify)</div>
+                <div style={{ fontSize: "12px", color: "#713f12", marginBottom: "10px", fontWeight: 600 }}>Multi-Page Technical SEO Issues:</div>
+                <ul className="impact-list" style={{ margin: 0, paddingLeft: "15px" }}>
+                  {audits.apify.findings.slice(0, 5).map((f: any, idx: number) => (
+                    <li key={idx} style={{ fontSize: "11px", marginBottom: "4px" }}>
+                      {f.message || f.description || "Issue detected in deep crawl"}
+                    </li>
+                  ))}
+                </ul>
+                {audits.apify.findings.length > 5 && (
+                  <div style={{ fontSize: "10px", color: "#a16207", marginTop: "8px", fontWeight: 600 }}>
+                    + {audits.apify.findings.length - 5} additional issues detected in full report.
+                  </div>
+                )}
               </div>
             )}
           </div>
