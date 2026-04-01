@@ -96,6 +96,19 @@ async function checkGeekflare() {
   } catch {
     return { ok: false, label: "Timeout" };
   }
+}async function checkGeekflareScraping() {
+  const key = process.env.GEEKFLARE_API_KEY;
+  try {
+    const r = await fetch("https://api.geekflare.com/v1/webscraping", {
+      method: "POST",
+      headers: { "x-api-key": key as string, "Content-Type": "application/json" },
+      body: JSON.stringify({ url: "https://google.com" }),
+      signal: AbortSignal.timeout(6000),
+    });
+    return r.ok ? { ok: true, label: "Connected" } : { ok: false, label: "Invalid key/No credits" };
+  } catch {
+    return { ok: false, label: "Timeout" };
+  }
 }
 
 async function checkApify() {
@@ -135,13 +148,14 @@ async function checkObservatory() {
 }
 
 export async function GET() {
-  const [pageSpeed, cohere, api2pdf, safeBrowsing, debugbear, geekflare, pa11y, observatory, apify] = await Promise.all([
+  const [pageSpeed, cohere, api2pdf, safeBrowsing, debugbear, geekflare, geekScrape, pa11y, observatory, apify] = await Promise.all([
     checkPageSpeed(),
     checkCohere(),
     checkApi2Pdf(),
     checkSafeBrowsing(),
     checkDebugBear(),
     checkGeekflare(),
+    checkGeekflareScraping(),
     checkPa11y(),
     checkObservatory(),
     checkApify()
@@ -152,7 +166,8 @@ export async function GET() {
       { name: "PageSpeed API", ...pageSpeed, description: "Google Lighthouse audits" },
       { name: "Cohere AI", ...cohere, description: "AI summary generation" },
       { name: "DebugBear", ...debugbear, description: "Professional performance monitoring" },
-      { name: "Geekflare", ...geekflare, description: "Infrastructure security telemetry" },
+      { name: "Geekflare (Infra)", ...geekflare, description: "Infrastructure security telemetry" },
+      { name: "Geekflare (Scrape)", ...geekScrape, description: "Bot-bypass scraping engine" },
       { name: "Mozilla Observatory", ...observatory, description: "Security header grading" },
       { name: "Pa11y Service", ...pa11y, description: "Deep-dive accessibility engine" },
       { name: "API2PDF", ...api2pdf, description: "PDF report generation" },

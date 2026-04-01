@@ -57,3 +57,39 @@ export async function fetchGeekflareMetrics(url: string): Promise<GeekflareResul
     return null;
   }
 }
+
+/**
+ * Web Scraping API
+ * Uses rotating proxies and browser rendering to bypass bot-detection.
+ */
+export async function fetchWebScraping(url: string): Promise<string | null> {
+  if (!GEEKFLARE_API_KEY) return null;
+
+  try {
+    const response = await fetch("https://api.geekflare.com/v1/webscraping", {
+      method: "POST",
+      headers: { 
+        "x-api-key": GEEKFLARE_API_KEY as string, 
+        "Content-Type": "application/json" 
+      },
+      body: JSON.stringify({ 
+        url,
+        renderJS: true, // Crucial for React/Angular/Vercel sites
+        blockAds: true
+      })
+    });
+
+    if (!response.ok) {
+      console.warn(`[geekflare-scraping] HTTP Error: ${response.status}`);
+      return null;
+    }
+
+    const data = await response.json();
+    // Geekflare Web Scraping returns { data: { html: "..." }, ... }
+    return data?.data?.html || data?.html || null;
+
+  } catch (error) {
+    console.error("[geekflare-scraping] Fetch failed:", error);
+    return null;
+  }
+}

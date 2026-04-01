@@ -3,7 +3,7 @@ import * as cheerio from "cheerio";
 import readability from "text-readability";
 import { fetchPa11yMetrics } from "./pa11y-client";
 import { fetchDebugBearMetrics } from "./debugbear-client";
-import { fetchGeekflareMetrics } from "./geekflare-client";
+import { fetchGeekflareMetrics, fetchWebScraping } from "./geekflare-client";
 import { fetchObservatoryMetrics } from "./observatory-client";
 import { runApifyActor, waitForApifyRun, getApifyDataset } from "./apify-client";
 
@@ -264,7 +264,6 @@ export async function createPdfReport(url: string, data: any) {
     const observatory = data?.observatory || {};
     const geekflare   = data?.geekflare   || {};
     const apify       = data?.apify       || null;
-
     const date = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
     const domain = url.replace(/https?:\/\//, "").split("/")[0];
 
@@ -272,6 +271,41 @@ export async function createPdfReport(url: string, data: any) {
     const sbg = (s: number) => s >= 90 ? "#f0fdf4" : s >= 70 ? "#fffbeb" : "#fef2f2";
     const sbd = (s: number) => s >= 90 ? "#bbf7d0" : s >= 70 ? "#fde68a" : "#fecaca";
     const sl  = (s: number) => s >= 90 ? "Excellent" : s >= 70 ? "Good" : "Needs Work";
+
+    const securityScore = data?.security?.headers?.score || data?.geekflare?.security?.score || 0;
+
+    // SVG Radar Map Calculations (5 axes: Perf, SEO, A11y, BP, Security)
+    const axes = [
+      { name: "Perf", score: perf },
+      { name: "SEO", score: seo },
+      { name: "A11y", score: a11y },
+      { name: "BP", score: bp },
+      { name: "Security", score: securityScore }
+    ];
+    const center = 100;
+    const radius = 80;
+    const points = axes.map((a, i) => {
+      const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
+      const r = (a.score / 100) * radius;
+      return `${center + r * Math.cos(angle)},${center + r * Math.sin(angle)}`;
+    }).join(" ");
+
+    const radarColor = sc(comp);
+    const radarSvg = `
+      <svg width="220" height="220" viewBox="0 0 200 200" style="display:block;margin:0 auto">
+        <circle cx="100" cy="100" r="${radius}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
+        <circle cx="100" cy="100" r="${radius*0.75}" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5" />
+        <circle cx="100" cy="100" r="${radius*0.5}" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5" />
+        <circle cx="100" cy="100" r="${radius*0.25}" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5" />
+        ${axes.map((_, i) => {
+          const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
+          return `<line x1="100" y1="100" x2="${100 + radius * Math.cos(angle)}" y2="${100 + radius * Math.sin(angle)}" stroke="rgba(255,255,255,0.08)" stroke-width="1" />`;
+        }).join("")}
+        <polygon points="${points}" fill="${radarColor}" fill-opacity="0.25" stroke="${radarColor}" stroke-width="2.5" />
+        <text x="100" y="106" text-anchor="middle" fill="#fff" style="font-size:26px;font-weight:900;letter-spacing:-1px">${comp}</text>
+        <text x="100" y="118" text-anchor="middle" fill="rgba(255,255,255,0.4)" style="font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em">Growth</text>
+      </svg>
+    `;
 
     // Executive insights
     const insights: string[] = [];
@@ -295,8 +329,8 @@ export async function createPdfReport(url: string, data: any) {
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { font-family: 'Inter', 'Helvetica Neue', sans-serif; color: #111827; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .page { width: 210mm; min-height: 297mm; position: relative; background: #fff; page-break-after: always; overflow: hidden; }
+    html, body { font-family: 'Inter', 'Helvetica Neue', sans-serif; color: #111827; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-size: 13px; line-height: 1.6; }
+    .page { width: 210mm; height: 297mm; position: relative; background: #fff; page-break-after: always; overflow: hidden; }
     .page:last-child { page-break-after: auto; }
 
     /* PAGE 1 — COVER */
@@ -315,14 +349,14 @@ export async function createPdfReport(url: string, data: any) {
     .score-dash { padding: 28px 44px; border-top: 1px solid rgba(255,255,255,0.06); }
     .score-dash-lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: rgba(255,255,255,0.25); margin-bottom: 16px; }
     .score-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-    .sc-dark { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 18px 14px; text-align: center; }
-    .sc-dark .num { font-size: 42px; font-weight: 900; letter-spacing: -2px; line-height: 1; }
-    .sc-dark .lbl { font-size: 9px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-top: 6px; }
-    .exec { padding: 24px 44px 44px; }
-    .exec-lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: rgba(255,255,255,0.25); margin-bottom: 14px; }
-    .ins-item { display: flex; gap: 12px; margin-bottom: 10px; align-items: flex-start; }
-    .ins-dot { width: 6px; height: 6px; border-radius: 50%; background: #3b82f6; flex-shrink: 0; margin-top: 6px; }
-    .ins-text { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.65; }
+    .sc-dark { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 22px 14px; text-align: center; }
+    .sc-dark .num { font-size: 46px; font-weight: 900; letter-spacing: -2px; line-height: 1; }
+    .sc-dark .lbl { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-top: 8px; }
+    .exec { padding: 32px 44px 56px; }
+    .exec-lbl { font-size: 10px; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: rgba(255,255,255,0.25); margin-bottom: 18px; }
+    .ins-item { display: flex; gap: 14px; margin-bottom: 12px; align-items: flex-start; }
+    .ins-dot { width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; flex-shrink: 0; margin-top: 6px; }
+    .ins-text { font-size: 14px; color: rgba(255,255,255,0.65); line-height: 1.7; }
 
     /* INNER PAGES */
     .inner { display: flex; flex-direction: column; min-height: 297mm; }
@@ -457,10 +491,10 @@ export async function createPdfReport(url: string, data: any) {
     <div class="cover-t1">WebOS AI</div>
     <div class="cover-t2">Audit Report</div>
     <div class="cover-sub">Actionable Growth Intelligence for ${domain}</div>
-    <div class="cover-meta">
       <div><label>URL</label><span>${url}</span></div>
       <div><label>Date</label><span>${date}</span></div>
     </div>
+    <div style="margin-top:40px">${radarSvg}</div>
   </div>
   <div class="score-dash">
     <div class="score-dash-lbl">Score Dashboard</div>
@@ -628,60 +662,30 @@ export async function createPdfReport(url: string, data: any) {
 
     <div class="sh"><span class="sh-icon">🔐</span><span class="sh-title">Trust Optimization</span><div class="sh-line"></div></div>
     <div class="trust-acs">
-      ${[
-        { title: "Interaction Clarity", level: (pa11y?.errors || 0) > 3 ? "High" : "Moderate", items: ["Improve focus indicators for keyboard users", "Add ARIA labels to interactive elements", "Ensure all form fields have visible labels"] },
-        { title: "Accessibility Experience", level: a11y < 90 ? "Priority" : "Enhancement", items: ["Increase color contrast ratios to AAA", "Add skip navigation links", "Ensure all images have descriptive alt text"] },
-        { title: "Security Headers", level: (security?.headers?.score || 0) < 70 ? "Critical" : "High Impact", items: ["Implement Content Security Policy (CSP)", "Enable HTTP Strict Transport Security (HSTS)", "Add X-Content-Type-Options headers"] }
-      ].map(a => `<div class="tac">
-        <div class="tac-title">${a.title}</div>
-        <div class="tac-level" style="background:${levelBg(a.level)};color:${levelColor(a.level)}">${a.level}</div>
-        <ul class="tac-items">${a.items.map(it => `<li>${it}</li>`).join("")}</ul>
-      </div>`).join("")}
-    </div>
+    ${tech && tech.length > 0 ? `
+    <div class="sh" style="margin-top:14px"><span class="sh-icon">🛠</span><span class="sh-title">Technology Stack</span><div class="sh-line"></div></div>
+    <div class="tech" style="margin-bottom:14px">${tech.slice(0,8).map((t: string) => `<span>${t}</span>`).join("")}</div>` : ""}
 
-    ${tech && tech.length > 0 ? `<div class="sh" style="margin-top:18px"><span class="sh-icon">🛠</span><span class="sh-title">Technology Stack</span><div class="sh-line"></div></div>
-    <div class="tech">${tech.slice(0,10).map((t: string) => `<span>${t}</span>`).join("")}</div>` : ""}
-
-    <div class="sh" style="margin-top:${tech?.length ? "0" : "18"}px"><span class="sh-icon">📊</span><span class="sh-title">Key Metrics</span><div class="sh-line"></div></div>
-    <table class="mt">
+    <div class="sh" style="margin-top:8px"><span class="sh-icon">📊</span><span class="sh-title">Key Metrics</span><div class="sh-line"></div></div>
+    <table class="mt" style="margin-bottom:20px">
       <tr><td>Observatory Grade</td><td style="font-size:16px;font-weight:900;color:${(observatory?.score||0)>70?'#22c55e':'#f97316'}">${observatory?.grade || "N/A"}</td></tr>
       <tr><td>TLS/SSL Score</td><td>${geekflare?.tls?.score || "Provisioned"}</td></tr>
-      <tr><td>Carbon Footprint</td><td>${carbon?.green ? "✅ Green Hosted" : "⚠️ Standard"}</td></tr>
-      <tr><td>Accessibility Issues</td><td style="color:${(pa11y?.errors||0)>0?'#ef4444':'#22c55e'}">${pa11y?.errors||0} errors · ${pa11y?.warnings||0} warnings</td></tr>
+      <tr><td>Accessibility Issues</td><td style="color:${(pa11y?.errors||0)>0?'#ef4444':'#22c55e'}">${pa11y?.errors||0} errors</td></tr>
     </table>
-  </div>
-  <div class="pf"><div class="pf-brand">WebOS AI</div><div class="pf-note">Confidential · ${date}</div></div>
-</div>
 
-<!-- PAGE 5: 90-DAY GROWTH PLAN -->
-<div class="page growth">
-  <div class="g-hdr"><div class="g-brand">WebOS AI Audit Report</div><div class="g-num">Page 05</div></div>
-  <div class="g-body">
-    <div class="g-title">90-Day Website Growth Plan</div>
-    <div class="g-desc">A structured roadmap to transform performance into measurable growth</div>
-    ${[
-      { phase: "Phase 1", days: "0–7 Days", label: "Quick Wins", items: ["Image optimization & compression", "Implement lazy loading", "Remove unused scripts & styles"] },
-      { phase: "Phase 2", days: "7–30 Days", label: "Foundation", items: ["CDN implementation & caching", "Content restructuring & readability", "Add conversion elements & CTAs"] },
-      { phase: "Phase 3", days: "30–90 Days", label: "Scale", items: ["Performance monitoring & alerting", "UX improvements & A/B testing", "Scaling optimization & infrastructure"] }
-    ].map(ph => `<div class="phase">
-      <div class="ph-left">
-        <div class="ph-marker">${ph.phase}</div>
-        <div class="ph-days">— ${ph.days}</div>
-        <div class="ph-name">${ph.label}</div>
-      </div>
-      <div class="ph-right">
-        <ul class="ph-items">${ph.items.map(it => `<li>${it}</li>`).join("")}</ul>
-      </div>
-    </div>`).join("")}
-    <div class="g-closing">
-      <div class="close-1">This is not a report.</div>
-      <div class="close-2">This is a growth system.</div>
+    <div class="sh"><span class="sh-icon">🚀</span><span class="sh-title">90-Day Growth Roadmap</span><div class="sh-line"></div></div>
+    <div style="background:#0a0a0f;border-radius:14px;padding:22px;color:#fff">
+      ${[
+        { phase: "Quick Wins", days: "0-7 Days", items: ["Image compression & lazy loading", "Remove blocking JS scripts"] },
+        { phase: "Foundation", days: "7-30 Days", items: ["CDN setup & global caching", "Content layout restructuring"] },
+        { phase: "Scale", days: "30-90 Days", items: ["A/B UX Testing", "Scaling server infrastructure"] }
+      ].map(ph => `<div style="display:flex;gap:20px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:10px">
+        <div style="width:100px;flex-shrink:0"><div style="font-size:7px;color:#3b82f6;text-transform:uppercase;font-weight:800">${ph.days}</div><div style="font-size:14px;font-weight:800">${ph.phase}</div></div>
+        <ul style="flex:1;list-style:none;padding:0;margin:0;font-size:11px;color:rgba(255,255,255,0.6)">${ph.items.map(it => `<li>• ${it}</li>`).join("")}</ul>
+      </div>`).join("")}
     </div>
   </div>
-  <div class="g-footer">
-    <div class="g-fb">WebOS AI</div>
-    <div class="g-fn">Generated by WebOS AI · ${date}</div>
-  </div>
+  <div class="pf"><div class="pf-brand">WebOS AI</div><div class="pf-note">Confidential · ${date}</div></div>
 </div>
 
 </body>
@@ -785,7 +789,30 @@ export async function runLocalAudit(url: string) {
       tech,
     };
   } catch (error: any) {
-    console.error("[local-audit] Failed:", error);
+    console.warn(`[local-audit] Direct fetch failed for ${normalized}: ${error.message}. Attempting Geekflare Scraping fallback...`);
+    
+    try {
+      const scrapedHtml = await fetchWebScraping(normalized);
+      if (scrapedHtml) {
+        // Since we don't have original HTTP headers from a scrape, we pass an empty Headers object
+        // but the tech and content analysis will still work perfectly on the HTML.
+        const mockHeaders = new Headers();
+        const security = analyzeSecurityHeaders(mockHeaders);
+        const content = analyzeHtmlContent(scrapedHtml);
+        const tech = detectTechStack(scrapedHtml, mockHeaders);
+
+        return {
+          security,
+          content,
+          tech,
+          _scraped: true
+        };
+      }
+    } catch (scrapeError) {
+      console.error("[local-audit] Scraping fallback also failed:", scrapeError);
+    }
+
+    console.error("[local-audit] All fetch methods failed.");
     return null;
   }
 }
