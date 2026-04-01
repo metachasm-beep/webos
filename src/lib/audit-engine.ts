@@ -282,8 +282,8 @@ export async function createPdfReport(url: string, data: any) {
       { name: "BP", score: bp },
       { name: "Security", score: securityScore }
     ];
-    const center = 100;
-    const radius = 80;
+    const center = 170;
+    const radius = 100;
     const points = axes.map((a, i) => {
       const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
       const r = (a.score / 100) * radius;
@@ -292,18 +292,30 @@ export async function createPdfReport(url: string, data: any) {
 
     const radarColor = sc(comp);
     const radarSvg = `
-      <svg width="220" height="220" viewBox="0 0 200 200" style="display:block;margin:0 auto">
-        <circle cx="100" cy="100" r="${radius}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
-        <circle cx="100" cy="100" r="${radius*0.75}" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5" />
-        <circle cx="100" cy="100" r="${radius*0.5}" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5" />
-        <circle cx="100" cy="100" r="${radius*0.25}" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.5" />
-        ${axes.map((_, i) => {
+      <svg width="340" height="340" viewBox="0 0 340 340" style="display:block;margin:0 auto">
+        <!-- Background Grid -->
+        <circle cx="170" cy="170" r="${radius}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" />
+        <circle cx="170" cy="170" r="${radius*0.75}" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.75" />
+        <circle cx="170" cy="170" r="${radius*0.5}" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.75" />
+        <circle cx="170" cy="170" r="${radius*0.25}" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.75" />
+        ${axes.map((a, i) => {
           const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
-          return `<line x1="100" y1="100" x2="${100 + radius * Math.cos(angle)}" y2="${100 + radius * Math.sin(angle)}" stroke="rgba(255,255,255,0.08)" stroke-width="1" />`;
+          const x2 = center + radius * Math.cos(angle);
+          const y2 = center + radius * Math.sin(angle);
+          const lx = center + (radius + 24) * Math.cos(angle);
+          const ly = center + (radius + 24) * Math.sin(angle);
+          const align = i === 0 ? "middle" : (i === 1 || i === 2 ? "start" : "end");
+          return `
+            <line x1="170" y1="170" x2="${x2}" y2="${y2}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" />
+            <text x="${lx}" y="${ly}" text-anchor="${align}" fill="rgba(255,255,255,0.4)" style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em">${a.name} · ${a.score}</text>
+          `;
         }).join("")}
-        <polygon points="${points}" fill="${radarColor}" fill-opacity="0.25" stroke="${radarColor}" stroke-width="2.5" />
-        <text x="100" y="106" text-anchor="middle" fill="#fff" style="font-size:26px;font-weight:900;letter-spacing:-1px">${comp}</text>
-        <text x="100" y="118" text-anchor="middle" fill="rgba(255,255,255,0.4)" style="font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em">Growth</text>
+        <!-- Data Polygon -->
+        <polygon points="${points}" fill="${radarColor}" fill-opacity="0.25" stroke="${radarColor}" stroke-width="3" />
+        <!-- Center Growth Orb -->
+        <circle cx="170" cy="170" r="28" fill="#0a0a0f" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+        <text x="170" y="175" text-anchor="middle" fill="#fff" style="font-size:24px;font-weight:900;letter-spacing:-1px">${comp}</text>
+        <text x="170" y="185" text-anchor="middle" fill="rgba(255,255,255,0.3)" style="font-size:6px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em">Growth</text>
       </svg>
     `;
 
@@ -334,18 +346,21 @@ export async function createPdfReport(url: string, data: any) {
     .page:last-child { page-break-after: auto; }
 
     /* PAGE 1 — COVER */
-    .cover { background: #0a0a0f; color: white; display: flex; flex-direction: column; min-height: 297mm; }
-    .cover-hdr { padding: 36px 44px 0; display: flex; justify-content: space-between; align-items: center; }
-    .cover-brand { font-size: 11px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255,255,255,0.35); }
-    .cover-date  { font-size: 10px; color: rgba(255,255,255,0.25); letter-spacing: 0.1em; }
-    .cover-hero  { padding: 56px 44px 36px; flex: 1; }
-    .cover-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 16px; }
-    .cover-t1 { font-size: 13px; font-weight: 700; letter-spacing: 0.28em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 4px; }
-    .cover-t2 { font-size: 46px; font-weight: 900; letter-spacing: -2px; color: #fff; line-height: 1.05; margin-bottom: 8px; }
-    .cover-sub { font-size: 14px; color: rgba(255,255,255,0.45); margin-top: 12px; }
-    .cover-meta { display: flex; gap: 36px; margin-top: 32px; }
-    .cover-meta label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.25); display: block; margin-bottom: 4px; }
-    .cover-meta span { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.75); }
+    .cover { background: #0a0a0f; color: white; display: flex; flex-direction: column; height: 297mm; }
+    .cover-hdr { padding: 44px 44px 0; display: flex; justify-content: space-between; align-items: center; }
+    .cover-brand { font-size: 11px; font-weight: 800; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.4); }
+    .cover-date  { font-size: 10px; color: rgba(255,255,255,0.25); letter-spacing: 0.15em; }
+    .cover-hero  { flex: 1; display: flex; align-items: center; padding: 0 44px; gap: 40px; }
+    .cover-left  { flex: 1; }
+    .cover-right { flex-shrink: 0; }
+    .cover-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: 0.4em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 24px; }
+    .cover-t1 { font-size: 14px; font-weight: 800; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 8px; }
+    .cover-t2 { font-size: 58px; font-weight: 900; letter-spacing: -2.5px; color: #fff; line-height: 0.95; margin-bottom: 12px; }
+    .cover-sub { font-size: 16px; color: rgba(255,255,255,0.5); margin-bottom: 40px; line-height: 1.5; }
+    .cover-meta { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 32px; display: grid; gap: 16px; }
+    .meta-row { display: flex; gap: 12px; align-items: baseline; }
+    .meta-row label { font-size: 10px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.25); width: 60px; flex-shrink: 0; }
+    .meta-row span { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.8); }
     .score-dash { padding: 28px 44px; border-top: 1px solid rgba(255,255,255,0.06); }
     .score-dash-lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: rgba(255,255,255,0.25); margin-bottom: 16px; }
     .score-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
@@ -487,14 +502,21 @@ export async function createPdfReport(url: string, data: any) {
     <div class="cover-date">Generated ${date}</div>
   </div>
   <div class="cover-hero">
-    <div class="cover-eyebrow">AI Performance Intelligence</div>
-    <div class="cover-t1">WebOS AI</div>
-    <div class="cover-t2">Audit Report</div>
-    <div class="cover-sub">Actionable Growth Intelligence for ${domain}</div>
-      <div><label>URL</label><span>${url}</span></div>
-      <div><label>Date</label><span>${date}</span></div>
+    <div class="cover-left">
+      <div class="cover-eyebrow">AI Performance Intelligence</div>
+      <div class="cover-t1">${domain}</div>
+      <div class="cover-t2">Audit Report</div>
+      <p class="cover-sub">Actionable business intelligence and technical performance telemetry.</p>
+      
+      <div class="cover-meta">
+        <div class="meta-row"><label>URL</label><span>${url}</span></div>
+        <div class="meta-row"><label>DATE</label><span>${date}</span></div>
+        <div class="meta-row"><label>VERSION</label><span>Neural v1.2</span></div>
+      </div>
     </div>
-    <div style="margin-top:40px">${radarSvg}</div>
+    <div class="cover-right">
+      ${radarSvg}
+    </div>
   </div>
   <div class="score-dash">
     <div class="score-dash-lbl">Score Dashboard</div>
