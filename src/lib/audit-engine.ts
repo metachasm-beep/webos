@@ -282,7 +282,7 @@ export async function createPdfReport(url: string, data: any) {
       { name: "BP", score: bp },
       { name: "Security", score: securityScore }
     ];
-    const center = 170;
+    const center = 240;
     const radius = 100;
     const points = axes.map((a, i) => {
       const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
@@ -292,30 +292,43 @@ export async function createPdfReport(url: string, data: any) {
 
     const radarColor = sc(comp);
     const radarSvg = `
-      <svg width="340" height="340" viewBox="0 0 340 340" style="display:block;margin:0 auto">
-        <!-- Background Grid -->
-        <circle cx="170" cy="170" r="${radius}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" />
-        <circle cx="170" cy="170" r="${radius*0.75}" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.75" />
-        <circle cx="170" cy="170" r="${radius*0.5}" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.75" />
-        <circle cx="170" cy="170" r="${radius*0.25}" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="0.75" />
+      <svg width="420" height="420" viewBox="0 0 480 480" style="display:block;margin:0 auto">
+        <defs>
+          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
+        <!-- Pentagonal Grid -->
+        ${[1, 0.75, 0.5, 0.25].map(rScale => {
+          const r = radius * rScale;
+          const p = axes.map((_, i) => {
+            const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
+            return `${center + r * Math.cos(angle)},${center + r * Math.sin(angle)}`;
+          }).join(" ");
+          return `<polygon points="${p}" fill="none" stroke="rgba(255,255,255,${rScale === 1 ? 0.08 : 0.03})" stroke-width="1" />`;
+        }).join("")}
         ${axes.map((a, i) => {
           const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
           const x2 = center + radius * Math.cos(angle);
           const y2 = center + radius * Math.sin(angle);
-          const lx = center + (radius + 24) * Math.cos(angle);
-          const ly = center + (radius + 24) * Math.sin(angle);
+          const lx = center + (radius + 40) * Math.cos(angle);
+          const ly = center + (radius + 40) * Math.sin(angle);
           const align = i === 0 ? "middle" : (i === 1 || i === 2 ? "start" : "end");
           return `
-            <line x1="170" y1="170" x2="${x2}" y2="${y2}" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" />
-            <text x="${lx}" y="${ly}" text-anchor="${align}" fill="rgba(255,255,255,0.4)" style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em">${a.name} · ${a.score}</text>
+            <line x1="${center}" y1="${center}" x2="${x2}" y2="${y2}" stroke="rgba(255,255,255,0.1)" stroke-width="1.5" />
+            <text x="${lx}" y="${ly}" text-anchor="${align}" fill="#fff" style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.15em">
+              <tspan fill="rgba(255,255,255,0.4)">${a.name}</tspan> <tspan dx="4" fill="${sc(a.score)}" font-weight="900">${a.score}</tspan>
+            </text>
           `;
         }).join("")}
         <!-- Data Polygon -->
-        <polygon points="${points}" fill="${radarColor}" fill-opacity="0.25" stroke="${radarColor}" stroke-width="3" />
+        <polygon points="${points}" fill="${radarColor}" fill-opacity="0.15" stroke="${radarColor}" stroke-width="3" filter="url(#glow)" />
         <!-- Center Growth Orb -->
-        <circle cx="170" cy="170" r="28" fill="#0a0a0f" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
-        <text x="170" y="175" text-anchor="middle" fill="#fff" style="font-size:24px;font-weight:900;letter-spacing:-1px">${comp}</text>
-        <text x="170" y="185" text-anchor="middle" fill="rgba(255,255,255,0.3)" style="font-size:6px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em">Growth</text>
+        <circle cx="${center}" cy="${center}" r="34" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
+        <circle cx="${center}" cy="${center}" r="28" fill="#0a0a0f" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+        <text x="${center}" y="${center + 5}" text-anchor="middle" fill="#fff" style="font-size:28px;font-weight:900;letter-spacing:-1px">${comp}</text>
+        <text x="${center}" y="${center + 15}" text-anchor="middle" fill="rgba(255,255,255,0.3)" style="font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em">Growth</text>
       </svg>
     `;
 
@@ -350,9 +363,9 @@ export async function createPdfReport(url: string, data: any) {
     .cover-hdr { padding: 44px 44px 0; display: flex; justify-content: space-between; align-items: center; }
     .cover-brand { font-size: 11px; font-weight: 800; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.4); }
     .cover-date  { font-size: 10px; color: rgba(255,255,255,0.25); letter-spacing: 0.15em; }
-    .cover-hero  { flex: 1; display: flex; align-items: center; padding: 0 44px; gap: 40px; }
-    .cover-left  { flex: 1; }
-    .cover-right { flex-shrink: 0; }
+    .cover-hero  { flex: 1; display: flex; align-items: center; padding: 0 44px; gap: 0; }
+    .cover-left  { flex: 1.2; }
+    .cover-right { flex: 1.1; margin-left: -20px; }
     .cover-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: 0.4em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 24px; }
     .cover-t1 { font-size: 14px; font-weight: 800; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 8px; }
     .cover-t2 { font-size: 58px; font-weight: 900; letter-spacing: -2.5px; color: #fff; line-height: 0.95; margin-bottom: 12px; }
