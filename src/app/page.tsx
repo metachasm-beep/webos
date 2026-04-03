@@ -410,43 +410,43 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="py-1 md:py-2 border-t border-white/5 relative bg-background/50 backdrop-blur-3xl">
+      <footer className="py-2 md:py-4 border-t border-white/5 relative bg-background/50 backdrop-blur-3xl">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col lg:flex-row justify-between items-center gap-3">
+          <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
             {/* Branding */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-6">
               <img 
                 src="/assets/branding/logo_full.png" 
                 alt="WebOS AI Logo" 
-                className="h-8 w-auto object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+                className="h-11 w-auto object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.2)]"
               />
-              <p className="hidden md:block text-[8px] text-muted-foreground uppercase tracking-[0.3em] font-bold">Audit. Build. Dominate.</p>
+              <p className="hidden md:block text-[11px] text-muted-foreground uppercase tracking-[0.3em] font-bold">Audit. Build. Dominate.</p>
             </div>
             
             {/* Contacts & Links Grouped */}
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
-              <div className="flex items-center gap-3">
-                <span className="text-[8px] text-muted-foreground/40 uppercase font-bold tracking-widest">E-mail</span>
-                <span className="text-[10px] font-bold">info@turtlelabs.co.in</span>
+            <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-3">
+              <div className="flex items-center gap-4">
+                <span className="text-[11px] text-muted-foreground/40 uppercase font-bold tracking-widest">E-mail</span>
+                <span className="text-sm font-bold">info@turtlelabs.co.in</span>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-[8px] text-muted-foreground/40 uppercase font-bold tracking-widest">Registry</span>
-                <div className="flex gap-4">
-                  <Link href="https://www.turtlelabs.co.in" className="text-[10px] text-muted-foreground hover:text-white transition-colors">Site</Link>
-                  <Link href="#" className="text-[10px] text-muted-foreground hover:text-white transition-colors">Docs</Link>
+              <div className="flex items-center gap-4">
+                <span className="text-[11px] text-muted-foreground/40 uppercase font-bold tracking-widest">Registry</span>
+                <div className="flex gap-6">
+                  <Link href="https://www.turtlelabs.co.in" className="text-sm text-muted-foreground hover:text-white transition-colors">Site</Link>
+                  <Link href="#" className="text-sm text-muted-foreground hover:text-white transition-colors">Docs</Link>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-[8px] text-muted-foreground/40 uppercase font-bold tracking-widest">Social</span>
-                <div className="flex gap-4">
-                  <Link href="https://twitter.com/turtlelabsindia" className="text-[10px] text-muted-foreground hover:text-white transition-colors">X</Link>
-                  <Link href="https://www.instagram.com/turtlelabs/" className="text-[10px] text-muted-foreground hover:text-white transition-colors">IG</Link>
+              <div className="flex items-center gap-4">
+                <span className="text-[11px] text-muted-foreground/40 uppercase font-bold tracking-widest">Social</span>
+                <div className="flex gap-6">
+                  <Link href="https://twitter.com/turtlelabsindia" className="text-sm text-muted-foreground hover:text-white transition-colors">X</Link>
+                  <Link href="https://www.instagram.com/turtlelabs/" className="text-sm text-muted-foreground hover:text-white transition-colors">IG</Link>
                 </div>
               </div>
             </div>
 
             {/* Copyright Inline */}
-            <div className="text-[8px] text-muted-foreground/20 uppercase tracking-[0.4em] font-bold whitespace-nowrap">
+            <div className="text-[11px] text-muted-foreground/20 uppercase tracking-[0.4em] font-bold whitespace-nowrap">
               © 2026 WebOS AI
             </div>
           </div>
