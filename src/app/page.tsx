@@ -440,15 +440,17 @@ export default function Home() {
               <div className="flex items-center gap-4">
                 <span className="text-[11px] text-muted-foreground/40 uppercase font-bold tracking-widest">Registry</span>
                 <div className="flex gap-6">
-                  <Link href="https://www.turtlelabs.co.in" className="text-sm text-muted-foreground hover:text-white transition-colors">Site</Link>
-                  <Link href="#" className="text-sm text-muted-foreground hover:text-white transition-colors">Docs</Link>
+                  <Link href="https://www.turtlelabs.co.in" className="text-xs text-muted-foreground hover:text-white transition-colors">Powered by Turtle Labs</Link>
+                  <Link href="#" className="text-xs text-muted-foreground hover:text-white transition-colors">Docs</Link>
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 <span className="text-[11px] text-muted-foreground/40 uppercase font-bold tracking-widest">Social</span>
-                <div className="flex gap-6">
-                  <Link href="https://twitter.com/turtlelabsindia" className="text-sm text-muted-foreground hover:text-white transition-colors">X</Link>
-                  <Link href="https://www.instagram.com/turtlelabs/" className="text-sm text-muted-foreground hover:text-white transition-colors">IG</Link>
+                <div className="flex gap-4">
+                  <Link href="https://x.com/turtlelabsindia" className="text-xs text-muted-foreground hover:text-white transition-colors">X</Link>
+                  <Link href="https://www.instagram.com/turtlelabs/" className="text-xs text-muted-foreground hover:text-white transition-colors">IG</Link>
+                  <Link href="https://www.linkedin.com/company/turtle-labs/" className="text-xs text-muted-foreground hover:text-white transition-colors">LI</Link>
+                  <Link href="https://medium.com/@turtlelabs" className="text-xs text-muted-foreground hover:text-white transition-colors">MD</Link>
                 </div>
               </div>
             </div>

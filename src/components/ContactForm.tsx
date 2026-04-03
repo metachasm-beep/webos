@@ -63,7 +63,7 @@ export function ContactForm() {
             </div>
             <div className="space-y-1">
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Neural Hub</p>
-              <p className="font-heading font-bold text-sm">Medak, Telangana, India - 502032</p>
+              <p className="font-heading font-bold text-sm">Kochi, India - 682030</p>
             </div>
           </div>
         </div>
