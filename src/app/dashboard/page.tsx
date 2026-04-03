@@ -77,9 +77,9 @@ export default function DashboardPage() {
           </div>
           
           <div className="flex gap-4">
-             <Link href="/builder">
+             <Link href="/audit">
                 <Button className="h-16 px-10 rounded-full bg-primary text-white font-bold uppercase tracking-widest text-[11px] gap-3 shadow-2xl shadow-primary/20 hover:scale-105 transition-all">
-                   <Plus className="h-4 w-4" /> Start New Synthesis
+                   <Plus className="h-4 w-4" /> Launch New Audit
                 </Button>
              </Link>
           </div>
@@ -221,35 +221,46 @@ export default function DashboardPage() {
 
         {/* Global Strategy Suggestions */}
         <div className="pt-20 border-t border-white/5 grid md:grid-cols-2 gap-12">
-           <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                 <Sparkles className="h-5 w-5 text-accent" />
-                 <h4 className="text-xs font-bold uppercase tracking-[0.3em] italic text-accent">Strategic Recommendations</h4>
-              </div>
-              <div className="glass-card p-10 bg-accent/5 border-accent/20 space-y-6 relative overflow-hidden group">
-                  <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:opacity-10 transition-opacity">
-                     <Zap className="h-48 w-48 text-accent" />
+            <div className="space-y-6">
+               <div className="flex items-center gap-3">
+                  <Sparkles className="h-5 w-5 text-accent" />
+                  <h4 className="text-xs font-bold uppercase tracking-[0.3em] italic text-accent">Strategic Recommendations</h4>
+               </div>
+               <div className="grid gap-4">
+                  <div className="glass-card p-6 bg-accent/5 border-accent/20 flex flex-col md:flex-row items-center justify-between gap-6 group hover:border-accent/40 transition-all">
+                      <div className="space-y-1 text-center md:text-left">
+                        <p className="text-[10px] text-accent/60 uppercase font-black">Audit Protocol</p>
+                        <p className="text-sm font-heading italic">Start a fresh audit for another website.</p>
+                      </div>
+                      <Link href="/audit">
+                         <Button className="rounded-full bg-accent text-black font-bold uppercase tracking-widest text-[9px] h-10 px-6 border-none hover:bg-accent/80">Launch Fresh Audit</Button>
+                      </Link>
                   </div>
-                  <p className="text-xl font-heading italic leading-relaxed">
-                    {audits.length > 0 
-                      ? audits[0].summary 
-                      : "\"Ready for your first strategic synthesis. Initialize an audit to generate neural insights.\""}
-                  </p>
-                  <Link href="/audit">
-                     <Button className="rounded-full bg-accent text-black font-bold uppercase tracking-widest text-[10px] h-12 shadow-2xl shadow-accent/20 border-none hover:bg-accent/80">Execute New Audit</Button>
-                  </Link>
-              </div>
-           </div>
+
+                  <div className="glass-card p-6 bg-primary/5 border-primary/20 flex flex-col md:flex-row items-center justify-between gap-6 group hover:border-primary/40 transition-all">
+                      <div className="space-y-1 text-center md:text-left">
+                        <p className="text-[10px] text-primary/60 uppercase font-black">Builder Protocol</p>
+                        <p className="text-[11px] font-body leading-tight max-w-[300px]">
+                          Launch your AI based Landing or Web page in minutes with the all new WebBuilder AI for free. 
+                          Get over the hassle of fixing when you can build a new one in no time.
+                        </p>
+                      </div>
+                      <Link href="/builder">
+                         <Button className="rounded-full bg-primary text-white font-bold uppercase tracking-widest text-[9px] h-10 px-6 border-none hover:bg-primary/80">Start Building Now</Button>
+                      </Link>
+                  </div>
+               </div>
+            </div>
 
            <div className="space-y-6">
               <div className="flex items-center gap-3">
-                 <Activity className="h-5 w-5 text-primary" />
-                 <h4 className="text-xs font-bold uppercase tracking-[0.3em] italic text-primary">Neural Link Summary</h4>
-              </div>
+                  <Activity className="h-5 w-5 text-primary" />
+                  <h4 className="text-xs font-bold uppercase tracking-[0.3em] italic text-primary">Audit Summary</h4>
+               </div>
               <div className="grid grid-cols-2 gap-4">
                  {[
-                   { label: "Matrix Coverage", value: "92%", color: "text-blue-400" },
-                   { label: "Synthesis Rate", value: "1.2/day", color: "text-primary" }
+                    { label: "Matrix Coverage", value: "92%", color: "text-blue-400" },
+                    { label: "Daily Audits", value: "1.2/day", color: "text-primary" }
                  ].map((kpi, i) => (
                    <div key={i} className="glass-card p-8 space-y-2 group hover:border-primary/20 transition-all">
                       <p className="text-[9px] font-bold text-muted-foreground uppercase">{kpi.label}</p>

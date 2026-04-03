@@ -137,8 +137,9 @@ export default function Home() {
                     transition={{ delay: 0.5, duration: 1 }}
                     className="text-lg md:text-xl text-muted-foreground font-body max-w-xl leading-relaxed tracking-tight"
                   >
-                    Enter your website URL and get a full performance, SEO, and 
-                    accessibility report in seconds.
+                    Start with a complete website audit—covering performance, SEO, 
+                    and accessibility. Apply the insights to optimize your current site, 
+                    or build a new one from scratch using our AI-powered builder.
                   </motion.p>
                 </div>
 
