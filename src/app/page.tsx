@@ -422,13 +422,18 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
             {/* Branding */}
-            <div className="flex items-center gap-6">
-              <img 
-                src="/assets/branding/logo_full.png" 
-                alt="WebOS AI Logo" 
-                className="h-11 w-auto object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.2)]"
-              />
-              <p className="hidden md:block text-[11px] text-muted-foreground uppercase tracking-[0.3em] font-bold">Audit. Build. Dominate.</p>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 group">
+                <div className="h-8 w-8 flex items-center justify-center drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                  <img 
+                    src="/assets/branding/icon.png" 
+                    alt="WebOS AI Icon" 
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+                <span className="text-xl font-heading font-bold tracking-tight text-glow-soft">WebOS <span className="text-primary italic">AI</span></span>
+              </div>
+              <p className="hidden xl:block text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-bold border-l border-white/10 pl-4 ml-2">Audit. Build. Dominate.</p>
             </div>
             
             {/* Contacts & Links Grouped */}
