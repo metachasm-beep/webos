@@ -87,6 +87,10 @@ export default function Home() {
     if (url) router.push(`/audit?url=${encodeURIComponent(url)}`);
   };
 
+  const scrollToHero = () => {
+    heroRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <div className="flex flex-col min-h-screen relative overflow-x-hidden">
       <Navbar />
@@ -101,16 +105,16 @@ export default function Home() {
           className="relative min-h-screen flex items-center justify-center pt-20"
         >
           <div className="container px-4">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="flex flex-col items-center">
               {/* Copy */}
               <motion.div 
                 style={{ opacity, scale: heroScale }}
-                className="text-left space-y-12 max-w-2xl"
+                className="text-center space-y-12 max-w-4xl mx-auto flex flex-col items-center"
               >
-                <div className="space-y-6">
+                <div className="space-y-6 flex flex-col items-center">
                   <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
                     className="inline-flex items-center gap-3 px-6 py-2 rounded-full glass border-white/10 text-primary text-[11px] font-bold uppercase tracking-[0.3em]"
                   >
                     <div className="h-1.5 w-1.5 rounded-full bg-primary animate-ping" />
@@ -121,29 +125,28 @@ export default function Home() {
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-                    className="text-7xl md:text-9xl font-heading font-bold leading-[0.9] tracking-tighter"
+                    className="text-7xl md:text-9xl font-heading font-bold leading-[0.9] tracking-tighter text-center"
                   >
                     AUDIT. BUILD. <br />
                     <span className="text-glow-soft text-primary">DOMINATE.</span>
                   </motion.h1>
-
+ 
                   <motion.p 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5, duration: 1 }}
-                    className="text-lg md:text-xl text-muted-foreground font-body max-w-xl leading-relaxed tracking-tight"
+                    className="text-lg md:text-xl text-muted-foreground font-body max-w-xl leading-relaxed tracking-tight text-center"
                   >
                     Enter your website URL and get a full performance, SEO, and 
-                    accessibility report in seconds — then fix it with our AI-powered builder.
+                    accessibility report in seconds.
                   </motion.p>
                 </div>
 
-                {/* URL Input */}
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.8 }}
-                  className="max-w-xl"
+                  className="max-w-xl w-full"
                 >
                   <form onSubmit={handleAudit} className="group relative" aria-label="Website Audit Form">
                     <div className="absolute -inset-4 bg-primary/5 rounded-[40px] blur-2xl group-hover:bg-primary/10 transition-all duration-700" />
@@ -164,35 +167,36 @@ export default function Home() {
                     </div>
                   </form>
                 </motion.div>
-              </motion.div>
-
-              {/* 3D Canvas — reacts to mouse */}
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 1.5, delay: 0.2 }}
-                style={{ rotateX, rotateY, transformPerspective: 1200 }}
-                className="relative h-[600px] hidden lg:block cursor-grab active:cursor-grabbing"
-              >
-                <div className="absolute inset-0 bg-primary/10 blur-[120px] rounded-full animate-pulse" />
-                <div className="w-full h-full rounded-[40px] overflow-hidden border border-white/10 glass-card p-0 bg-black/40 relative">
-                  <div className="absolute inset-0 z-0">
-                    <LetterGlitch 
-                      glitchColors={['#3b82f6', '#22c55e', '#1e40af']}
-                      centerVignette={true}
-                      outerVignette={false}
-                      smooth={true}
-                      glitchSpeed={40}
-                    />
+ 
+                {/* 3D Canvas — reacts to mouse (moved below for central alignment) */}
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 1.2, delay: 1 }}
+                  style={{ rotateX, rotateY, transformPerspective: 1200 }}
+                  className="relative h-[480px] w-full mt-24 hidden lg:block cursor-grab active:cursor-grabbing"
+                >
+                  <div className="absolute inset-0 bg-primary/10 blur-[120px] rounded-full animate-pulse" />
+                  <div className="w-full h-full rounded-[40px] overflow-hidden border border-white/10 glass-card p-0 bg-black/40 relative">
+                    <div className="absolute inset-0 z-0">
+                      <LetterGlitch 
+                        glitchColors={['#3b82f6', '#22c55e', '#1e40af']}
+                        centerVignette={true}
+                        outerVignette={false}
+                        smooth={true}
+                        glitchSpeed={40}
+                      />
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
+                    <div className="absolute bottom-8 left-8 right-8 z-20 space-y-2 text-left">
+                      <div className="h-1 w-12 bg-primary rounded-full" />
+                      <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/50">Neural Link Active</p>
+                      <h4 className="text-xl font-heading font-bold italic text-white">GROWTH_MATRIX_v2.0</h4>
+                    </div>
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
-                  <div className="absolute bottom-8 left-8 right-8 z-20 space-y-2">
-                    <div className="h-1 w-12 bg-primary rounded-full" />
-                    <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/50">Neural Link Active</p>
-                    <h4 className="text-xl font-heading font-bold italic text-white">GROWTH_MATRIX_v2.0</h4>
-                  </div>
-                </div>
+                </motion.div>
               </motion.div>
+            </div>
             </div>
           </div>
 
@@ -347,12 +351,12 @@ export default function Home() {
                      <div className="w-1 h-3/4 bg-primary/30 rounded-full mt-auto" />
                      <div className="w-1 h-1/2 bg-primary/30 rounded-full mt-auto" />
                    </div>
-                   <div className="w-2/3 bg-white/10 rounded-t-xl border border-white/20 p-3 shadow-2xl relative translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                     <div className="h-1.5 w-1/3 bg-white/30 rounded-full mb-3" />
-                     <div className="h-10 w-full bg-primary/10 rounded-lg flex items-center justify-center border border-primary/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
-                       <span className="text-[9px] text-primary uppercase font-black tracking-widest">+ 142% SPEED</span>
-                     </div>
-                   </div>
+                    <div className="w-2/3 bg-white/10 rounded-t-xl border border-white/20 p-3 shadow-2xl relative translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
+                      <div className="h-1.5 w-1/3 bg-white/30 rounded-full mb-3" />
+                      <div className="h-10 w-full bg-primary/10 rounded-lg flex items-center justify-center border border-primary/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+                        <span className="text-[9px] text-primary uppercase font-black tracking-widest">Mobile Priority</span>
+                      </div>
+                    </div>
                 </div>
               </motion.div>
 
@@ -377,11 +381,19 @@ export default function Home() {
                       Stop losing traffic to slow loads and bad SEO. Let WebOS AI rewrite the rules for your digital success.
                     </p>
                   </div>
-                  <Button size="lg" className="rounded-2xl px-10 h-14 bg-white text-black hover:bg-white/90 shadow-2xl transition-all font-bold uppercase tracking-[0.2em] text-[10px] whitespace-nowrap hidden md:flex">
+                  <Button 
+                    onClick={scrollToHero}
+                    size="lg" 
+                    className="rounded-2xl px-10 h-14 bg-white text-black hover:bg-white/90 shadow-2xl transition-all font-bold uppercase tracking-[0.2em] text-[10px] whitespace-nowrap hidden md:flex"
+                  >
                     Start Free Audit
                   </Button>
                   {/* Mobile CTA */}
-                  <Button size="lg" className="w-full md:hidden rounded-2xl h-14 bg-white text-black hover:bg-white/90 shadow-2xl transition-all font-bold uppercase tracking-[0.2em] text-[10px]">
+                  <Button 
+                    onClick={scrollToHero}
+                    size="lg" 
+                    className="w-full md:hidden rounded-2xl h-14 bg-white text-black hover:bg-white/90 shadow-2xl transition-all font-bold uppercase tracking-[0.2em] text-[10px]"
+                  >
                     Start Free Audit
                   </Button>
                 </div>
@@ -400,24 +412,28 @@ export default function Home() {
 
       <footer className="py-20 border-t border-white/5 relative bg-background/50 backdrop-blur-3xl">
         <div className="container px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-12">
-            <div className="space-y-4 text-center md:text-left">
-              <div className="flex flex-col items-center justify-center md:items-start gap-6">
-                <img 
-                  src="/assets/branding/logo_full.png" 
-                  alt="WebOS AI Logo" 
-                  className="h-16 w-auto object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.2)]"
-                />
-              </div>
+          <div className="flex flex-col items-center text-center gap-16">
+            <div className="space-y-6 flex flex-col items-center">
+              <img 
+                src="/assets/branding/logo_full.png" 
+                alt="WebOS AI Logo" 
+                className="h-16 w-auto object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+              />
               <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-bold">Audit. Build. Dominate.</p>
-              <div className="space-y-1 pt-4">
-                <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-bold">Contact</p>
-                <p className="text-sm font-heading font-bold">hello@webos-ai.com</p>
-                <p className="text-sm font-heading font-bold">+91 6309052625</p>
+              
+              <div className="flex flex-col md:flex-row gap-8 pt-4">
+                <div className="space-y-1">
+                  <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-bold">Protocol E-mail</p>
+                  <p className="font-heading font-bold">info@turtlelabs.co.in</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-bold">Direct Uplink</p>
+                  <p className="font-heading font-bold">+91 74005 31107</p>
+                </div>
               </div>
             </div>
             
-            <div className="flex gap-12">
+            <div className="flex gap-20">
               <div className="space-y-4">
                 <h5 className="text-[10px] uppercase tracking-widest font-bold text-primary">Links</h5>
                 <ul className="space-y-2 text-xs text-muted-foreground font-body">
