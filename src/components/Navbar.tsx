@@ -15,8 +15,8 @@ export function Navbar() {
       animate={{ y: 0, opacity: 1 }}
       className="fixed top-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-6xl px-4"
     >
-      <div className="glass rounded-3xl px-8 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3 group">
+      <div className="glass rounded-3xl px-6 md:px-8 py-4 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2 group">
           <div className="h-10 w-10 flex items-center justify-center group-hover:rotate-12 transition-all drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">
             <img 
               src="/assets/branding/icon.png" 
@@ -24,10 +24,10 @@ export function Navbar() {
               className="h-full w-full object-contain"
             />
           </div>
-          <span className="text-2xl font-heading font-bold tracking-tight text-glow-soft">WebOS <span className="text-primary italic">AI</span></span>
+          <span className="text-xl md:text-2xl font-heading font-bold tracking-tight text-glow-soft">WebOS <span className="text-primary italic">AI</span></span>
         </Link>
-
-        <nav className="hidden md:flex items-center gap-10">
+ 
+        <nav className="hidden lg:flex items-center gap-8">
           {[
             { label: "Audit", href: "/#audit" },
             { label: "Workspaces", href: "/dashboard" },
