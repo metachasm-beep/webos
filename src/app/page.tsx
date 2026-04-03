@@ -382,7 +382,11 @@ export default function Home() {
                     </p>
                   </div>
                   <Button 
-                    onClick={scrollToHero}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      scrollToHero();
+                    }}
                     size="lg" 
                     className="rounded-2xl px-10 h-14 bg-white text-black hover:bg-white/90 shadow-2xl transition-all font-bold uppercase tracking-[0.2em] text-[10px] whitespace-nowrap hidden md:flex"
                   >
@@ -390,7 +394,11 @@ export default function Home() {
                   </Button>
                   {/* Mobile CTA */}
                   <Button 
-                    onClick={scrollToHero}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      scrollToHero();
+                    }}
                     size="lg" 
                     className="w-full md:hidden rounded-2xl h-14 bg-white text-black hover:bg-white/90 shadow-2xl transition-all font-bold uppercase tracking-[0.2em] text-[10px]"
                   >
