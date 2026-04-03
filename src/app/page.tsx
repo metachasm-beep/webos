@@ -412,38 +412,41 @@ export default function Home() {
 
       <footer className="py-20 border-t border-white/5 relative bg-background/50 backdrop-blur-3xl">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col items-center text-center gap-16">
-            <div className="space-y-6 flex flex-col items-center">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-12 md:gap-8">
+            {/* Branding */}
+            <div className="space-y-4 text-center md:text-left min-w-[200px]">
               <img 
                 src="/assets/branding/logo_full.png" 
                 alt="WebOS AI Logo" 
-                className="h-16 w-auto object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+                className="h-12 w-auto object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.2)] mx-auto md:mx-0"
               />
-              <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-bold">Audit. Build. Dominate.</p>
-              
-              <div className="flex flex-col md:flex-row gap-8 pt-4">
-                <div className="space-y-1">
-                  <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-bold">Protocol E-mail</p>
-                  <p className="font-heading font-bold">info@turtlelabs.co.in</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-bold">Direct Uplink</p>
-                  <p className="font-heading font-bold">+91 74005 31107</p>
-                </div>
-              </div>
+              <p className="text-[9px] text-muted-foreground uppercase tracking-[0.3em] font-bold">Audit. Build. Dominate.</p>
             </div>
             
-            <div className="flex gap-20">
+            {/* Contacts */}
+            <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-8 md:gap-6 lg:gap-12">
+              <div className="space-y-1 text-center md:text-left">
+                <p className="text-[9px] text-muted-foreground/60 uppercase tracking-widest font-bold">Protocol E-mail</p>
+                <p className="text-xs font-heading font-bold">info@turtlelabs.co.in</p>
+              </div>
+              <div className="space-y-1 text-center md:text-left">
+                <p className="text-[9px] text-muted-foreground/60 uppercase tracking-widest font-bold">Direct Uplink</p>
+                <p className="text-xs font-heading font-bold">+91 74005 31107</p>
+              </div>
+            </div>
+
+            {/* Links Group */}
+            <div className="flex gap-12 lg:gap-24 w-full md:w-auto justify-center md:justify-start">
               <div className="space-y-4">
-                <h5 className="text-[10px] uppercase tracking-widest font-bold text-primary">Links</h5>
-                <ul className="space-y-2 text-xs text-muted-foreground font-body">
+                <h5 className="text-[9px] uppercase tracking-widest font-bold text-primary">Registry</h5>
+                <ul className="space-y-2 text-[11px] text-muted-foreground font-body">
                   <li><Link href="https://www.turtlelabs.co.in" className="hover:text-white transition-colors">Official Site</Link></li>
                   <li><Link href="#" className="hover:text-white transition-colors">Documentation</Link></li>
                 </ul>
               </div>
               <div className="space-y-4">
-                <h5 className="text-[10px] uppercase tracking-widest font-bold text-primary">Social</h5>
-                <ul className="space-y-2 text-xs text-muted-foreground font-body">
+                <h5 className="text-[9px] uppercase tracking-widest font-bold text-primary">Neural Social</h5>
+                <ul className="space-y-2 text-[11px] text-muted-foreground font-body">
                   <li><Link href="https://twitter.com/turtlelabsindia" className="hover:text-white transition-colors">Twitter / X</Link></li>
                   <li><Link href="https://www.instagram.com/turtlelabs/" className="hover:text-white transition-colors">Instagram</Link></li>
                 </ul>
