@@ -410,7 +410,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="py-20 border-t border-white/5 relative bg-background/50 backdrop-blur-3xl">
+      <footer className="py-6 border-t border-white/5 relative bg-background/50 backdrop-blur-3xl">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-start gap-12 md:gap-8">
             {/* Branding */}
@@ -453,7 +453,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className="mt-20 pt-8 border-t border-white/5 text-[9px] text-center text-muted-foreground/30 uppercase tracking-[0.4em] font-bold">
+          <div className="mt-8 pt-6 border-t border-white/5 text-[9px] text-center text-muted-foreground/30 uppercase tracking-[0.4em] font-bold">
             © 2026 WebOS AI. All rights reserved.
           </div>
         </div>
