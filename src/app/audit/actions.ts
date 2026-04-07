@@ -10,7 +10,7 @@ import {
 } from "@/lib/audit-engine";
 
 import { calculateGrowthMetrics, calculateCompositeScore } from "@/lib/matrix-engine";
-import { supabase } from "@/lib/supabase";
+import { turso } from "@/lib/turso";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
@@ -180,27 +180,35 @@ export async function runAuditAction(url: string) {
     try {
       const session = await getServerSession(authOptions);
       if (session?.user?.email) {
-        await supabase.from("audits").insert({
-          user_email:           session.user.email,
-          url,
-          composite_score:      composite.total,
-          status:               composite.status,
-          performance_vector:   composite.breakdown.vectors.performance,
-          security_vector:      composite.breakdown.vectors.security,
-          compliance_vector:    composite.breakdown.vectors.compliance,
-          accessibility_score:  accessibilityScore,
-          seo_score:            seoScore,
-          best_practices_score: bestPracticesScore,
-          summary:              summaryData,
-          metrics: {
-            ...result.metrics,
-            pa11y:       multiEngineData.pa11y?.totalIssues,
-            debugbear:   multiEngineData.debugbear?.performance,
-            geekflare:   multiEngineData.geekflare?.security?.score,
-            observatory: multiEngineData.observatory?.score,
-          },
-          raw_data:             result, // Store the FULL enriched result
-          created_at: new Date().toISOString()
+        await turso.execute({
+          sql: `INSERT INTO audits (
+            user_email, url, composite_score, status, 
+            performance_vector, security_vector, compliance_vector,
+            accessibility_score, seo_score, best_practices_score,
+            summary, metrics, raw_data, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          args: [
+            session.user.email,
+            url,
+            composite.total,
+            composite.status,
+            composite.breakdown.vectors.performance,
+            composite.breakdown.vectors.security,
+            composite.breakdown.vectors.compliance,
+            accessibilityScore,
+            seoScore,
+            bestPracticesScore,
+            JSON.stringify(summaryData),
+            JSON.stringify({
+              ...result.metrics,
+              pa11y:       multiEngineData.pa11y?.totalIssues,
+              debugbear:   multiEngineData.debugbear?.performance,
+              geekflare:   multiEngineData.geekflare?.security?.score,
+              observatory: multiEngineData.observatory?.score,
+            }),
+            JSON.stringify(result),
+            new Date().toISOString()
+          ]
         });
       }
     } catch (persistError) {
