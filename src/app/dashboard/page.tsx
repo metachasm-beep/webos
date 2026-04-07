@@ -78,7 +78,7 @@ export default function DashboardPage() {
           </div>
           
           <div className="flex gap-4">
-             <Link href="/audit">
+             <Link href="/#audit-section">
                 <Button className="h-16 px-10 rounded-full bg-primary text-white font-bold uppercase tracking-widest text-[11px] gap-3 shadow-2xl shadow-primary/20 hover:scale-105 transition-all">
                    <Plus className="h-4 w-4" /> Launch New Audit
                 </Button>
@@ -281,7 +281,7 @@ export default function DashboardPage() {
                         <p className="text-[10px] text-accent/60 uppercase font-black">Audit Protocol</p>
                         <p className="text-sm font-heading italic">Start a fresh audit for another website.</p>
                       </div>
-                      <Link href="/audit">
+                      <Link href="/#audit-section">
                          <Button className="rounded-full bg-accent text-black font-bold uppercase tracking-widest text-[9px] h-10 px-6 border-none hover:bg-accent/80">Launch Fresh Audit</Button>
                       </Link>
                   </div>

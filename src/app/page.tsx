@@ -99,6 +99,7 @@ export default function Home() {
       <main className="flex-1">
         {/* Hero */}
         <section
+          id="audit-section"
           ref={heroRef}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
