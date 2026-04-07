@@ -31,6 +31,7 @@ function DashboardContent() {
   const [audits, setAudits] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'projects' | 'audits'>('projects');
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -49,8 +50,37 @@ function DashboardContent() {
     }
   };
 
+  const syncPendingRegistry = async () => {
+    try {
+      const pending = localStorage.getItem("NEURAL_PENDING_REGISTRY");
+      if (!pending) return;
+
+      setIsSyncing(true);
+      const auditData = JSON.parse(pending);
+      
+      const resp = await fetch("/api/audits", {
+        method: "POST",
+        body: JSON.stringify(auditData),
+        headers: { "Content-Type": "application/json" }
+      });
+
+      if (resp.ok) {
+        localStorage.removeItem("NEURAL_PENDING_REGISTRY");
+        console.log("Neural Registry Synced successfully.");
+      }
+    } catch (error) {
+      console.warn("Registry Sync skipped.", error);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   useEffect(() => {
-    fetchData();
+    const initialize = async () => {
+      await syncPendingRegistry();
+      await fetchData();
+    };
+    initialize();
   }, []);
 
   return (
@@ -73,7 +103,9 @@ function DashboardContent() {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <div className="h-1.5 w-1.5 rounded-full bg-primary animate-ping" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Neural Workspace v.3.1.0</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">
+                {isSyncing ? "Neural Syncing Registry..." : "Neural Workspace v.3.1.0"}
+              </span>
             </div>
             <h1 className="text-6xl md:text-8xl font-heading font-bold italic tracking-tighter">Strategic HUD</h1>
             <p className="text-muted-foreground text-sm max-w-md font-body">Orchestrating growth, audits, and neural synthesis across all digital vectors.</p>

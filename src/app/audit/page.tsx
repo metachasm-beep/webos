@@ -128,6 +128,8 @@ function AuditContent() {
             // Persist to cache
             try {
               localStorage.setItem(CACHE_KEY(url), JSON.stringify({ data: result, timestamp: Date.now() }));
+              // Neural Sync Bridge: Store for dashboard claiming
+              localStorage.setItem("NEURAL_PENDING_REGISTRY", JSON.stringify({ ...result, url }));
             } catch (_) { /* storage full — ignore */ }
 
             setAuditData(result);
