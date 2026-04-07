@@ -36,19 +36,89 @@ function DashboardContent() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [hasSynced, setHasSynced] = useState(false);
 
+  const scanLocalRegistry = () => {
+    const localItems: any[] = [];
+    try {
+      // 1. Check Neural Pending Registry
+      const pending = localStorage.getItem("NEURAL_PENDING_REGISTRY");
+      if (pending) {
+        const data = JSON.parse(pending);
+        localItems.push({ ...data, isLocal: true, created_at: data.created_at || new Date().toISOString() });
+      }
+
+      // 2. Scan all audit_cache_* items
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("audit_cache_")) {
+          try {
+            const item = localStorage.getItem(key);
+            if (item) {
+              const parsed = JSON.parse(item);
+              // Normalize structure
+              const result = parsed.data;
+              if (result && result.metrics) {
+                localItems.push({
+                   ...result,
+                   url: key.replace("audit_cache_", ""),
+                   isLocal: true,
+                   created_at: parsed.timestamp ? new Date(parsed.timestamp).toISOString() : new Date().toISOString()
+                });
+              }
+            }
+          } catch (e) { /* skip corrupt items */ }
+        }
+      }
+    } catch (_) { /* ignore storage errors */ }
+    return localItems;
+  };
+
+  const clearLocalRegistry = () => {
+    try {
+      localStorage.removeItem("NEURAL_PENDING_REGISTRY");
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("audit_cache_")) {
+          localStorage.removeItem(key);
+        }
+      }
+      // Re-fetch to update UI
+      fetchData();
+    } catch (_) { /* ignore */ }
+  };
+
   const fetchData = async () => {
-    if (status !== "authenticated") return;
+    const localAudits = scanLocalRegistry();
+    
+    // If not authenticated, we only show local audits
+    if (status !== "authenticated") {
+       setAudits(localAudits);
+       setIsLoading(false);
+       return;
+    }
+
     try {
       const [projectsResp, auditsResp] = await Promise.all([
         fetch("/api/projects"),
         fetch("/api/audits")
       ]);
       const pData = await projectsResp.json();
-      const aData = await auditsResp.json();
+      const cloudAudits = await auditsResp.json();
+      
       setProjects(pData.projects || []);
-      setAudits(aData.audits || []);
+      
+      // Smart Merge: Deduplicate by URL, Cloud records take precedence
+      const merged = [...cloudAudits];
+      localAudits.forEach(local => {
+         const exists = merged.some(m => m.url === local.url);
+         if (!exists) {
+            merged.push(local);
+         }
+      });
+
+      setAudits(merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
+      setAudits(localAudits); // Fallback to local only on error
     } finally {
       setIsLoading(false);
     }
@@ -226,82 +296,104 @@ function DashboardContent() {
                             <Activity className="h-5 w-5 text-emerald-400" />
                             <span className="text-xs font-bold uppercase tracking-widest">Growth Matrix History</span>
                          </div>
-                         <div className="flex items-center gap-4">
-                            <div className="relative">
-                               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                               <input type="text" placeholder="Search archives..." className="bg-white/5 border border-white/10 rounded-full pl-12 pr-6 py-2 text-[10px] outline-none focus:border-primary" />
-                            </div>
+                         <div className="flex items-center gap-2">
+                             <div className="relative">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <input type="text" placeholder="Search archives..." className="bg-white/5 border border-white/10 rounded-full pl-12 pr-6 py-2 text-[10px] outline-none focus:border-primary w-40 md:w-64" />
+                             </div>
+                             <Button 
+                                onClick={clearLocalRegistry}
+                                variant="ghost" 
+                                size="icon"
+                                className="rounded-full hover:bg-red-500/10 hover:text-red-400 group"
+                                title="Clear Local Cache"
+                             >
+                                <RefreshCw className="h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+                             </Button>
                          </div>
                       </div>
 
                       <div className="space-y-4">
                         {audits.length === 0 ? (
-                          <div className="py-12 text-center text-muted-foreground italic text-[10px]">No historical telemetry found. Initialize an audit to begin registry.</div>
+                          <div className="py-20 text-center space-y-4">
+                             <div className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center mx-auto opacity-20">
+                                <Activity className="h-6 w-6" />
+                             </div>
+                             <div className="text-muted-foreground italic text-[10px]">No historical telemetry found. Initialize an audit to begin registry.</div>
+                          </div>
                         ) : (
                           audits.map((audit, i) => (
-                            <div key={audit.id || i} className="glass-card p-0 overflow-hidden hover:border-primary/30 transition-all group">
-                              <div className="grid grid-cols-1 md:grid-cols-12 items-center">
-                                {/* Domain & Identity */}
-                                <div className="md:col-span-4 p-6 border-r border-white/5 bg-white/[0.02]">
-                                  <div className="flex items-center gap-4">
-                                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 group-hover:scale-110 transition-transform">
-                                      <Activity className="h-5 w-5" />
-                                    </div>
-                                    <div>
-                                      <div className="text-sm font-bold truncate max-w-[180px]">{new URL(audit.url).hostname}</div>
-                                      <div className="flex items-center gap-2 mt-1">
-                                         <Clock className="h-3 w-3 text-muted-foreground/50" />
-                                         <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                                           {new Date(audit.created_at).toLocaleDateString()} at {new Date(audit.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                         </span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
+                             <div key={audit.id || i} className="glass-card p-0 overflow-hidden hover:border-primary/30 transition-all group">
+                               <div className="grid grid-cols-1 md:grid-cols-12 items-center">
+                                 {/* Domain & Identity */}
+                                 <div className="md:col-span-4 p-6 border-r border-white/5 bg-white/[0.02]">
+                                   <div className="flex items-center gap-4">
+                                     <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 group-hover:scale-110 transition-transform">
+                                        {audit.isLocal ? <Clock className="h-5 w-5 opacity-50" /> : <ShieldCheck className="h-5 w-5" />}
+                                     </div>
+                                     <div className="min-w-0 flex-1 text-left">
+                                       <div className="flex items-center gap-2">
+                                          <Link href={`/audit?url=${encodeURIComponent(audit.url)}`} className="text-sm font-bold truncate max-w-[150px] hover:text-primary transition-colors">
+                                            {new URL(audit.url).hostname}
+                                          </Link>
+                                          {audit.isLocal ? (
+                                             <span className="text-[7px] px-1.5 py-0.5 rounded-full bg-orange-400/10 text-orange-400 font-bold uppercase tracking-tighter border border-orange-400/20">Local</span>
+                                          ) : (
+                                             <span className="text-[7px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold uppercase tracking-tighter border border-primary/20">Synced</span>
+                                          )}
+                                       </div>
+                                       <div className="flex items-center gap-2 mt-1">
+                                          <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
+                                            {new Date(audit.created_at).toLocaleDateString()} at {new Date(audit.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                          </span>
+                                       </div>
+                                     </div>
+                                   </div>
+                                 </div>
 
-                                {/* Categorical Pulse */}
-                                <div className="md:col-span-5 px-8 flex items-center justify-between gap-4 border-r border-white/5 h-full">
-                                  {[
-                                    { label: 'PERF', score: audit.performance_vector || 70, color: 'text-emerald-400' },
-                                    { label: 'A11Y', score: audit.accessibility_score || 75, color: 'text-blue-400' },
-                                    { label: 'SEO', score: audit.seo_score || 72, color: 'text-orange-400' },
-                                    { label: 'BP', score: audit.best_practices_score || 72, color: 'text-purple-400' }
-                                  ].map((cat) => (
-                                    <div key={cat.label} className="text-center group/cat">
-                                      <div className={`text-[11px] font-black italic tracking-tighter ${cat.score >= 90 ? cat.color : cat.score >= 70 ? 'text-white' : 'text-red-400'}`}>
-                                        {cat.score}
-                                      </div>
-                                      <div className="text-[7px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 group-hover/cat:text-primary transition-colors">
-                                        {cat.label}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
+                                 {/* Categorical Pulse */}
+                                 <div className="md:col-span-5 px-8 flex items-center justify-between gap-4 border-r border-white/5 h-full">
+                                   {[
+                                     { label: 'PERF', score: audit.performance_vector || 70, color: 'text-emerald-400' },
+                                     { label: 'A11Y', score: audit.accessibility_score || 75, color: 'text-blue-400' },
+                                     { label: 'SEO', score: audit.seo_score || 72, color: 'text-orange-400' },
+                                     { label: 'BP', score: audit.best_practices_score || 72, color: 'text-purple-400' }
+                                   ].map((cat) => (
+                                     <div key={cat.label} className="text-center group/cat">
+                                       <div className={`text-[11px] font-black italic tracking-tighter ${cat.score >= 90 ? cat.color : cat.score >= 70 ? 'text-white' : 'text-red-400'}`}>
+                                         {cat.score}
+                                       </div>
+                                       <div className="text-[7px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 group-hover/cat:text-primary transition-colors">
+                                         {cat.label}
+                                       </div>
+                                     </div>
+                                   ))}
+                                 </div>
 
-                                {/* Composite & Actions */}
-                                <div className="md:col-span-3 p-6 flex items-center justify-between bg-white/[0.01]">
-                                  <div className="text-center">
-                                    <div className={`text-2xl font-heading font-bold italic ${audit.composite_score >= 90 ? 'text-emerald-400' : 'text-primary'}`}>
-                                      {audit.composite_score}%
-                                    </div>
-                                    <div className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/30">Composite</div>
-                                  </div>
+                                 {/* Composite & Actions */}
+                                 <div className="md:col-span-3 p-6 flex items-center justify-between bg-white/[0.01]">
+                                   <div className="text-center">
+                                     <div className={`text-2xl font-heading font-bold italic ${audit.composite_score >= 90 ? 'text-emerald-400' : 'text-primary'}`}>
+                                       {audit.composite_score}%
+                                     </div>
+                                     <div className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/30">Composite</div>
+                                   </div>
 
-                                  <div className="flex items-center gap-2">
-                                     <Link href={`/audit?url=${encodeURIComponent(audit.url)}`} title="Refresh Audit">
-                                       <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/5 hover:text-emerald-400">
-                                         <RefreshCw className="h-3.5 w-3.5" />
-                                       </Button>
-                                     </Link>
-                                     <Link href={`/audit/report-view?id=${audit.id}&url=${encodeURIComponent(audit.url)}`} title="View Snapshot">
-                                       <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/5 hover:text-primary">
-                                         <ExternalLink className="h-4 w-4" />
-                                       </Button>
-                                     </Link>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
+                                   <div className="flex items-center gap-2">
+                                      <Link href={`/audit?url=${encodeURIComponent(audit.url)}`} title="Refresh Audit">
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/5 hover:text-emerald-400">
+                                          <RefreshCw className="h-3.5 w-3.5" />
+                                        </Button>
+                                      </Link>
+                                      <Link href={`/audit/report-view?id=${audit.id}&url=${encodeURIComponent(audit.url)}`} title="View Snapshot">
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/5 hover:text-primary">
+                                          <ExternalLink className="h-4 w-4" />
+                                        </Button>
+                                      </Link>
+                                   </div>
+                                 </div>
+                               </div>
+                             </div>
                           ))
                         )}
                       </div>

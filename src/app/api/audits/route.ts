@@ -69,7 +69,13 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, id: result.lastInsertRowid?.toString() });
   } catch (error: any) {
-    console.error("Audit Persistence Failure:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("====== TURSO PERSISTENCE FAILURE ======");
+    console.error("Message:", error.message);
+    console.error("Code:", error.code);
+    if (error.message?.includes('no such table')) {
+        console.error("CRITICAL: The 'audits' table does not exist in your Turso database.");
+    }
+    console.error("=======================================");
+    return NextResponse.json({ error: error.message, code: error.code }, { status: 500 });
   }
 }
