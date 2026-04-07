@@ -333,8 +333,14 @@ function DashboardContent() {
                                      </div>
                                      <div className="min-w-0 flex-1 text-left">
                                        <div className="flex items-center gap-2">
-                                          <Link href={`/audit?url=${encodeURIComponent(audit.url)}`} className="text-sm font-bold truncate max-w-[150px] hover:text-primary transition-colors">
-                                            {new URL(audit.url).hostname}
+                                          <Link href={`/audit?url=${encodeURIComponent(audit.url || "")}`} className="text-sm font-bold truncate max-w-[150px] hover:text-primary transition-colors">
+                                            {(() => {
+                                              try {
+                                                return new URL(audit.url).hostname;
+                                              } catch {
+                                                return String(audit.url || "Unknown Target");
+                                              }
+                                            })()}
                                           </Link>
                                           {audit.isLocal ? (
                                              <span className="text-[7px] px-1.5 py-0.5 rounded-full bg-orange-400/10 text-orange-400 font-bold uppercase tracking-tighter border border-orange-400/20">Local</span>
@@ -344,7 +350,7 @@ function DashboardContent() {
                                        </div>
                                        <div className="flex items-center gap-2 mt-1">
                                           <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                                            {new Date(audit.created_at).toLocaleDateString()} at {new Date(audit.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            {audit.created_at ? new Date(audit.created_at).toLocaleDateString() : "Legacy"} at {audit.created_at ? new Date(audit.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "--:--"}
                                           </span>
                                        </div>
                                      </div>
@@ -380,12 +386,12 @@ function DashboardContent() {
                                    </div>
 
                                    <div className="flex items-center gap-2">
-                                      <Link href={`/audit?url=${encodeURIComponent(audit.url)}`} title="Refresh Audit">
+                                      <Link href={`/audit?url=${encodeURIComponent(audit.url || "")}`} title="Refresh Audit">
                                         <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/5 hover:text-emerald-400">
                                           <RefreshCw className="h-3.5 w-3.5" />
                                         </Button>
                                       </Link>
-                                      <Link href={`/audit/report-view?id=${audit.id}&url=${encodeURIComponent(audit.url)}`} title="View Snapshot">
+                                      <Link href={`/audit/report-view?id=${audit.id}&url=${encodeURIComponent(audit.url || "")}`} title="View Snapshot">
                                         <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/5 hover:text-primary">
                                           <ExternalLink className="h-4 w-4" />
                                         </Button>
