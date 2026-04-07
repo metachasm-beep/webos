@@ -45,13 +45,17 @@ export async function POST(req: Request) {
       .insert({
         user_email: session.user.email,
         url: auditData.url,
-        composite_score: auditData.score,
+        composite_score: auditData.score || auditData.composite_score,
         status: auditData.status,
-        performance_vector: auditData.vectors.performance,
-        security_vector: auditData.vectors.security,
-        compliance_vector: auditData.vectors.compliance,
+        performance_vector: auditData.vectors?.performance || auditData.performance_vector,
+        security_vector: auditData.vectors?.security || auditData.security_vector,
+        compliance_vector: auditData.vectors?.compliance || auditData.compliance_vector,
+        accessibility_score: auditData.scores?.accessibility || auditData.accessibility_score,
+        seo_score: auditData.scores?.seo || auditData.seo_score,
+        best_practices_score: auditData.scores?.bestPractices || auditData.best_practices_score,
         summary: auditData.summary,
-        metrics: auditData.metrics, // Optimized fields
+        metrics: auditData.metrics,
+        raw_data: auditData.raw_data || auditData, // Store comprehensive snapshot
         created_at: new Date().toISOString()
       })
       .select()

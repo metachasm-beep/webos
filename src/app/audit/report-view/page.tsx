@@ -1,5 +1,6 @@
 import { generateAuditSummary, fetchCarbonMetrics, checkSafeBrowsing, runLocalAudit, fetchMultiEngineMetrics } from "@/lib/audit-engine";
 import { calculateGrowthMetrics, calculateCompositeScore } from "@/lib/matrix-engine";
+import { supabase } from "@/lib/supabase";
 
 interface Props {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -9,73 +10,112 @@ export default async function ReportView({ searchParams }: Props) {
   const params = await searchParams;
   const urlParams = params.url;
   const url = Array.isArray(urlParams) ? urlParams[0] : urlParams || "";
+  const id = params.id as string | undefined;
 
-  if (!url) {
-    return <div style={{ padding: "4rem", textAlign: "center", fontFamily: "sans-serif" }}><p>No URL provided.</p></div>;
+  if (!url && !id) {
+    return <div style={{ padding: "4rem", textAlign: "center", fontFamily: "sans-serif" }}><p>No resource identifier provided.</p></div>;
   }
 
   let summary = "";
   let scores = { performance: 70, seo: 72, accessibility: 75, bestPractices: 72, composite: 0 };
   let audits: any = {};
   let lcp = "N/A"; let fid = "N/A"; let cls = "N/A"; let ttfb = "N/A";
+  let isHistorical = false;
+  let historicalDate = "";
+  let targetUrl = url;
 
-  // Score derivation helpers
-  const derivePerf = (db: any) => { if (!db?.vitals) return 70; const v = db.vitals; const l = parseFloat(String(v.lcp||'').replace('s',''))*1000||null; const c=parseFloat(String(v.cls||''))||null; const f=parseFloat(String(v.fid||'').replace('ms',''))||null; let s=0,n=0; if(l!==null){s+=l<=2500?100:l<=4000?Math.round(100-((l-2500)/1500)*60):20;n++;} if(c!==null){s+=c<=0.1?100:c<=0.25?Math.round(100-((c-0.1)/0.15)*60):20;n++;} if(f!==null){s+=f<=100?100:f<=300?Math.round(100-((f-100)/200)*60):20;n++;} return n>0?Math.round(s/n):70; };
-  const deriveA11y = (p: any) => !p ? 75 : Math.max(0,Math.round(100-(p.errors||0)*8-(p.warnings||0)*2));
-  const deriveBP = (obs: any, gf: any, ls: any) => { const ss: number[]=[]; if(obs?.score) ss.push(obs.score); if(gf?.security?.score) ss.push(gf.security.score); if(ls?.score) ss.push(ls.score); return ss.length>0?Math.round(ss.reduce((a:number,b:number)=>a+b,0)/ss.length):72; };
-  const deriveSeo = (ct: any, ls: any) => { if(!ct) return 72; let s=70; if(ct.title)s+=8; if(ct.description)s+=8; if(ct.readability>60)s+=6; if(ct.wordCount>300)s+=5; if(ls?.https)s+=3; return Math.min(100,Math.round(s)); };
+  if (id) {
+    const { data: snapshot, error } = await supabase
+      .from('audits')
+      .select('*')
+      .eq('id', id)
+      .single();
 
-  try {
-    const [carbonResult, securityResult, localResult, multiEngineResult] = await Promise.allSettled([
-      fetchCarbonMetrics(url),
-      checkSafeBrowsing(url),
-      runLocalAudit(url),
-      fetchMultiEngineMetrics(url)
-    ]);
-
-    const carbon      = carbonResult.status      === "fulfilled" ? carbonResult.value      : null;
-    const security    = securityResult.status    === "fulfilled" ? securityResult.value    : null;
-    const local       = localResult.status       === "fulfilled" ? localResult.value       : null;
-    const multiEngine = multiEngineResult.status === "fulfilled"
-      ? multiEngineResult.value
-      : { pa11y: null, debugbear: null, geekflare: null, observatory: null, apify: null };
-
-    const perfScore  = derivePerf(multiEngine.debugbear);
-    const a11yScore  = deriveA11y(multiEngine.pa11y);
-    const bpScore    = deriveBP(multiEngine.observatory, multiEngine.geekflare, local?.security);
-    const seoScore   = deriveSeo(local?.content, local?.security);
-
-    const v: any = multiEngine.debugbear?.vitals || {};
-    lcp = v.lcp || "N/A"; fid = v.fid || v.inp || "N/A"; cls = v.cls || "N/A"; ttfb = v.ttfb || "N/A";
-
-    const growth = calculateGrowthMetrics(url);
-    const techMetrics = {
-      lighthouse: { performance: perfScore, seo: seoScore, accessibility: a11yScore, bestPractices: bpScore },
-      debugbear: multiEngine.debugbear, geekflare: multiEngine.geekflare,
-      observatory: multiEngine.observatory, pa11y: multiEngine.pa11y
-    };
-    const composite = calculateCompositeScore(growth, techMetrics);
-
-    const syntheticData = { lighthouseResult: { categories: { performance: { score: perfScore/100 }, seo: { score: seoScore/100 }, accessibility: { score: a11yScore/100 }, "best-practices": { score: bpScore/100 } }, audits: {} } };
-    summary = await generateAuditSummary(url, syntheticData, { metrics: growth, score: composite });
-
-    scores = { performance: perfScore, seo: seoScore, accessibility: a11yScore, bestPractices: bpScore, composite: composite.total };
-    audits = {
-      growth, composite, carbon,
-      security: { ...security, headers: local?.security },
-      content: local?.content, tech: local?.tech,
-      pa11y: multiEngine.pa11y, debugbear: multiEngine.debugbear,
-      geekflare: multiEngine.geekflare, observatory: multiEngine.observatory,
-      apify: multiEngine.apify,
-    };
-
-  } catch (e) {
-    return <div style={{ padding: "4rem", textAlign: "center", fontFamily: "sans-serif" }}><p>Failed to load audit data for <strong>{url}</strong>.</p></div>;
+    if (!error && snapshot) {
+      isHistorical = true;
+      historicalDate = new Date(snapshot.created_at).toLocaleDateString("en-US", { 
+        month: "long", day: "numeric", year: "numeric", hour: '2-digit', minute: '2-digit' 
+      });
+      targetUrl = snapshot.url;
+      
+      const raw = snapshot.raw_data || {};
+      summary = snapshot.summary || raw.summary || "";
+      scores = {
+        performance: snapshot.performance_vector || raw.scores?.performance || 70,
+        seo: snapshot.seo_score || raw.scores?.seo || 72,
+        accessibility: snapshot.accessibility_score || raw.scores?.accessibility || 75,
+        bestPractices: snapshot.best_practices_score || raw.scores?.bestPractices || 72,
+        composite: snapshot.composite_score || raw.scores?.composite || 0
+      };
+      audits = raw.audits || raw || {};
+      
+      // Re-hydrate vitals
+      const v = audits.debugbear?.vitals || audits.metrics || {};
+      lcp = v.lcp || "N/A";
+      fid = v.fid || v.inp || "N/A";
+      cls = v.cls || "N/A";
+      ttfb = v.ttfb || "N/A";
+    }
   }
 
+  if (!isHistorical && targetUrl) {
+    // Score derivation helpers
+    const derivePerf = (db: any) => { if (!db?.vitals) return 70; const v = db.vitals; const l = parseFloat(String(v.lcp||'').replace('s',''))*1000||null; const c=parseFloat(String(v.cls||''))||null; const f=parseFloat(String(v.fid||'').replace('ms',''))||null; let s=0,n=0; if(l!==null){s+=l<=2500?100:l<=4000?Math.round(100-((l-2500)/1500)*60):20;n++;} if(c!==null){s+=c<=0.1?100:c<=0.25?Math.round(100-((c-0.1)/0.15)*60):20;n++;} if(f!==null){s+=f<=100?100:f<=300?Math.round(100-((f-100)/200)*60):20;n++;} return n>0?Math.round(s/n):70; };
+    const deriveA11y = (p: any) => !p ? 75 : Math.max(0,Math.round(100-(p.errors||0)*8-(p.warnings||0)*2));
+    const deriveBP = (obs: any, gf: any, ls: any) => { const ss: number[]=[]; if(obs?.score) ss.push(obs.score); if(gf?.security?.score) ss.push(gf.security.score); if(ls?.score) ss.push(ls.score); return ss.length>0?Math.round(ss.reduce((a:number,b:number)=>a+b,0)/ss.length):72; };
+    const deriveSeo = (ct: any, ls: any) => { if(!ct) return 72; let s=70; if(ct.title)s+=8; if(ct.description)s+=8; if(ct.readability>60)s+=6; if(ct.wordCount>300)s+=5; if(ls?.https)s+=3; return Math.min(100,Math.round(s)); };
 
-  const date = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-  const domain = url.replace(/https?:\/\//, "").split("/")[0];
+    try {
+      const [carbonResult, securityResult, localResult, multiEngineResult] = await Promise.allSettled([
+        fetchCarbonMetrics(targetUrl),
+        checkSafeBrowsing(targetUrl),
+        runLocalAudit(targetUrl),
+        fetchMultiEngineMetrics(targetUrl)
+      ]);
+
+      const carbon      = carbonResult.status      === "fulfilled" ? carbonResult.value      : null;
+      const security    = securityResult.status    === "fulfilled" ? securityResult.value    : null;
+      const local       = localResult.status       === "fulfilled" ? localResult.value       : null;
+      const multiEngine = multiEngineResult.status === "fulfilled"
+        ? multiEngineResult.value
+        : { pa11y: null, debugbear: null, geekflare: null, observatory: null, apify: null };
+
+      const perfScore  = derivePerf(multiEngine.debugbear);
+      const a11yScore  = deriveA11y(multiEngine.pa11y);
+      const bpScore    = deriveBP(multiEngine.observatory, multiEngine.geekflare, local?.security);
+      const seoScore   = deriveSeo(local?.content, local?.security);
+
+      const v: any = multiEngine.debugbear?.vitals || {};
+      lcp = v.lcp || "N/A"; fid = v.fid || v.inp || "N/A"; cls = v.cls || "N/A"; ttfb = v.ttfb || "N/A";
+
+      const growth = calculateGrowthMetrics(targetUrl);
+      const techMetrics = {
+        lighthouse: { performance: perfScore, seo: seoScore, accessibility: a11yScore, bestPractices: bpScore },
+        debugbear: multiEngine.debugbear, geekflare: multiEngine.geekflare,
+        observatory: multiEngine.observatory, pa11y: multiEngine.pa11y
+      };
+      const composite = calculateCompositeScore(growth, techMetrics);
+
+      const syntheticData = { lighthouseResult: { categories: { performance: { score: perfScore/100 }, seo: { score: seoScore/100 }, accessibility: { score: a11yScore/100 }, "best-practices": { score: bpScore/100 } }, audits: {} } };
+      summary = await generateAuditSummary(targetUrl, syntheticData, { metrics: growth, score: composite });
+
+      scores = { performance: perfScore, seo: seoScore, accessibility: a11yScore, bestPractices: bpScore, composite: composite.total };
+      audits = {
+        growth, composite, carbon,
+        security: { ...security, headers: local?.security },
+        content: local?.content, tech: local?.tech,
+        pa11y: multiEngine.pa11y, debugbear: multiEngine.debugbear,
+        geekflare: multiEngine.geekflare, observatory: multiEngine.observatory,
+        apify: multiEngine.apify,
+      };
+
+    } catch (e) {
+      return <div style={{ padding: "4rem", textAlign: "center", fontFamily: "sans-serif" }}><p>Failed to load level-1 telemetry for <strong>{targetUrl}</strong>.</p></div>;
+    }
+  }
+
+  const date = isHistorical ? historicalDate : new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  const domain = targetUrl.replace(/https?:\/\//, "").split("/")[0];
 
   const sc = (s: number) => s >= 90 ? "#16a34a" : s >= 70 ? "#d97706" : "#dc2626";
   const sb = (s: number) => s >= 90 ? "#f0fdf4" : s >= 70 ? "#fffbeb" : "#fef2f2";
@@ -343,6 +383,23 @@ export default async function ReportView({ searchParams }: Props) {
           </div>
 
           <div className="cover-hero">
+            {isHistorical && (
+              <div style={{ 
+                background: 'rgba(59, 130, 246, 0.1)', 
+                border: '1px solid rgba(59, 130, 246, 0.2)', 
+                borderRadius: '6px', 
+                padding: '8px 12px', 
+                marginBottom: '20px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3b82f6', boxShadow: '0 0 10px #3b82f6' }} />
+                <span style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#3b82f6' }}>
+                  Historical Snapshot — Preserved Registry
+                </span>
+              </div>
+            )}
             <div className="cover-eyebrow">AI Performance Intelligence</div>
             <div className="cover-title-1">WebOS AI</div>
             <div className="cover-title-2">Audit Report</div>

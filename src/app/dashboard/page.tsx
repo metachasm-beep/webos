@@ -16,6 +16,7 @@ import {
   Layers,
   ChevronRight,
   Sparkles,
+  RefreshCw,
   Search
 } from "lucide-react";
 import Link from "next/link";
@@ -190,26 +191,74 @@ export default function DashboardPage() {
                          </div>
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="space-y-4">
                         {audits.length === 0 ? (
                           <div className="py-12 text-center text-muted-foreground italic text-[10px]">No historical telemetry found. Initialize an audit to begin registry.</div>
                         ) : (
                           audits.map((audit, i) => (
-                            <Link href={`/audit/report-view?url=${encodeURIComponent(audit.url)}`} key={audit.id || i}>
-                              <div className="flex items-center justify-between p-6 rounded-2xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5 group">
-                                <div className="flex items-center gap-8">
-                                  <div className={`text-2xl font-heading font-bold italic w-12 ${audit.composite_score > 90 ? 'text-emerald-400' : 'text-orange-400'}`}>{audit.composite_score}%</div>
-                                  <div>
-                                    <div className="text-sm font-bold">{new URL(audit.url).hostname}</div>
-                                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest">{new Date(audit.created_at).toLocaleDateString()}</div>
+                            <div key={audit.id || i} className="glass-card p-0 overflow-hidden hover:border-primary/30 transition-all group">
+                              <div className="grid grid-cols-1 md:grid-cols-12 items-center">
+                                {/* Domain & Identity */}
+                                <div className="md:col-span-4 p-6 border-r border-white/5 bg-white/[0.02]">
+                                  <div className="flex items-center gap-4">
+                                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 group-hover:scale-110 transition-transform">
+                                      <Activity className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                      <div className="text-sm font-bold truncate max-w-[180px]">{new URL(audit.url).hostname}</div>
+                                      <div className="flex items-center gap-2 mt-1">
+                                         <Clock className="h-3 w-3 text-muted-foreground/50" />
+                                         <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
+                                           {new Date(audit.created_at).toLocaleDateString()} at {new Date(audit.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                         </span>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-12">
-                                  <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{audit.status}</div>
-                                  <Button variant="ghost" size="icon" className="group-hover:text-primary"><ExternalLink className="h-4 w-4" /></Button>
+
+                                {/* Categorical Pulse */}
+                                <div className="md:col-span-5 px-8 flex items-center justify-between gap-4 border-r border-white/5 h-full">
+                                  {[
+                                    { label: 'PERF', score: audit.performance_vector || 70, color: 'text-emerald-400' },
+                                    { label: 'A11Y', score: audit.accessibility_score || 75, color: 'text-blue-400' },
+                                    { label: 'SEO', score: audit.seo_score || 72, color: 'text-orange-400' },
+                                    { label: 'BP', score: audit.best_practices_score || 72, color: 'text-purple-400' }
+                                  ].map((cat) => (
+                                    <div key={cat.label} className="text-center group/cat">
+                                      <div className={`text-[11px] font-black italic tracking-tighter ${cat.score >= 90 ? cat.color : cat.score >= 70 ? 'text-white' : 'text-red-400'}`}>
+                                        {cat.score}
+                                      </div>
+                                      <div className="text-[7px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 group-hover/cat:text-primary transition-colors">
+                                        {cat.label}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                {/* Composite & Actions */}
+                                <div className="md:col-span-3 p-6 flex items-center justify-between bg-white/[0.01]">
+                                  <div className="text-center">
+                                    <div className={`text-2xl font-heading font-bold italic ${audit.composite_score >= 90 ? 'text-emerald-400' : 'text-primary'}`}>
+                                      {audit.composite_score}%
+                                    </div>
+                                    <div className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/30">Composite</div>
+                                  </div>
+
+                                  <div className="flex items-center gap-2">
+                                     <Link href={`/audit?url=${encodeURIComponent(audit.url)}`} title="Refresh Audit">
+                                       <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/5 hover:text-emerald-400">
+                                         <RefreshCw className="h-3.5 w-3.5" />
+                                       </Button>
+                                     </Link>
+                                     <Link href={`/audit/report-view?id=${audit.id}&url=${encodeURIComponent(audit.url)}`} title="View Snapshot">
+                                       <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-white/5 hover:text-primary">
+                                         <ExternalLink className="h-4 w-4" />
+                                       </Button>
+                                     </Link>
+                                  </div>
                                 </div>
                               </div>
-                            </Link>
+                            </div>
                           ))
                         )}
                       </div>
