@@ -171,6 +171,9 @@ export async function runAuditAction(url: string) {
       tech:    localData?.tech,
       observatory: multiEngineData.observatory,
       apify:       multiEngineData.apify,
+      pa11y:       multiEngineData.pa11y,
+      debugbear:   multiEngineData.debugbear,
+      geekflare:   multiEngineData.geekflare,
     };
 
     // Persistence (silent — never blocks result)
@@ -185,13 +188,18 @@ export async function runAuditAction(url: string) {
           performance_vector:   composite.breakdown.vectors.performance,
           security_vector:      composite.breakdown.vectors.security,
           compliance_vector:    composite.breakdown.vectors.compliance,
+          accessibility_score:  accessibilityScore,
+          seo_score:            seoScore,
+          best_practices_score: bestPracticesScore,
           summary:              summaryData,
           metrics: {
             pa11y:       multiEngineData.pa11y?.totalIssues,
             debugbear:   multiEngineData.debugbear?.performance,
             geekflare:   multiEngineData.geekflare?.security?.score,
             observatory: multiEngineData.observatory?.score,
+            ...growthMetrics, // Add growth metrics for archive context
           },
+          raw_data:             result, // Store the FULL enriched result
           created_at: new Date().toISOString()
         });
       }

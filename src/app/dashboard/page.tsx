@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,39 +17,106 @@ import {
   ChevronRight,
   Sparkles,
   RefreshCw,
-  Search
+  Search,
+  Cpu,
+  AlertCircle
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
+import { runAuditAction } from "@/app/audit/actions";
 import Squares from "@/components/reactbits/Squares";
 import ShinyText from "@/components/reactbits/ShinyText";
 
-export default function DashboardPage() {
+function DashboardContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [projects, setProjects] = useState<any[]>([]);
   const [audits, setAudits] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'projects' | 'audits'>('projects');
 
+  // Live Audit State
+  const [isAuditing, setIsAuditing] = useState(false);
+  const [auditProgress, setAuditProgress] = useState(0);
+  const [currentTask, setCurrentTask] = useState("");
+  const [auditError, setAuditError] = useState<string | null>(null);
+
+  const fetchData = async () => {
+    try {
+      const [projectsResp, auditsResp] = await Promise.all([
+        fetch("/api/projects"),
+        fetch("/api/audits")
+      ]);
+      const pData = await projectsResp.json();
+      const aData = await auditsResp.json();
+      setProjects(pData.projects || []);
+      setAudits(aData.audits || []);
+    } catch (error) {
+      console.error("Failed to fetch dashboard data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [projResp, auditResp] = await Promise.all([
-          fetch("/api/projects"),
-          fetch("/api/audits")
-        ]);
-        
-        const projData = await projResp.json();
-        const auditData = await auditResp.json();
-        
-        if (!projData.error) setProjects(projData);
-        if (!auditData.error) setAudits(auditData);
-      } catch (err) {
-        console.error("Dashboard Sync failure.", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchData();
   }, []);
+
+  // Handle Auto Audit from Landing Page
+  useEffect(() => {
+    const autoAudit = searchParams.get("autoAudit");
+    const url = searchParams.get("url");
+
+    if (autoAudit === "true" && url) {
+      setActiveTab('audits');
+      startLiveAudit(url);
+    }
+  }, [searchParams]);
+
+  const startLiveAudit = async (url: string) => {
+    setIsAuditing(true);
+    setAuditProgress(0);
+    setAuditError(null);
+    setCurrentTask("Initializing Neural Link...");
+
+    const tasks = [
+      "Checking SEO metadata...",
+      "Testing page speed...",
+      "Reviewing security headers...",
+      "Testing accessibility...",
+      "Generating your report..."
+    ];
+
+    const progressInterval = setInterval(() => {
+      setAuditProgress(prev => (prev < 90 ? prev + (90 - prev) * 0.1 : prev));
+      const taskIndex = Math.min(Math.floor((auditProgress / 100) * tasks.length), tasks.length - 1);
+      setCurrentTask(tasks[taskIndex]);
+    }, 1200);
+
+    try {
+      const result = await runAuditAction(url);
+      if (result.success) {
+        setAuditProgress(100);
+        setCurrentTask("Registry Synced Successfully.");
+        // Refresh local archives
+        await fetchData();
+        // Clear query params without full reload
+        setTimeout(() => {
+          setIsAuditing(false);
+          const newParams = new URLSearchParams(searchParams.toString());
+          newParams.delete('autoAudit');
+          newParams.delete('url');
+          router.replace(`/dashboard?${newParams.toString()}`);
+        }, 1500);
+      } else {
+        setAuditError((result as any).error || "Synthesis Interrupted.");
+      }
+    } catch (err: any) {
+      setAuditError(err.message || "Logic Engine Exception.");
+    } finally {
+      clearInterval(progressInterval);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black text-white font-body selection:bg-primary/20 overflow-x-hidden">
@@ -191,8 +258,64 @@ export default function DashboardPage() {
                          </div>
                       </div>
 
-                      <div className="space-y-4">
-                        {audits.length === 0 ? (
+                      <div className="space-y-6">
+                        {/* Live Audit HUD */}
+                        {isAuditing && (
+                          <motion.div 
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="glass-card p-12 border-primary/30 bg-primary/5 text-center space-y-8 relative overflow-hidden"
+                          >
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.05)_0%,transparent_70%)] animate-pulse" />
+                            <div className="relative inline-block">
+                              <motion.div 
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                                className="h-24 w-24 rounded-full border-2 border-primary/20 flex items-center justify-center mx-auto"
+                              >
+                                <Cpu className="h-10 w-10 text-primary" />
+                                <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin" />
+                              </motion.div>
+                            </div>
+                            <div className="space-y-3 relative z-10">
+                              <h3 className="text-2xl font-heading font-bold italic tracking-tight">Neural Synthesis in Progress</h3>
+                              <p className="text-primary text-[10px] font-bold uppercase tracking-[0.4em] animate-pulse">{currentTask}</p>
+                            </div>
+                            <div className="max-w-md mx-auto space-y-4 relative z-10">
+                              <div className="glass rounded-full p-1 border-white/5 overflow-hidden h-2">
+                                <motion.div 
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${auditProgress}%` }}
+                                  className="h-full bg-primary rounded-full shadow-[0_0_15px_rgba(59,130,246,0.6)] transition-all duration-500" 
+                                />
+                              </div>
+                              <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">{Math.round(auditProgress)}% Matrix Coverage</p>
+                            </div>
+                          </motion.div>
+                        )}
+
+                        {auditError && (
+                          <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="glass-card p-8 border-red-500/20 bg-red-500/5 text-center space-y-4"
+                          >
+                            <AlertCircle className="h-8 w-8 text-red-500 mx-auto" />
+                            <div className="space-y-1">
+                              <h4 className="text-sm font-bold uppercase text-red-400">Synthesis Interrupted</h4>
+                              <p className="text-[10px] text-red-300/60 leading-relaxed">{auditError}</p>
+                            </div>
+                            <Button 
+                              onClick={() => { setIsAuditing(false); setAuditError(null); }}
+                              variant="outline" 
+                              className="rounded-full border-red-500/20 hover:bg-red-500/10 h-8 text-[9px] font-bold uppercase tracking-widest"
+                            >
+                              Reset HUD
+                            </Button>
+                          </motion.div>
+                        )}
+
+                        {audits.length === 0 && !isAuditing ? (
                           <div className="py-12 text-center text-muted-foreground italic text-[10px]">No historical telemetry found. Initialize an audit to begin registry.</div>
                         ) : (
                           audits.map((audit, i) => (
@@ -322,5 +445,13 @@ export default function DashboardPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center text-primary font-bold uppercase tracking-[0.4em]">Initializing Workspace...</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }
