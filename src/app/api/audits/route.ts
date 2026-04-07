@@ -40,22 +40,27 @@ export async function POST(req: Request) {
 
     const auditData = await req.json();
 
+    // Map properties from "Neural Enriched Result" or direct payload
+    const metrics = auditData.metrics || {};
+    const composite = metrics.composite || {};
+    const vectors = composite.breakdown?.vectors || auditData.vectors || {};
+
     const { data, error } = await supabase
       .from('audits')
       .insert({
-        user_email: session.user.email,
-        url: auditData.url,
-        composite_score: auditData.score || auditData.composite_score,
-        status: auditData.status,
-        performance_vector: auditData.vectors?.performance || auditData.performance_vector,
-        security_vector: auditData.vectors?.security || auditData.security_vector,
-        compliance_vector: auditData.vectors?.compliance || auditData.compliance_vector,
-        accessibility_score: auditData.scores?.accessibility || auditData.accessibility_score,
-        seo_score: auditData.scores?.seo || auditData.seo_score,
-        best_practices_score: auditData.scores?.bestPractices || auditData.best_practices_score,
-        summary: auditData.summary,
-        metrics: auditData.metrics,
-        raw_data: auditData.raw_data || auditData, // Store comprehensive snapshot
+        user_email:           session.user.email,
+        url:                  auditData.url,
+        composite_score:      composite.total || auditData.composite_score || auditData.score,
+        status:               composite.status || auditData.status,
+        performance_vector:   vectors.performance || auditData.performance_vector,
+        security_vector:      vectors.security || auditData.security_vector,
+        compliance_vector:    vectors.compliance || auditData.compliance_vector,
+        accessibility_score:  metrics.accessibility || auditData.accessibility_score || auditData.scores?.accessibility,
+        seo_score:            metrics.seo || auditData.seo_score || auditData.scores?.seo,
+        best_practices_score: metrics.bestPractices || auditData.best_practices_score || auditData.scores?.bestPractices,
+        summary:              auditData.summary,
+        metrics:              metrics,
+        raw_data:             auditData, // Store the WHOLE snapshot
         created_at: new Date().toISOString()
       })
       .select()

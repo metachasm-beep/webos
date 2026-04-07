@@ -21,10 +21,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Squares from "@/components/reactbits/Squares";
 import ShinyText from "@/components/reactbits/ShinyText";
 
 function DashboardContent() {
+  const { data: session, status } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [projects, setProjects] = useState<any[]>([]);
@@ -32,8 +34,10 @@ function DashboardContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'projects' | 'audits'>('projects');
   const [isSyncing, setIsSyncing] = useState(false);
+  const [hasSynced, setHasSynced] = useState(false);
 
   const fetchData = async () => {
+    if (status !== "authenticated") return;
     try {
       const [projectsResp, auditsResp] = await Promise.all([
         fetch("/api/projects"),
@@ -76,12 +80,17 @@ function DashboardContent() {
   };
 
   useEffect(() => {
-    const initialize = async () => {
-      await syncPendingRegistry();
-      await fetchData();
-    };
-    initialize();
-  }, []);
+    if (status === "authenticated" && !hasSynced) {
+      const initialize = async () => {
+        setHasSynced(true);
+        await syncPendingRegistry();
+        await fetchData();
+      };
+      initialize();
+    } else if (status === "unauthenticated") {
+      setIsLoading(false);
+    }
+  }, [status, hasSynced]);
 
   return (
     <div className="min-h-screen bg-black text-white font-body selection:bg-primary/20 overflow-x-hidden">

@@ -193,11 +193,11 @@ export async function runAuditAction(url: string) {
           best_practices_score: bestPracticesScore,
           summary:              summaryData,
           metrics: {
+            ...result.metrics,
             pa11y:       multiEngineData.pa11y?.totalIssues,
             debugbear:   multiEngineData.debugbear?.performance,
             geekflare:   multiEngineData.geekflare?.security?.score,
             observatory: multiEngineData.observatory?.score,
-            ...growthMetrics, // Add growth metrics for archive context
           },
           raw_data:             result, // Store the FULL enriched result
           created_at: new Date().toISOString()
