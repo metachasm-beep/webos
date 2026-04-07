@@ -1,6 +1,6 @@
 import { generateAuditSummary, fetchCarbonMetrics, checkSafeBrowsing, runLocalAudit, fetchMultiEngineMetrics } from "@/lib/audit-engine";
 import { calculateGrowthMetrics, calculateCompositeScore } from "@/lib/matrix-engine";
-import { supabase } from "@/lib/supabase";
+import { turso } from "@/lib/turso";
 
 interface Props {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -25,36 +25,46 @@ export default async function ReportView({ searchParams }: Props) {
   let targetUrl = url;
 
   if (id) {
-    const { data: snapshot, error } = await supabase
-      .from('audits')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (!error && snapshot) {
-      isHistorical = true;
-      historicalDate = new Date(snapshot.created_at).toLocaleDateString("en-US", { 
-        month: "long", day: "numeric", year: "numeric", hour: '2-digit', minute: '2-digit' 
+    try {
+      const { rows } = await turso.execute({
+        sql: "SELECT * FROM audits WHERE id = ?",
+        args: [id]
       });
-      targetUrl = snapshot.url;
-      
-      const raw = snapshot.raw_data || {};
-      summary = snapshot.summary || raw.summary || "";
-      scores = {
-        performance: snapshot.performance_vector || raw.scores?.performance || 70,
-        seo: snapshot.seo_score || raw.scores?.seo || 72,
-        accessibility: snapshot.accessibility_score || raw.scores?.accessibility || 75,
-        bestPractices: snapshot.best_practices_score || raw.scores?.bestPractices || 72,
-        composite: snapshot.composite_score || raw.scores?.composite || 0
-      };
-      audits = raw.audits || raw || {};
-      
-      // Re-hydrate vitals
-      const v = audits.debugbear?.vitals || audits.metrics || {};
-      lcp = v.lcp || "N/A";
-      fid = v.fid || v.inp || "N/A";
-      cls = v.cls || "N/A";
-      ttfb = v.ttfb || "N/A";
+
+      if (rows && rows.length > 0) {
+        const snapshot = rows[0] as any;
+        isHistorical = true;
+        historicalDate = new Date(snapshot.created_at).toLocaleDateString("en-US", { 
+          month: "long", day: "numeric", year: "numeric", hour: '2-digit', minute: '2-digit' 
+        });
+        targetUrl = snapshot.url;
+        
+        // Parse JSON strings back to objects for Turso
+        const raw = typeof snapshot.raw_data === 'string' ? JSON.parse(snapshot.raw_data) : (snapshot.raw_data || {});
+        summary = snapshot.summary || raw.summary || "";
+        if (typeof summary === 'string' && summary.startsWith('{')) {
+           try { summary = JSON.parse(summary).summary || summary; } catch(e) {}
+        }
+        
+        scores = {
+          performance: snapshot.performance_vector || raw.scores?.performance || 70,
+          seo: snapshot.seo_score || raw.scores?.seo || 72,
+          accessibility: snapshot.accessibility_score || raw.scores?.accessibility || 75,
+          bestPractices: snapshot.best_practices_score || raw.scores?.bestPractices || 72,
+          composite: snapshot.composite_score || raw.scores?.composite || 0
+        };
+        audits = raw.audits || raw || {};
+        
+        // Re-hydrate vitals
+        const metricsObj = typeof snapshot.metrics === 'string' ? JSON.parse(snapshot.metrics) : (snapshot.metrics || {});
+        const v = audits.debugbear?.vitals || metricsObj || {};
+        lcp = v.lcp || "N/A";
+        fid = v.fid || v.inp || "N/A";
+        cls = v.cls || "N/A";
+        ttfb = v.ttfb || "N/A";
+      }
+    } catch (err) {
+      console.error("Failed to fetch historical audit from Turso:", err);
     }
   }
 
