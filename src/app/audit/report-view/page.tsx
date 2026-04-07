@@ -55,14 +55,21 @@ export default async function ReportView({ searchParams }: Props) {
         };
         audits = raw.audits || raw || {};
         
-        // Re-hydrate vitals
+        // Re-hydrate vitals and safe structures
         const metricsObj = typeof snapshot.metrics === 'string' ? JSON.parse(snapshot.metrics) : (snapshot.metrics || {});
         const v = audits.debugbear?.vitals || metricsObj || {};
         lcp = v.lcp || "N/A";
         fid = v.fid || v.inp || "N/A";
         cls = v.cls || "N/A";
         ttfb = v.ttfb || "N/A";
+
+        // Sanitize arrays to prevent Map/Slice crashes
+        if (audits.tech && !Array.isArray(audits.tech)) audits.tech = [];
+        if (audits.apify && audits.apify.findings && !Array.isArray(audits.apify.findings)) {
+          audits.apify.findings = [];
+        }
       }
+
     } catch (err) {
       console.error("Failed to fetch historical audit from Turso:", err);
     }
@@ -125,7 +132,8 @@ export default async function ReportView({ searchParams }: Props) {
   }
 
   const date = isHistorical ? historicalDate : new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-  const domain = targetUrl.replace(/https?:\/\//, "").split("/")[0];
+  const safeTargetUrl = String(targetUrl || "unknown-domain.com");
+  const domain = safeTargetUrl.replace(/https?:\/\//, "").split("/")[0];
 
   const sc = (s: number) => s >= 90 ? "#16a34a" : s >= 70 ? "#d97706" : "#dc2626";
   const sb = (s: number) => s >= 90 ? "#f0fdf4" : s >= 70 ? "#fffbeb" : "#fef2f2";
