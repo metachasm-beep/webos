@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -301,6 +302,16 @@ function AuditContent() {
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
+              <Link href="/dashboard">
+                <Button 
+                   size="lg"
+                   className="rounded-full px-10 h-16 bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 font-bold uppercase tracking-widest text-xs transition-all flex items-center gap-3"
+                >
+                   <Activity className="h-4 w-4" />
+                   Neural Workspace
+                </Button>
+              </Link>
+
               <Button 
                 onClick={handleAiSynthesis}
                 disabled={isSummarizing || !auditData}

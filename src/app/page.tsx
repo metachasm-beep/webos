@@ -84,7 +84,7 @@ export default function Home() {
 
   const handleAudit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (url) router.push(`/dashboard?url=${encodeURIComponent(url)}&autoAudit=true`);
+    if (url) router.push(`/audit?url=${encodeURIComponent(url)}`);
   };
 
   const scrollToHero = () => {
