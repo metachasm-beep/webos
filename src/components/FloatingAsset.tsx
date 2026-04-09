@@ -108,18 +108,20 @@ export function FloatingAsset({ id, url, initialPos, initialSize, onUpdate, onDe
 
         {/* Resizing Synthesis: 4-Corner Handles */}
         {[
-          { type: 'tl', class: 'top-0 left-0 cursor-nw-resize' },
-          { type: 'tr', class: 'top-0 right-0 cursor-ne-resize' },
-          { type: 'bl', class: 'bottom-0 left-0 cursor-sw-resize' },
-          { type: 'br', class: 'bottom-0 right-0 cursor-se-resize' }
+          { type: 'tl', class: 'top-[-8px] left-[-8px] cursor-nw-resize' },
+          { type: 'tr', class: 'top-[-8px] right-[-8px] cursor-ne-resize' },
+          { type: 'bl', class: 'bottom-[-8px] left-[-8px] cursor-sw-resize' },
+          { type: 'br', class: 'bottom-[-8px] right-[-8px] cursor-se-resize' }
         ].map((handle) => (
-          <div 
+          <motion.div 
             key={handle.type}
             onMouseDown={(e) => startResize(e, handle.type as any)}
-            className={`absolute w-4 h-4 bg-primary/20 hover:bg-primary border border-primary/50 rounded-full ${handle.class} opacity-0 group-hover:opacity-100 transition-all z-50`}
+            whileHover={{ scale: 1.4 }}
+            whileTap={{ scale: 0.8 }}
+            className={`absolute w-6 h-6 bg-primary border-2 border-white/20 rounded-full shadow-xl ${handle.class} opacity-0 group-hover:opacity-100 transition-opacity z-50 flex items-center justify-center`}
           >
-             <div className="absolute inset-0 scale-50 opacity-20"><Maximize2 className="h-full w-full" /></div>
-          </div>
+             <Maximize2 className="h-3 w-3 text-white" />
+          </motion.div>
         ))}
       </div>
     </motion.div>

@@ -62,7 +62,8 @@ const STEPS = [
   { id: 3, label: "Atmosphere", title: "Visual Style", icon: Palette, description: "Select theme & fonts." },
   { id: 4, label: "Synthesis", title: "Component Labs", icon: Cpu, description: "Generate sections." },
   { id: 5, label: "Matrix", title: "Neural Tuning", icon: Activity, description: "Adjust global properties." },
-  { id: 6, label: "Export", title: "Emission", icon: Download, description: "Review and launch." }
+  { id: 6, label: "Gallery", title: "Hypermedia", icon: ImageIcon, description: "Add resizable workspace assets." },
+  { id: 7, label: "Export", title: "Emission", icon: Download, description: "Review and launch." }
 ];
 
 import {
@@ -453,6 +454,27 @@ export default function BuilderPage() {
     }
   };
 
+  const handleMultiImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const url = event.target?.result as string;
+        setFloatingAssets(prev => [...prev, {
+          id: `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          url: url,
+          x: 100 + Math.random() * 400,
+          y: 100 + Math.random() * 400,
+          w: 300,
+          h: 300
+        }]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleUpdateAsset = (id: string, updates: any) => {
     setFloatingAssets(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
   };
@@ -541,7 +563,7 @@ export default function BuilderPage() {
               <PlasmaWave speed1={0.02} speed2={0.01} bend1={2} bend2={1} />
             </div>
 
-            <div className="p-8 border-b border-white/5 space-y-2 relative z-10 bg-background/40 backdrop-blur-md">
+            <div className="p-4 border-b border-white/5 space-y-2 relative z-10 bg-background/40 backdrop-blur-md">
                <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
                      <FlaskConical className="h-5 w-5 text-primary" />
@@ -555,11 +577,11 @@ export default function BuilderPage() {
                <div className="flex items-center gap-2">
                   <span className="text-[9px] text-muted-foreground/50 font-bold uppercase tracking-widest">Active Step</span>
                   <div className="h-[1px] flex-1 bg-white/5" />
-                  <span className="text-[10px] text-primary font-black italic">{currentStep} / 6</span>
+                  <span className="text-[10px] text-primary font-black italic">{currentStep} / 7</span>
                </div>
             </div>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-8 relative z-10 no-scrollbar">
+          <div className="flex-1 overflow-y-auto p-3 space-y-4 relative z-10 no-scrollbar">
             {/* Neural Assistant Guidance */}
             <StarBorder className="p-4 bg-primary/5 rounded-2xl relative overflow-hidden group">
                <div className="flex gap-4">
@@ -575,7 +597,8 @@ export default function BuilderPage() {
                         {currentStep === 3 && "Atmosphere selection active. Choose a visual language for your emission."}
                         {currentStep === 4 && "Synthesis core online. Generate components or select atomic Site Presets."}
                         {currentStep === 5 && "Neural Matrix tuning active. Adjust the global visual intensity."}
-                        {currentStep === 6 && "Synthesis complete. Review neural integrity and export standalone."}
+                        {currentStep === 6 && "Inject additional brand hypermedia. Assets here are resizable and persistent."}
+                        {currentStep === 7 && "Synthesis complete. Review neural integrity and export standalone."}
                      </p>
                   </div>
                </div>
@@ -855,8 +878,62 @@ export default function BuilderPage() {
                     <ActionTooltip label="Return to Synthesis Labs.">
                       <Button variant="ghost" onClick={() => setCurrentStep(4)} className="h-14 px-6 border border-white/5 rounded-2xl text-[10px] uppercase font-bold tracking-widest"><ChevronLeft className="h-4 w-4 mr-2" /> Back</Button>
                     </ActionTooltip>
-                    <ActionTooltip label="Proceed to Final Review.">
+                    <ActionTooltip label="Manage workspace assets.">
                       <Button onClick={() => setCurrentStep(6)} className="flex-1 h-14 bg-primary text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-lg shadow-primary/20 group">
+                        Hypermedia <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </ActionTooltip>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Step 6: Hypermedia (Gallery) */}
+              {currentStep === 6 && (
+                <motion.div 
+                   key="step6" initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
+                   className="space-y-10 pt-4"
+                >
+                  <div className="space-y-6">
+                     <div className="space-y-4">
+                        <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest px-1">Asset Overflow</label>
+                        <div className="relative group">
+                           <div className="h-32 rounded-3xl border-2 border-dashed border-white/10 group-hover:border-primary/50 transition-all flex flex-col items-center justify-center gap-3 bg-white/5 cursor-pointer overflow-hidden">
+                              <ImageIcon className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                              <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Upload Multiple Assets</span>
+                              <input type="file" multiple onChange={handleMultiImageUpload} className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" />
+                           </div>
+                        </div>
+                     </div>
+
+                     <div className="space-y-3">
+                        <div className="flex justify-between items-center px-1">
+                           <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Manifest ({floatingAssets.length})</label>
+                           {floatingAssets.length > 0 && (
+                              <button onClick={() => setFloatingAssets([])} className="text-[8px] text-red-500 font-bold uppercase tracking-widest hover:underline">Flush All</button>
+                           )}
+                        </div>
+                        <div className="grid grid-cols-4 gap-2 max-h-[240px] overflow-y-auto no-scrollbar pr-1">
+                           {floatingAssets.map((asset) => (
+                              <div key={asset.id} className="aspect-square rounded-xl bg-white/5 border border-white/5 relative group overflow-hidden">
+                                 <img src={asset.url} className="w-full h-full object-cover p-1 opacity-60 group-hover:opacity-100 transition-opacity" />
+                                 <button onClick={() => handleDeleteAsset(asset.id)} className="absolute inset-0 flex items-center justify-center bg-red-500/80 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Trash2 className="h-3 w-3 text-white" />
+                                 </button>
+                              </div>
+                           ))}
+                           <div className="aspect-square rounded-xl border border-dashed border-white/10 flex items-center justify-center bg-white/5 opacity-40">
+                              <Plus className="h-4 w-4" />
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <ActionTooltip label="Return to Neural Tuning.">
+                      <Button variant="ghost" onClick={() => setCurrentStep(5)} className="h-14 px-6 border border-white/5 rounded-2xl text-[10px] uppercase font-bold tracking-widest"><ChevronLeft className="h-4 w-4 mr-2" /> Back</Button>
+                    </ActionTooltip>
+                    <ActionTooltip label="Proceed to Final Review.">
+                      <Button onClick={() => setCurrentStep(7)} className="flex-1 h-14 bg-primary text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-lg shadow-primary/20 group">
                         Final Review <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                       </Button>
                     </ActionTooltip>
@@ -864,8 +941,8 @@ export default function BuilderPage() {
                 </motion.div>
               )}
 
-              {/* Step 6: Completion */}
-              {currentStep === 6 && (
+              {/* Step 7: Completion */}
+              {currentStep === 7 && (
                 <motion.div 
                    key="step6" initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
                    className="space-y-10 pt-4"
@@ -885,8 +962,8 @@ export default function BuilderPage() {
                   </div>
                   
                   <div className="pt-6 border-t border-white/5 space-y-3">
-                    <Button variant="ghost" onClick={() => setCurrentStep(5)} className="w-full h-12 text-[10px] uppercase font-bold tracking-widest gap-2 text-muted-foreground hover:text-white transition-colors">
-                      <CornerUpLeft className="h-4 w-4" /> Go back and re-tune
+                    <Button variant="ghost" onClick={() => setCurrentStep(6)} className="w-full h-12 text-[10px] uppercase font-bold tracking-widest gap-2 text-muted-foreground hover:text-white transition-colors">
+                      <CornerUpLeft className="h-4 w-4" /> Go back to Assets
                     </Button>
                     <Button variant="destructive" onClick={handleFlushCanvas} className="w-full bg-red-500/10 text-red-500 border-none h-12 uppercase font-bold tracking-widest text-[9px] rounded-xl hover:bg-red-500/20">
                       Flush Synthesis Core
@@ -897,7 +974,7 @@ export default function BuilderPage() {
             </AnimatePresence>
           </div>
 
-          <div className="p-6 border-t border-white/5 relative z-10 bg-background/40 backdrop-blur-md">
+          <div className="p-4 border-t border-white/5 relative z-10 bg-background/40 backdrop-blur-md">
              <ActionTooltip label="Exit Synthesis and return to the Command Dashboard.">
                 <Link href="/dashboard" className="w-full h-12 glass border border-white/10 flex items-center justify-center gap-3 rounded-2xl text-[10px] uppercase font-black tracking-[0.2em] text-muted-foreground hover:text-primary hover:border-primary/30 transition-all">
                    <ChevronLeft className="h-4 w-4" /> Return to Command
