@@ -154,6 +154,8 @@ export default function BuilderPage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
   const [isMounted, setIsMounted] = useState(false);
@@ -356,14 +358,16 @@ export default function BuilderPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     const uploadId = projectId || `temp-${Date.now()}`;
-    setIsUploading(true);
+    setIsUploadingLogo(true);
     try {
+      console.log("Neural Logo Upload Initialized:", file.name);
       const url = await uploadBrandAsset(file, `${uploadId}/logo-${Date.now()}`);
+      console.log("Neural Asset Synced:", url);
       setLogoUrl(url);
     } catch (err) {
-      console.error("Logo Upload Failure.");
+      console.error("Logo Upload Failure.", err);
     } finally {
-      setIsUploading(false);
+      setIsUploadingLogo(false);
     }
   };
 
@@ -371,14 +375,16 @@ export default function BuilderPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     const uploadId = projectId || `temp-${Date.now()}`;
-    setIsUploading(true);
+    setIsUploadingFavicon(true);
     try {
+      console.log("Neural Favicon Upload Initialized:", file.name);
       const url = await uploadBrandAsset(file, `${uploadId}/favicon-${Date.now()}`);
+      console.log("Neural Asset Synced:", url);
       setFaviconUrl(url);
     } catch (err) {
-      console.error("Favicon Upload Failure.");
+      console.error("Favicon Upload Failure.", err);
     } finally {
-      setIsUploading(false);
+      setIsUploadingFavicon(false);
     }
   };
 
@@ -502,9 +508,10 @@ export default function BuilderPage() {
   if (!isMounted) return null;
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden relative font-body selection:bg-primary/20">
+    <div className="min-h-screen bg-background flex flex-col font-body selection:bg-primary/30 text-foreground overflow-hidden">
       <Navbar />
-      <div className="fixed inset-0 z-0">
+
+      <div className="flex-1 flex pt-24 min-h-0 overflow-hidden">
         <Squares 
           direction="diagonal"
           speed={0.5}
@@ -617,15 +624,33 @@ export default function BuilderPage() {
                     <div className="space-y-3">
                        <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Logo Identity</label>
                        <div className="h-32 w-full rounded-2xl bg-white/5 border border-white/5 p-4 flex items-center justify-center relative overflow-hidden group hover:border-primary/30 transition-all">
-                          {logoUrl ? <img src={logoUrl} className="max-h-full max-w-full object-contain" /> : <div className="flex flex-col items-center gap-2 opacity-30"><Plus className="h-6 w-6" /><span className="text-[8px] uppercase font-bold tracking-widest">Sync Logo</span></div>}
-                          <input type="file" onChange={handleLogoUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
+                          {isUploadingLogo ? (
+                             <div className="flex flex-col items-center gap-2 animate-pulse">
+                                <RefreshCcw className="h-6 w-6 text-primary animate-spin" />
+                                <span className="text-[8px] uppercase font-bold tracking-[0.2em] text-primary">Synthesizing Asset...</span>
+                             </div>
+                          ) : logoUrl ? (
+                             <img src={logoUrl} className="max-h-full max-w-full object-contain" />
+                          ) : (
+                             <div className="flex flex-col items-center gap-2 opacity-30 group-hover:opacity-100 transition-opacity">
+                                <Plus className="h-6 w-6" />
+                                <span className="text-[8px] uppercase font-bold tracking-widest">Sync Logo</span>
+                             </div>
+                          )}
+                          <input type="file" onChange={handleLogoUpload} className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed" disabled={isUploadingLogo} />
                        </div>
                     </div>
                     <div className="space-y-3">
                        <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Favicon Asset</label>
                        <div className="h-20 w-20 rounded-2xl bg-white/5 border border-white/5 p-4 flex items-center justify-center relative overflow-hidden group hover:border-primary/30 transition-all">
-                          {faviconUrl ? <img src={faviconUrl} className="w-full h-full object-contain" /> : <ImageIcon className="h-6 w-6 opacity-30" />}
-                          <input type="file" onChange={handleFaviconUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
+                          {isUploadingFavicon ? (
+                             <RefreshCcw className="h-4 w-4 text-primary animate-spin" />
+                          ) : faviconUrl ? (
+                             <img src={faviconUrl} className="w-full h-full object-contain" />
+                          ) : (
+                             <ImageIcon className="h-6 w-6 opacity-30 group-hover:opacity-100 transition-opacity" />
+                          )}
+                          <input type="file" onChange={handleFaviconUpload} className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed" disabled={isUploadingFavicon} />
                        </div>
                     </div>
                   </div>

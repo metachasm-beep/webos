@@ -58,7 +58,7 @@ export function HeroNode({ node, onContentChange }: NodeProps) {
           />
         </div>
       )}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/10 via-transparent to-transparent" />
       {isNeon && (
         <div 
           className="absolute -top-40 -left-40 w-96 h-96 blur-[120px] rounded-full opacity-20"
@@ -76,7 +76,7 @@ export function HeroNode({ node, onContentChange }: NodeProps) {
           contentEditable 
           suppressContentEditableWarning
           onBlur={(e) => onContentChange?.({ heading: e.currentTarget.innerText })}
-          className="text-6xl md:text-7xl font-heading font-bold italic tracking-tighter leading-[0.9] text-white outline-none hover:text-primary transition-colors focus:text-primary cursor-text"
+          className="text-6xl md:text-7xl font-heading font-bold italic tracking-tighter leading-[0.9] text-foreground outline-none hover:text-[var(--primary)] transition-colors focus:text-[var(--primary)] cursor-text"
         >
           {node.heading}
         </div>
@@ -110,7 +110,7 @@ export function HeroNode({ node, onContentChange }: NodeProps) {
 export function FeatureNode({ node }: NodeProps) {
   return (
     <div className="antigravity-glass antigravity-float rounded-[32px] p-10 space-y-4 border border-white/5 hover:border-primary/20 transition-all">
-      <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+      <div className="h-12 w-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
          <Sparkles className="h-6 w-6" />
       </div>
       <h3 className="text-2xl font-heading font-bold italic tracking-tight">{node.title}</h3>
@@ -127,7 +127,7 @@ export function FeaturesNode({ node, onContentChange }: NodeProps) {
           contentEditable 
           suppressContentEditableWarning
           onBlur={(e) => onContentChange?.({ heading: e.currentTarget.innerText })}
-          className="text-4xl font-heading font-bold italic tracking-tight outline-none focus:text-primary transition-colors cursor-text"
+          className="text-4xl font-heading font-bold italic tracking-tight outline-none focus:text-[var(--primary)] transition-colors cursor-text"
         >
           {node.heading}
         </h2>
@@ -144,7 +144,7 @@ export function FeaturesNode({ node, onContentChange }: NodeProps) {
       <div className="grid md:grid-cols-3 gap-6">
         {[1, 2, 3].map((i) => (
           <div key={i} className="glass-dark p-8 rounded-3xl space-y-4 group hover:border-primary/30 transition-all">
-            <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+            <div className="h-12 w-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
               <Zap className="h-6 w-6" />
             </div>
             <h4 className="text-xl font-bold italic font-heading">Feature 0{i}</h4>
@@ -219,7 +219,7 @@ export function CTANode({ node, onContentChange }: NodeProps) {
           contentEditable 
           suppressContentEditableWarning
           onBlur={(e) => onContentChange?.({ heading: e.currentTarget.innerText })}
-          className="text-6xl md:text-8xl font-heading font-bold italic tracking-tighter leading-[0.9] text-white outline-none hover:text-primary transition-colors focus:text-primary cursor-text"
+          className="text-6xl md:text-8xl font-heading font-bold italic tracking-tighter leading-[0.9] text-foreground outline-none hover:text-[var(--primary)] transition-colors focus:text-[var(--primary)] cursor-text"
         >
           {node.heading || "Revolutionize Your Workflow"}
         </div>
@@ -303,7 +303,7 @@ export function ServiceGridNode({ node, onContentChange }: NodeProps) {
           contentEditable 
           suppressContentEditableWarning
           onBlur={(e) => onContentChange?.({ heading: e.currentTarget.innerText })}
-          className="text-4xl font-heading font-bold italic tracking-tight outline-none focus:text-primary transition-colors cursor-text"
+          className="text-4xl font-heading font-bold italic tracking-tight outline-none focus:text-[var(--primary)] transition-colors cursor-text"
         >
           {node.heading || "High-Performance Services"}
         </h2>
@@ -425,7 +425,7 @@ export function RenderNode({ node, idx, onContentChange }: { node: any, idx: num
   
   return (
     <div className="glass-card p-12 text-center italic text-muted-foreground flex flex-col items-center gap-4">
-      <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+      <div className="h-2 w-2 rounded-full bg-[var(--primary)] animate-pulse" />
       <span className="text-[10px] uppercase font-bold tracking-widest">Synthesizing {node.type || 'Component'}...</span>
       <p className="text-[8px] opacity-50 not-italic">If this takes too long, try refreshing the generator.</p>
     </div>
