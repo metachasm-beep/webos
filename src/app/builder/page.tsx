@@ -80,7 +80,6 @@ import {
 } from '@dnd-kit/sortable';
 import { SortableNode } from "@/components/SortableNode";
 import { AriaCoPilot } from "@/components/AriaCoPilot";
-import { uploadBrandAsset } from "@/lib/storage";
 import { NeuralInsightHUD } from "@/components/NeuralScoreBadge";
 import { FloatingAsset } from "@/components/FloatingAsset";
 import { useAriaAutonomy } from "@/hooks/useAriaAutonomy";
@@ -161,7 +160,6 @@ export default function BuilderPage() {
   const [faviconStatus, setFaviconStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [logoError, setLogoError] = useState<string | null>(null);
   const [faviconError, setFaviconError] = useState<string | null>(null);
-  const [useLocalSynthesis, setUseLocalSynthesis] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
   const [isMounted, setIsMounted] = useState(false);
@@ -364,32 +362,15 @@ export default function BuilderPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Fallback path
-    if (useLocalSynthesis) {
+    setLogoStatus('uploading');
+    try {
       const localUrl = URL.createObjectURL(file);
       setLogoUrl(localUrl);
       setLogoStatus('success');
       setTimeout(() => setLogoStatus('idle'), 3000);
-      return;
-    }
-
-    const uploadId = projectId || `temp-${Date.now()}`;
-    const flatPath = `logo-${uploadId}-${Date.now()}`;
-    setLogoStatus('uploading');
-    setLogoError(null);
-    setIsUploadingLogo(true);
-    try {
-      console.log("Neural Logo Upload Initialized:", file.name, "Path:", flatPath);
-      const url = await uploadBrandAsset(file, flatPath);
-      console.log("Neural Asset Synced:", url);
-      setLogoUrl(url);
-      setLogoStatus('success');
     } catch (err: any) {
-      console.error("Logo Upload Failure.", err);
       setLogoStatus('error');
-      setLogoError(err.message || "Synthesis Protocol Error");
-    } finally {
-      setIsUploadingLogo(false);
+      setLogoError("Synthesis Collision");
     }
   };
 
@@ -397,32 +378,14 @@ export default function BuilderPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Fallback path
-    if (useLocalSynthesis) {
+    setFaviconStatus('uploading');
+    try {
       const localUrl = URL.createObjectURL(file);
       setFaviconUrl(localUrl);
       setFaviconStatus('success');
       setTimeout(() => setFaviconStatus('idle'), 3000);
-      return;
-    }
-
-    const uploadId = projectId || `temp-${Date.now()}`;
-    const flatPath = `favicon-${uploadId}-${Date.now()}`;
-    setFaviconStatus('uploading');
-    setFaviconError(null);
-    setIsUploadingFavicon(true);
-    try {
-      console.log("Neural Favicon Upload Initialized:", file.name, "Path:", flatPath);
-      const url = await uploadBrandAsset(file, flatPath);
-      console.log("Neural Asset Synced:", url);
-      setFaviconUrl(url);
-      setFaviconStatus('success');
     } catch (err: any) {
-      console.error("Favicon Upload Failure.", err);
       setFaviconStatus('error');
-      setFaviconError(err.message || "Synthesis Protocol Error");
-    } finally {
-      setIsUploadingFavicon(false);
     }
   };
 
@@ -658,18 +621,8 @@ export default function BuilderPage() {
                    key="step2" initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
                    className="space-y-8 pt-4"
                 >
-                    <div className="space-y-6">
-                       <div className="flex items-center justify-between px-1">
-                          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Synthesis Mode</label>
-                          <div 
-                            onClick={() => setUseLocalSynthesis(!useLocalSynthesis)}
-                            className={`flex items-center gap-2 cursor-pointer px-2 py-1 rounded-full border transition-all ${useLocalSynthesis ? 'bg-primary/20 border-primary/40 text-primary' : 'bg-white/5 border-white/5 text-muted-foreground hover:border-white/20'}`}
-                          >
-                             <div className={`h-2 w-2 rounded-full ${useLocalSynthesis ? 'bg-primary animate-pulse' : 'bg-white/20'}`} />
-                             <span className="text-[8px] font-black uppercase tracking-widest">{useLocalSynthesis ? 'Local Drift' : 'Neural Persistent'}</span>
-                          </div>
-                       </div>
-                       <div className="space-y-3">
+                     <div className="space-y-6">
+                        <div className="space-y-3">
                           <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Logo Identity</label>
                           <ActionTooltip label={logoStatus === 'error' ? `Error: ${logoError}` : "Sync your brand's core visual DNA. Selection will appear instantly."}>
                             <div className={`h-44 w-full rounded-2xl bg-white/5 border p-4 flex items-center justify-center relative overflow-hidden group transition-all cursor-pointer ${logoStatus === 'error' ? 'border-red-500/50 bg-red-500/5' : logoStatus === 'success' ? 'border-green-500/50 bg-green-500/5' : 'border-white/5 hover:border-primary/40'}`}>
@@ -1030,125 +983,110 @@ export default function BuilderPage() {
                ))}
 
                 <div className="max-w-5xl mx-auto">
-                  <div className="flex justify-center mb-8">
-                    <div className="glass px-8 py-3 rounded-full border border-white/5 flex items-center gap-4 shadow-2xl">
-                       <div className="flex items-center gap-2">
-                          <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40 italic">Active Neural Core</span>
-                       </div>
-                       <div className="h-4 w-[1px] bg-white/10" />
-                       <div className="text-[10px] font-bold uppercase tracking-widest text-primary truncate max-w-[200px]">{projectName}</div>
-                    </div>
-                 </div>
+                   <motion.div drag dragMomentum={false} className="flex justify-center mb-8 relative z-50 cursor-move">
+                     <div className="glass px-8 py-3 rounded-full border border-white/5 flex items-center gap-4 shadow-2xl">
+                        <div className="flex items-center gap-2">
+                           <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                           <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40 italic">Active Neural Core</span>
+                        </div>
+                        <div className="h-4 w-[1px] bg-white/10" />
+                        <div className="text-[10px] font-bold uppercase tracking-widest text-primary truncate max-w-[200px]">{projectName}</div>
+                     </div>
+                   </motion.div>
 
                  <div className="space-y-12 pb-64">
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                       <SortableContext items={nodes.map(n => n.id)} strategy={verticalListSortingStrategy}>
                         <AnimatePresence mode="popLayout">
                           {nodes.length === 0 ? (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card min-h-[600px] flex flex-col items-center justify-center text-center p-12 space-y-8 border border-dashed border-white/10 relative overflow-hidden group">
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card min-h-[700px] flex flex-col items-center justify-center text-center p-12 space-y-8 border border-dashed border-white/10 relative overflow-hidden group">
                                 <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                                 
-                                <div className="relative h-64 w-64 flex items-center justify-center">
-                                   {/* Dynamic Step Visualization */}
-                                   <div className="absolute inset-0 bg-primary/5 rounded-full blur-[100px] animate-pulse" />
+                                <div className="relative h-96 w-96 flex items-center justify-center">
+                                   <div className="absolute inset-x-0 bottom-0 top-0 bg-primary/5 rounded-full blur-[120px] animate-pulse pointer-events-none" />
                                    
-                                   {currentStep === 1 && (
-                                     <div className="relative z-10 flex flex-col items-center gap-6">
-                                        <div className="h-32 w-32 rounded-3xl border border-primary/40 bg-primary/10 flex items-center justify-center animate-pulse">
-                                           <Target className="h-16 w-16 text-primary" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <h3 className="text-2xl font-heading font-black italic tracking-tight text-white/90">{projectName || "Manifold Initialization"}</h3>
-                                            <p className="text-[10px] text-primary/60 font-mono tracking-widest uppercase">{projectName ? "Project Context Synced" : "Awaiting Project Parameters"}</p>
-                                         </div>
-                                     </div>
-                                   )}
+                                   <AnimatePresence>
+                                     {/* Cumulative Draggable Units */}
+                                     <motion.div 
+                                       drag dragMomentum={false} 
+                                       initial={{ opacity: 0, scale: 0.8 }} 
+                                       animate={{ opacity: 1, scale: 1 }} 
+                                       className="absolute z-20 cursor-move"
+                                     >
+                                         {(logoUrl || currentStep >= 2) ? (
+                                            <div className="relative h-44 w-44 flex items-center justify-center">
+                                               <div className="absolute inset-0 border border-primary/20 border-t-primary rounded-full animate-spin [animation-duration:3s]" />
+                                               <div className="absolute inset-4 border border-primary/10 border-b-primary/50 rounded-full animate-spin [animation-direction:reverse] [animation-duration:5s]" />
+                                               {logoStatus === 'error' ? (
+                                                  <AlertCircle className="h-12 w-12 text-red-500 animate-pulse" />
+                                               ) : logoUrl ? (
+                                                  <img src={logoUrl} className="h-24 w-24 object-contain relative z-10" />
+                                               ) : (
+                                                  <Sparkles className="h-12 w-12 text-primary/40 animate-pulse" />
+                                               )}
+                                            </div>
+                                         ) : (
+                                            <div className="h-40 w-40 rounded-3xl border border-primary/40 bg-primary/10 flex items-center justify-center animate-pulse">
+                                               <Target className="h-20 w-20 text-primary" />
+                                            </div>
+                                         )}
+                                     </motion.div>
 
-                                   {currentStep === 2 && (
-                                     <div className="relative z-10 flex flex-col items-center gap-6">
-                                        <div className="relative h-40 w-40 flex items-center justify-center">
-                                           <div className={`absolute inset-0 border-2 border-primary/20 border-t-primary rounded-full animate-spin [animation-duration:3s] ${(logoStatus === 'uploading' || faviconStatus === 'uploading') ? 'border-primary opacity-100' : (logoStatus === 'error' || faviconStatus === 'error') ? 'border-red-500 opacity-60' : 'opacity-40'}`} />
-                                           <div className={`absolute inset-4 border border-primary/10 border-b-primary/50 rounded-full animate-spin [animation-direction:reverse] [animation-duration:5s] ${(logoStatus === 'uploading' || faviconStatus === 'uploading') ? 'opacity-100' : (logoStatus === 'error' || faviconStatus === 'error') ? 'opacity-20' : 'opacity-40'}`} />
-                                           
-                                           {logoStatus === 'error' || faviconStatus === 'error' ? (
-                                              <AlertCircle className="h-12 w-12 text-red-500 animate-pulse" />
-                                           ) : logoUrl ? (
-                                              <img src={logoUrl} className="h-20 w-20 object-contain relative z-10" />
-                                           ) : (
-                                              <Sparkles className={`h-12 w-12 text-primary ${(logoStatus === 'uploading' || faviconStatus === 'uploading') ? 'animate-pulse opacity-100' : 'opacity-30'}`} />
-                                           )}
-                                        </div>
-                                        <div className="space-y-2">
-                                           <h3 className={`text-2xl font-heading font-black italic tracking-tight ${logoStatus === 'error' ? 'text-red-400' : 'text-white/90'}`}>
-                                              {logoStatus === 'error' ? "Synthesis Collision" : "Identity Synthesis"}
-                                           </h3>
-                                           <p className={`text-[10px] font-mono tracking-widest uppercase ${logoStatus === 'error' ? 'text-red-500/60' : 'text-primary/60'}`}>
-                                              {logoStatus === 'uploading' ? "Processing DNA..." : 
-                                               logoStatus === 'error' ? (logoError || "Protocol Failed") :
-                                               logoUrl ? "DNA Synchronized" : "Awaiting Asset Injection"}
-                                           </p>
-                                           {logoStatus === 'error' && (
-                                              <div className="pt-2 flex flex-col items-center gap-2">
-                                                 <Link 
-                                                   href="#supabase-guide" 
-                                                   onClick={(e) => {
-                                                      e.preventDefault();
-                                                      alert("Check your Supabase Dashboard: \n1. Go to Settings -> API\n2. Add http://localhost:3000 to 'Allowed Search Origins'\n3. Ensure 'branding' bucket is Public.");
-                                                   }}
-                                                   className="text-[8px] text-primary font-black uppercase tracking-widest hover:underline flex items-center gap-1"
-                                                 >
-                                                    Fix Connection <ChevronRight className="h-2 w-2" />
-                                                 </Link>
-                                                 <button 
-                                                   onClick={() => {
-                                                      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-                                                      console.log("NEURAL TRACE:", url);
-                                                      alert(`TRACE LOGGED TO CONSOLE.\nEndpoint: ${url?.substring(0, 20)}...`);
-                                                   }}
-                                                   className="text-[8px] text-white/30 hover:text-white/60 font-black uppercase tracking-widest flex items-center gap-1 transition-colors"
-                                                 >
-                                                    Neural Trace <RefreshCcw className="h-2 w-2" />
-                                                 </button>
+                                     {(activeThemeId || activePairingId) && (
+                                        <motion.div 
+                                          drag dragMomentum={false} 
+                                          initial={{ opacity: 0, x: 200 }} 
+                                          animate={{ opacity: 1, x: 240 }} 
+                                          className="absolute z-30 cursor-move"
+                                        >
+                                           <div className="relative flex flex-col items-center gap-6">
+                                              <div className="grid grid-cols-2 gap-2 p-4 h-40 w-40 glass rounded-[2.5rem] relative overflow-hidden border border-white/10 shadow-2xl">
+                                                 <div className="rounded-2xl animate-pulse" style={{ backgroundColor: (PRESET_THEMES as any)[activeThemeId]?.primary || '#ccc' }} />
+                                                 <div className="rounded-2xl [animation-delay:0.2s] animate-pulse" style={{ backgroundColor: (PRESET_THEMES as any)[activeThemeId]?.accent || '#888' }} />
+                                                 <div className="bg-white/10 rounded-2xl [animation-delay:0.4s] animate-pulse" />
+                                                 <div className="rounded-2xl [animation-delay:0.6s] animate-pulse opacity-50" style={{ backgroundColor: (PRESET_THEMES as any)[activeThemeId]?.primary || '#ccc' }} />
                                               </div>
-                                           )}
-                                        </div>
-                                     </div>
-                                   )}
+                                              <div className="glass px-4 py-2 rounded-full border border-white/10 shadow-2xl backdrop-blur-md">
+                                                 <p className="text-[9px] text-primary font-mono tracking-widest uppercase">
+                                                    {(PRESET_THEMES as any)[activeThemeId]?.label || 'Standard'} + {(TYPOGRAPHY_PAIRINGS as any)[activePairingId]?.label || 'Default'}
+                                                 </p>
+                                              </div>
+                                           </div>
+                                        </motion.div>
+                                     )}
 
-                                   {currentStep === 3 && (
-                                      <div className="relative z-10 flex flex-col items-center gap-6">
-                                         <div className="grid grid-cols-2 gap-2 p-4 h-40 w-40 glass rounded-[2.5rem] relative overflow-hidden">
-                                            <div className="rounded-2xl animate-pulse" style={{ backgroundColor: PRESET_THEMES[activeThemeId].primary }} />
-                                            <div className="rounded-2xl [animation-delay:0.2s] animate-pulse" style={{ backgroundColor: PRESET_THEMES[activeThemeId].accent }} />
-                                            <div className="bg-white/10 rounded-2xl [animation-delay:0.4s] animate-pulse" />
-                                            <div className="rounded-2xl [animation-delay:0.6s] animate-pulse opacity-50" style={{ backgroundColor: PRESET_THEMES[activeThemeId].primary }} />
-                                         </div>
-                                         <div className="space-y-2">
-                                            <h3 className="text-2xl font-heading font-black italic tracking-tight text-white/90">Atmosphere Infusion</h3>
-                                            <p className="text-[10px] text-primary/60 font-mono tracking-widest uppercase">
-                                               {(PRESET_THEMES as any)[activeThemeId]?.label} + {(TYPOGRAPHY_PAIRINGS as any)[activePairingId]?.label}
-                                            </p>
-                                         </div>
-                                      </div>
-                                    )}
-
-                                   {currentStep >= 4 && (
-                                     <div className="relative z-10 flex flex-col items-center gap-6">
-                                        <div className="h-32 w-32 rounded-[2.5rem] bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-2xl relative z-10">
-                                           <Cpu className="h-12 w-12 animate-pulse" />
-                                        </div>
-                                        <div className="space-y-2">
-                                           <h3 className="text-2xl font-heading font-black italic tracking-tight text-white/90">Awaiting Synthesis Sequence</h3>
-                                           <p className="text-xs text-muted-foreground/60 max-w-sm mx-auto leading-relaxed italic">The neural manifold is receptive. Advance to Step 4 to begin component emission.</p>
-                                        </div>
-                                        <ActionTooltip label="Trigger the generator or select a preset to begin.">
-                                          <Button onClick={() => setCurrentStep(4)} variant="outline" className="h-12 px-8 border-primary/30 text-primary font-bold uppercase tracking-widest text-[9px] rounded-full hover:bg-primary/20 relative z-10 transition-all">
-                                             Activate Component Engine
-                                          </Button>
-                                        </ActionTooltip>
-                                     </div>
-                                   )}
+                                     {projectName && (
+                                        <motion.div 
+                                          drag dragMomentum={false} 
+                                          initial={{ opacity: 0, y: -220 }} 
+                                          animate={{ opacity: 1, y: -160 }} 
+                                          className="absolute z-40 cursor-move"
+                                        >
+                                           <div className="glass px-6 py-3 rounded-2xl border border-primary/30 shadow-2xl backdrop-blur-md">
+                                              <h3 className="text-xl font-heading font-black italic tracking-tight text-primary uppercase">{projectName}</h3>
+                                              <p className="text-[8px] text-white/40 font-mono tracking-widest uppercase text-center mt-1">Project Foundation Synced</p>
+                                           </div>
+                                        </motion.div>
+                                     )}
+                                     
+                                     {currentStep >= 4 && (
+                                        <motion.div 
+                                          drag dragMomentum={false} 
+                                          initial={{ opacity: 0, y: 220 }} 
+                                          animate={{ opacity: 1, y: 200 }} 
+                                          className="absolute z-50 cursor-move"
+                                        >
+                                           <div className="flex flex-col items-center gap-4">
+                                              <div className="h-24 w-24 rounded-3xl bg-primary/20 flex items-center justify-center text-primary border border-primary/20 shadow-2xl backdrop-blur-md">
+                                                 <Cpu className="h-10 w-10 animate-pulse" />
+                                              </div>
+                                              <Button onClick={() => setCurrentStep(4)} variant="outline" className="h-10 px-6 border-primary/30 text-primary font-bold uppercase tracking-widest text-[8px] rounded-full hover:bg-primary/20 transition-all opacity-60 hover:opacity-100">
+                                                 Activate Synthesis
+                                              </Button>
+                                           </div>
+                                        </motion.div>
+                                     )}
+                                   </AnimatePresence>
                                 </div>
                             </motion.div>
                           ) : (
