@@ -1072,7 +1072,7 @@ export default function BuilderPage() {
                                          <div className="space-y-2">
                                             <h3 className="text-2xl font-heading font-black italic tracking-tight text-white/90">Atmosphere Infusion</h3>
                                             <p className="text-[10px] text-primary/60 font-mono tracking-widest uppercase">
-                                               {PRESET_THEMES[activeThemeId].label} + {TYPOGRAPHY_PAIRINGS[activePairingId].label}
+                                               {(PRESET_THEMES as any)[activeThemeId]?.label} + {(TYPOGRAPHY_PAIRINGS as any)[activePairingId]?.label}
                                             </p>
                                          </div>
                                       </div>
