@@ -53,6 +53,8 @@ import {
 } from "@/components/ui/tooltip";
 
 import { RenderNode } from "@/components/BuilderComponents";
+import { WorkspaceAsset } from "@/components/WorkspaceAsset";
+import { BuilderNodeControls } from "@/components/BuilderNodeControls";
 
 const STEPS = [
   { id: 1, label: "Context", title: "Core Synthesis", icon: Target, description: "Define your project parameters." },
@@ -161,6 +163,8 @@ export default function BuilderPage() {
   const [logoError, setLogoError] = useState<string | null>(null);
   const [faviconError, setFaviconError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [activeOptionsId, setActiveOptionsId] = useState<string | null>(null);
+  const [activeSettingsNode, setActiveSettingsNode] = useState<number | null>(null);
 
   const [isMounted, setIsMounted] = useState(false);
   const [floatingAssets, setFloatingAssets] = useState<any[]>([]);
@@ -664,7 +668,7 @@ export default function BuilderPage() {
                        </div>
 
                        <div className="space-y-3">
-                          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Favicon Asset</label>
+                          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Favicon Asset (Browser Icon - 16x16)</label>
                           <ActionTooltip label={faviconStatus === 'error' ? `Error: ${faviconError}` : "Specify the browser tab iconography for this synthesis."}>
                             <div className={`h-24 w-24 rounded-2xl bg-white/5 border flex items-center justify-center relative overflow-hidden group transition-all cursor-pointer ${faviconStatus === 'error' ? 'border-red-500/50 bg-red-500/5' : faviconStatus === 'success' ? 'border-green-500/50 bg-green-500/5' : 'border-white/5 hover:border-primary/40'}`}>
                                {faviconStatus === 'uploading' ? (
@@ -981,18 +985,6 @@ export default function BuilderPage() {
                     onDelete={handleDeleteAsset}
                   />
                ))}
-
-                <div className="max-w-5xl mx-auto">
-                   <motion.div drag dragMomentum={false} className="flex justify-center mb-8 relative z-50 cursor-move">
-                     <div className="glass px-8 py-3 rounded-full border border-white/5 flex items-center gap-4 shadow-2xl">
-                        <div className="flex items-center gap-2">
-                           <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                           <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40 italic">Active Neural Core</span>
-                        </div>
-                        <div className="h-4 w-[1px] bg-white/10" />
-                        <div className="text-[10px] font-bold uppercase tracking-widest text-primary truncate max-w-[200px]">{projectName}</div>
-                     </div>
-                   </motion.div>
                      <div className="space-y-12 pb-64 relative">
                         {/* Persistent Neural Substrate (Always Visible) */}
                         <div className="flex justify-center items-center pointer-events-none mb-12">
@@ -1001,66 +993,73 @@ export default function BuilderPage() {
                               
                               <AnimatePresence>
                                 {/* Cumulative Draggable Units */}
-                                <motion.div 
-                                  drag dragMomentum={false} 
-                                  initial={{ opacity: 0, scale: 0.8 }} 
-                                  animate={{ opacity: 1, scale: 1 }} 
-                                  className="absolute z-20 cursor-move"
+                                <WorkspaceAsset 
+                                  id="asset-logo"
+                                  isActive={activeOptionsId === 'asset-logo'}
+                                  onToggle={() => setActiveOptionsId(activeOptionsId === 'asset-logo' ? null : 'asset-logo')}
+                                  onDelete={() => { setLogoUrl(null); setLogoStatus('idle'); }}
+                                  className="z-20"
                                 >
-                                    {(logoUrl || currentStep >= 2) ? (
-                                       <div className="relative h-44 w-44 flex items-center justify-center">
-                                          <div className="absolute inset-0 border border-primary/20 border-t-primary rounded-full animate-spin [animation-duration:3s]" />
-                                          <div className="absolute inset-4 border border-primary/10 border-b-primary/50 rounded-full animate-spin [animation-direction:reverse] [animation-duration:5s]" />
-                                          {logoStatus === 'error' ? (
-                                             <AlertCircle className="h-12 w-12 text-red-500 animate-pulse" />
-                                          ) : logoUrl ? (
-                                             <img src={logoUrl} className="h-24 w-24 object-contain relative z-10" />
-                                          ) : (
-                                             <Sparkles className="h-12 w-12 text-primary/40 animate-pulse" />
-                                          )}
-                                       </div>
-                                    ) : (
-                                       <div className="h-40 w-40 rounded-3xl border border-primary/40 bg-primary/10 flex items-center justify-center animate-pulse">
-                                          <Target className="h-20 w-20 text-primary" />
-                                       </div>
-                                    )}
-                                </motion.div>
+                                     {(logoUrl || currentStep >= 2) ? (
+                                        <div className="relative h-44 w-44 flex items-center justify-center">
+                                           <div className="absolute inset-0 border border-primary/20 border-t-primary rounded-full animate-spin [animation-duration:3s]" />
+                                           <div className="absolute inset-4 border border-primary/10 border-b-primary/50 rounded-full animate-spin [animation-direction:reverse] [animation-duration:5s]" />
+                                           {logoStatus === 'error' ? (
+                                              <AlertCircle className="h-12 w-12 text-red-500 animate-pulse" />
+                                           ) : logoUrl ? (
+                                              <img src={logoUrl} className="h-24 w-24 object-contain relative z-10" />
+                                           ) : (
+                                              <Sparkles className="h-12 w-12 text-primary/40 animate-pulse" />
+                                           )}
+                                        </div>
+                                     ) : (
+                                        <div className="h-40 w-40 rounded-3xl border border-primary/40 bg-primary/10 flex items-center justify-center animate-pulse">
+                                           <Target className="h-20 w-20 text-primary" />
+                                        </div>
+                                     )}
+                                </WorkspaceAsset>
 
                                 {(activeThemeId || activePairingId) && (
-                                   <motion.div 
-                                     drag dragMomentum={false} 
-                                     initial={{ opacity: 0, x: 200 }} 
-                                     animate={{ opacity: 1, x: 240 }} 
-                                     className="absolute z-30 cursor-move"
+                                   <WorkspaceAsset 
+                                     id="asset-theme"
+                                     isActive={activeOptionsId === 'asset-theme'}
+                                     onToggle={() => setActiveOptionsId(activeOptionsId === 'asset-theme' ? null : 'asset-theme')}
+                                     onDelete={() => { setActiveThemeId('sapphire'); setActivePairingId('modern'); }}
+                                     className="z-30"
                                    >
-                                      <div className="relative flex flex-col items-center gap-6">
-                                         <div className="grid grid-cols-2 gap-2 p-4 h-40 w-40 glass rounded-[2.5rem] relative overflow-hidden border border-white/10 shadow-2xl">
-                                            <div className="rounded-2xl animate-pulse" style={{ backgroundColor: (PRESET_THEMES as any)[activeThemeId]?.primary || '#ccc' }} />
-                                            <div className="rounded-2xl [animation-delay:0.2s] animate-pulse" style={{ backgroundColor: (PRESET_THEMES as any)[activeThemeId]?.accent || '#888' }} />
-                                            <div className="bg-white/10 rounded-2xl [animation-delay:0.4s] animate-pulse" />
-                                            <div className="rounded-2xl [animation-delay:0.6s] animate-pulse opacity-50" style={{ backgroundColor: (PRESET_THEMES as any)[activeThemeId]?.primary || '#ccc' }} />
+                                      <motion.div initial={{ x: 200 }} animate={{ x: 240 }}>
+                                         <div className="relative flex flex-col items-center gap-6">
+                                            <div className="grid grid-cols-2 gap-2 p-4 h-40 w-40 glass rounded-[2.5rem] relative overflow-hidden border border-white/10 shadow-2xl">
+                                               <div className="rounded-2xl animate-pulse" style={{ backgroundColor: (PRESET_THEMES as any)[activeThemeId]?.primary || '#ccc' }} />
+                                               <div className="rounded-2xl [animation-delay:0.2s] animate-pulse" style={{ backgroundColor: (PRESET_THEMES as any)[activeThemeId]?.accent || '#888' }} />
+                                               <div className="bg-white/10 rounded-2xl [animation-delay:0.4s] animate-pulse" />
+                                               <div className="rounded-2xl [animation-delay:0.6s] animate-pulse opacity-50" style={{ backgroundColor: (PRESET_THEMES as any)[activeThemeId]?.primary || '#ccc' }} />
+                                            </div>
+                                            <div className="glass px-4 py-2 rounded-full border border-white/10 shadow-2xl backdrop-blur-md">
+                                               <p className="text-[9px] text-primary font-mono tracking-widest uppercase">
+                                                  {(PRESET_THEMES as any)[activeThemeId]?.label || 'Standard'} + {(TYPOGRAPHY_PAIRINGS as any)[activePairingId]?.label || 'Default'}
+                                               </p>
+                                            </div>
                                          </div>
-                                         <div className="glass px-4 py-2 rounded-full border border-white/10 shadow-2xl backdrop-blur-md">
-                                            <p className="text-[9px] text-primary font-mono tracking-widest uppercase">
-                                               {(PRESET_THEMES as any)[activeThemeId]?.label || 'Standard'} + {(TYPOGRAPHY_PAIRINGS as any)[activePairingId]?.label || 'Default'}
-                                            </p>
-                                         </div>
-                                      </div>
-                                   </motion.div>
+                                      </motion.div>
+                                   </WorkspaceAsset>
                                 )}
 
                                 {projectName && (
-                                   <motion.div 
-                                     drag dragMomentum={false} 
-                                     initial={{ opacity: 0, y: -220 }} 
-                                     animate={{ opacity: 1, y: -180 }} 
-                                     className="absolute z-40 cursor-move"
+                                   <WorkspaceAsset 
+                                     id="asset-name"
+                                     isActive={activeOptionsId === 'asset-name'}
+                                     onToggle={() => setActiveOptionsId(activeOptionsId === 'asset-name' ? null : 'asset-name')}
+                                     onDelete={() => setProjectName("")}
+                                     className="z-40"
                                    >
-                                      <div className="glass px-6 py-3 rounded-2xl border border-primary/30 shadow-2xl backdrop-blur-md">
-                                         <h3 className="text-xl font-heading font-black italic tracking-tight text-primary uppercase">{projectName}</h3>
-                                         <p className="text-[8px] text-white/40 font-mono tracking-widest uppercase text-center mt-1">Project Foundation Synced</p>
-                                      </div>
-                                   </motion.div>
+                                      <motion.div initial={{ y: -220 }} animate={{ y: -180 }}>
+                                         <div className="glass px-6 py-3 rounded-2xl border border-primary/30 shadow-2xl backdrop-blur-md">
+                                            <h3 className="text-xl font-heading font-black italic tracking-tight text-primary uppercase">{projectName}</h3>
+                                            <p className="text-[8px] text-white/40 font-mono tracking-widest uppercase text-center mt-1">Project Foundation Synced</p>
+                                         </div>
+                                      </motion.div>
+                                   </WorkspaceAsset>
                                 )}
                               </AnimatePresence>
                            </div>
@@ -1104,28 +1103,14 @@ export default function BuilderPage() {
                                   className="relative group/node"
                                 >
                                   {/* Node Controls Overlay */}
-                                  <div className="absolute -left-24 top-0 h-full flex flex-col items-center gap-3 opacity-0 group-hover/node:opacity-100 transition-all duration-500 translate-x-4 group-hover/node:translate-x-0 z-50">
-                                     <ActionTooltip label="Delete Node">
-                                        <Button 
-                                          variant="ghost" 
-                                          size="icon" 
-                                          className="h-10 w-10 text-red-500/50 hover:text-red-500 rounded-2xl glass hover:bg-red-500/10 border-none transition-all" 
-                                          onClick={() => setNodes(nodes.filter(n => n.id !== node.id))}
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                     </ActionTooltip>
-                                     <ActionTooltip label="Edit Content">
-                                        <Button 
-                                          variant="ghost" 
-                                          size="icon" 
-                                          className="h-10 w-10 text-primary rounded-2xl glass hover:bg-primary/20 border-none transition-all" 
-                                          onClick={() => { setSelectedNodeIndex(i); setCurrentStep(4); }}
-                                        >
-                                          <Settings2 className="h-4 w-4" />
-                                        </Button>
-                                     </ActionTooltip>
-                                  </div>
+                                   <BuilderNodeControls 
+                                     node={node}
+                                     isActive={activeSettingsNode === i}
+                                     onToggleSettings={() => setActiveSettingsNode(activeSettingsNode === i ? null : i)}
+                                     onDelete={() => setNodes(nodes.filter(n => n.id !== node.id))}
+                                     onUpdate={(updates) => handleContentChange(i, updates)}
+                                     onNeuralRescan={handleNeuralThemeSynthesis}
+                                   />
 
                                   <RenderNode 
                                     node={node} 
@@ -1139,7 +1124,6 @@ export default function BuilderPage() {
                         </AnimatePresence>
                       </SortableContext>
                     </DndContext>
-                 </div>
                </div>
             </div>
           </div>
