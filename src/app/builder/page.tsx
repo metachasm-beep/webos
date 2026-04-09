@@ -161,6 +161,7 @@ export default function BuilderPage() {
   const [faviconStatus, setFaviconStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [logoError, setLogoError] = useState<string | null>(null);
   const [faviconError, setFaviconError] = useState<string | null>(null);
+  const [useLocalSynthesis, setUseLocalSynthesis] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
   const [isMounted, setIsMounted] = useState(false);
@@ -362,6 +363,16 @@ export default function BuilderPage() {
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    // Fallback path
+    if (useLocalSynthesis) {
+      const localUrl = URL.createObjectURL(file);
+      setLogoUrl(localUrl);
+      setLogoStatus('success');
+      setTimeout(() => setLogoStatus('idle'), 3000);
+      return;
+    }
+
     const uploadId = projectId || `temp-${Date.now()}`;
     const flatPath = `logo-${uploadId}-${Date.now()}`;
     setLogoStatus('uploading');
@@ -385,6 +396,16 @@ export default function BuilderPage() {
   const handleFaviconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Fallback path
+    if (useLocalSynthesis) {
+      const localUrl = URL.createObjectURL(file);
+      setFaviconUrl(localUrl);
+      setFaviconStatus('success');
+      setTimeout(() => setFaviconStatus('idle'), 3000);
+      return;
+    }
+
     const uploadId = projectId || `temp-${Date.now()}`;
     const flatPath = `favicon-${uploadId}-${Date.now()}`;
     setFaviconStatus('uploading');
@@ -638,6 +659,16 @@ export default function BuilderPage() {
                    className="space-y-8 pt-4"
                 >
                     <div className="space-y-6">
+                       <div className="flex items-center justify-between px-1">
+                          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Synthesis Mode</label>
+                          <div 
+                            onClick={() => setUseLocalSynthesis(!useLocalSynthesis)}
+                            className={`flex items-center gap-2 cursor-pointer px-2 py-1 rounded-full border transition-all ${useLocalSynthesis ? 'bg-primary/20 border-primary/40 text-primary' : 'bg-white/5 border-white/5 text-muted-foreground hover:border-white/20'}`}
+                          >
+                             <div className={`h-2 w-2 rounded-full ${useLocalSynthesis ? 'bg-primary animate-pulse' : 'bg-white/20'}`} />
+                             <span className="text-[8px] font-black uppercase tracking-widest">{useLocalSynthesis ? 'Local Drift' : 'Neural Persistent'}</span>
+                          </div>
+                       </div>
                        <div className="space-y-3">
                           <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Logo Identity</label>
                           <ActionTooltip label={logoStatus === 'error' ? `Error: ${logoError}` : "Sync your brand's core visual DNA. Selection will appear instantly."}>
@@ -1058,7 +1089,7 @@ export default function BuilderPage() {
                                                logoUrl ? "DNA Synchronized" : "Awaiting Asset Injection"}
                                            </p>
                                            {logoStatus === 'error' && (
-                                              <div className="pt-2">
+                                              <div className="pt-2 flex flex-col items-center gap-2">
                                                  <Link 
                                                    href="#supabase-guide" 
                                                    onClick={(e) => {
@@ -1069,6 +1100,16 @@ export default function BuilderPage() {
                                                  >
                                                     Fix Connection <ChevronRight className="h-2 w-2" />
                                                  </Link>
+                                                 <button 
+                                                   onClick={() => {
+                                                      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+                                                      console.log("NEURAL TRACE:", url);
+                                                      alert(`TRACE LOGGED TO CONSOLE.\nEndpoint: ${url?.substring(0, 20)}...`);
+                                                   }}
+                                                   className="text-[8px] text-white/30 hover:text-white/60 font-black uppercase tracking-widest flex items-center gap-1 transition-colors"
+                                                 >
+                                                    Neural Trace <RefreshCcw className="h-2 w-2" />
+                                                 </button>
                                               </div>
                                            )}
                                         </div>

@@ -4,13 +4,6 @@ export async function uploadBrandAsset(file: File, path: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Masked diagnostic log
-  console.log("Neural Registry Diagnostics:", { 
-    endpoint: supabaseUrl ? `${supabaseUrl.substring(0, 12)}...` : 'MISSING',
-    key_synced: !!supabaseAnonKey,
-    protocol: window.location.protocol
-  });
-
   if (!supabaseUrl || supabaseUrl.includes("placeholder-neural-registry")) {
     throw new Error("Neural Credentials Missing. Please check your .env.local configuration.");
   }
@@ -18,10 +11,9 @@ export async function uploadBrandAsset(file: File, path: string) {
   // Pre-flight connectivity check
   try {
     const preflight = await fetch(supabaseUrl, { method: 'HEAD', mode: 'no-cors' });
-    console.log("Neural Link Status: SIGNAL DETECTED");
   } catch (err) {
-    console.warn("Neural Link Signal Lost. This is likely a CORS block or network filter.");
-    throw new Error("Synthesis Blocked: Ensure localhost is allowed in Supabase CORS settings.");
+    console.error("Deep Trace: Failed to reach synthesis endpoint.", supabaseUrl);
+    throw new Error("Neural Link Severed. This is likely a CORS block or a dead Project URL.");
   }
 
   // Cap at 5MB
@@ -46,7 +38,6 @@ export async function uploadBrandAsset(file: File, path: string) {
       throw error;
     }
     
-    // Get public URL
     const { data: publicUrlData } = supabase.storage
       .from('branding')
       .getPublicUrl(path);
@@ -58,11 +49,6 @@ export async function uploadBrandAsset(file: File, path: string) {
     return publicUrlData.publicUrl;
   } catch (err: any) {
     console.error("Neural Storage Process Failure:", err);
-    
-    if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
-      throw new Error("Neural Link Severed: Check CORS or browser network interceptors.");
-    }
-    
     throw new Error(err.message || "Unknown synthesis storage error.");
   }
 }
