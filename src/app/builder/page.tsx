@@ -32,7 +32,8 @@ import {
   Activity,
   Cpu,
   CornerUpLeft,
-  ChevronLeft
+  ChevronLeft,
+  AlertCircle
 } from "lucide-react";
 import Squares from "@/components/reactbits/Squares";
 import ShinyText from "@/components/reactbits/ShinyText";
