@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -25,10 +26,18 @@ import {
   CheckCircle2,
   DollarSign,
   Briefcase,
-  Palette
+  Palette,
+  Target,
+  FlaskConical,
+  Activity,
+  Cpu,
+  CornerUpLeft,
+  ChevronLeft
 } from "lucide-react";
 import Squares from "@/components/reactbits/Squares";
 import ShinyText from "@/components/reactbits/ShinyText";
+import StarBorder from "@/components/reactbits/StarBorder";
+import PlasmaWave from "@/components/reactbits/PlasmaWave";
 
 import { BUSINESS_TEMPLATES, Template } from "@/lib/templates";
 import { 
@@ -43,6 +52,15 @@ import {
 } from "@/components/ui/tooltip";
 
 import { RenderNode } from "@/components/BuilderComponents";
+
+const STEPS = [
+  { id: 1, label: "Context", title: "Core Synthesis", icon: Target, description: "Define your project parameters." },
+  { id: 2, label: "DNA", title: "Brand Identity", icon: Sparkles, description: "Infuse with brand assets." },
+  { id: 3, label: "Atmosphere", title: "Visual Style", icon: Palette, description: "Select theme & fonts." },
+  { id: 4, label: "Synthesis", title: "Component Labs", icon: Cpu, description: "Generate sections." },
+  { id: 5, label: "Matrix", title: "Neural Tuning", icon: Activity, description: "Adjust global properties." },
+  { id: 6, label: "Export", title: "Emission", icon: Download, description: "Review and launch." }
+];
 
 import {
   DndContext,
@@ -88,6 +106,7 @@ const ActionTooltip = ({ children, label }: { children: React.ReactNode, label: 
 );
 
 export default function BuilderPage() {
+  const [currentStep, setCurrentStep] = useState(1);
   const [prompt, setPrompt] = useState("");
   const [style, setStyle] = useState("dark-saas");
   const [framework, setFramework] = useState("PAS");
@@ -504,364 +523,452 @@ export default function BuilderPage() {
       
       <div className="flex-1 flex pt-16">
         {/* Sidebar Panel */}
-        <aside className="w-80 glass border-r border-white/5 flex flex-col relative z-20 overflow-hidden">
-            <div className="p-8 border-b border-white/5 space-y-1">
+        <aside className="w-85 glass border-r border-white/5 flex flex-col relative z-20 overflow-hidden">
+            {/* Plasma Background for Sidebar */}
+            <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+              <PlasmaWave speed1={0.02} speed2={0.01} bend1={2} bend2={1} />
+            </div>
+
+            <div className="p-8 border-b border-white/5 space-y-2 relative z-10 bg-background/40 backdrop-blur-md">
                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-heading font-bold italic tracking-tight">Design Board</h2>
+                  <div className="flex items-center gap-3">
+                     <FlaskConical className="h-5 w-5 text-primary" />
+                     <h2 className="text-xl font-heading font-bold italic tracking-tight">Synthesis Board</h2>
+                  </div>
                   <div className="flex items-center gap-2">
                      <div className={`h-1.5 w-1.5 rounded-full ${isSaving ? 'bg-orange-500 animate-pulse' : 'bg-green-500'}`} />
                      <span className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">{isSaving ? 'Saving...' : 'Synced'}</span>
                   </div>
                </div>
-               <input 
-                 value={projectName}
-                 onChange={(e) => setProjectName(e.target.value)}
-                 className="bg-transparent border-none p-0 text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold outline-none focus:text-primary transition-colors"
-               />
-               {lastSaved && <p className="text-[8px] text-muted-foreground/30 uppercase italic">Last Sync: {lastSaved.toLocaleTimeString()}</p>}
+               <div className="flex items-center gap-2">
+                  <span className="text-[9px] text-muted-foreground/50 font-bold uppercase tracking-widest">Active Step</span>
+                  <div className="h-[1px] flex-1 bg-white/5" />
+                  <span className="text-[10px] text-primary font-black italic">{currentStep} / 6</span>
+               </div>
             </div>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-8 relative">
+          <div className="flex-1 overflow-y-auto p-6 space-y-8 relative z-10 no-scrollbar">
+            {/* Neural Assistant Guidance */}
+            <StarBorder className="p-4 bg-primary/5 rounded-2xl relative overflow-hidden group">
+               <div className="flex gap-4">
+                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 relative">
+                     <Sparkles className="h-5 w-5" />
+                     <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
+                  </div>
+                  <div className="space-y-1">
+                     <h4 className="text-[10px] font-black uppercase tracking-widest text-primary">Neural Assistant / Aria</h4>
+                     <p className="text-[10.5px] leading-relaxed italic text-white/70">
+                        {currentStep === 1 && "Initialization sequence starting. Define the goal of your digital synthesis."}
+                        {currentStep === 2 && "Sync your brand DNA. Upload a logo to extract spectral data."}
+                        {currentStep === 3 && "Atmosphere selection active. Choose a visual language for your emission."}
+                        {currentStep === 4 && "Synthesis core online. Generate components or select atomic Site Presets."}
+                        {currentStep === 5 && "Neural Matrix tuning active. Adjust the global visual intensity."}
+                        {currentStep === 6 && "Synthesis complete. Review neural integrity and export standalone."}
+                     </p>
+                  </div>
+               </div>
+            </StarBorder>
+
             <AnimatePresence mode="wait">
-              {activeTab === "typography" ? (
+              {/* Step 1: Context */}
+              {currentStep === 1 && (
                 <motion.div 
-                   key="typography"
-                   initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
-                   className="space-y-6"
+                   key="step1" initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
+                   className="space-y-6 pt-4"
                 >
-                  <Button variant="ghost" onClick={() => setActiveTab(null)} className="p-0 h-auto text-[10px] uppercase font-bold tracking-widest gap-2 text-muted-foreground hover:text-white">
-                    <ChevronRight className="h-3 w-3 rotate-180" /> Back
-                  </Button>
-                  <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">Typography Lab</h3>
-                  <div className="space-y-3">
-                    {Object.values(TYPOGRAPHY_PAIRINGS).map((pair) => (
-                      <div 
-                        key={pair.id}
-                        onClick={() => setActivePairingId(pair.id)}
-                        className={`p-4 rounded-2xl border cursor-pointer transition-all ${activePairingId === pair.id ? 'bg-primary/10 border-primary' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}
-                      >
-                        <div className="text-xs font-bold mb-1">{pair.label}</div>
-                        <div className="text-[10px] text-muted-foreground opacity-60">Heading: {pair.heading.replace('var(--font-heading-', '').replace(')', '')}</div>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              ) : activeTab === "themes" ? (
-                <motion.div 
-                   key="themes"
-                   initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
-                   className="space-y-6"
-                >
-                  <Button variant="ghost" onClick={() => setActiveTab(null)} className="p-0 h-auto text-[10px] uppercase font-bold tracking-widest gap-2 text-muted-foreground hover:text-white">
-                    <ChevronRight className="h-3 w-3 rotate-180" /> Back
-                  </Button>
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">Global Themes</h3>
-                    <Button 
-                      variant="ghost" 
-                      onClick={handleNeuralThemeSynthesis}
-                      disabled={isSyncing}
-                      className="h-auto p-0 text-[8px] uppercase tracking-widest text-primary font-bold hover:text-primary/70 transition-colors"
-                    >
-                      {isSyncing ? "Synthesizing..." : "Neural Synth"}
-                    </Button>
-                  </div>
-                  <div className="space-y-3">
-                    {Object.values(PRESET_THEMES).map((theme) => (
-                      <div 
-                        key={theme.id}
-                        onClick={() => setActiveThemeId(theme.id)}
-                        className={`p-4 rounded-2xl border cursor-pointer transition-all ${activeThemeId === theme.id ? 'bg-primary/10 border-primary' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="h-4 w-4 rounded-full" style={{ backgroundColor: theme.primary }} />
-                          <div className="text-xs font-bold">{theme.label}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              ) : activeTab === "asset-lab" ? (
-                <motion.div 
-                   key="asset-lab"
-                   initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
-                   className="space-y-6"
-                >
-                  <Button variant="ghost" onClick={() => setActiveTab(null)} className="p-0 h-auto text-[10px] uppercase font-bold tracking-widest gap-2 text-muted-foreground hover:text-white">
-                    <ChevronRight className="h-3 w-3 rotate-180" /> Back
-                  </Button>
-                  <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">AI Asset Lab</h3>
-                  <div className="glass-dark border border-white/5 p-6 rounded-3xl space-y-4 text-center">
-                    <div className="h-32 w-full rounded-2xl bg-white/5 flex items-center justify-center border border-dashed border-white/10 overflow-hidden relative">
-                       {synthesizedAsset ? <img src={synthesizedAsset.url} className="w-full h-full object-cover opacity-60" /> : <ImageIcon className="h-8 w-8 text-muted-foreground/30" />}
-                    </div>
-                    <Button onClick={handleSynthesizeAsset} disabled={isSynthesizingAsset || !prompt} className="w-full bg-accent text-black font-bold uppercase tracking-widest text-[9px]">
-                      {isSynthesizingAsset ? "Generating..." : "Synthesize Image"}
-                    </Button>
-                  </div>
-                </motion.div>
-              ) : activeTab === "branding" ? (
-                <motion.div 
-                   key="branding"
-                   initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
-                   className="space-y-6"
-                >
-                  <Button variant="ghost" onClick={() => setActiveTab(null)} className="p-0 h-auto text-[10px] uppercase font-bold tracking-widest gap-2 text-muted-foreground hover:text-white">
-                    <ChevronRight className="h-3 w-3 rotate-180" /> Back
-                  </Button>
-                  <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">Brand Identity</h3>
                   <div className="space-y-4">
-                    <div className="space-y-2">
-                       <div className="flex justify-between items-center">
-                          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Logo Identity</label>
-                          <span className="text-[8px] text-muted-foreground/40 font-bold uppercase tracking-widest">Max 5MB</span>
-                       </div>
-                       <div className="h-24 w-full rounded-2xl bg-white/5 border border-white/5 p-4 flex items-center justify-center relative overflow-hidden group">
-                          {logoUrl ? <img src={logoUrl} className="max-h-full max-w-full object-contain" /> : <Plus className="h-4 w-4 opacity-30" />}
+                    <div className="space-y-1">
+                      <ActionTooltip label="Name your digital footprint">
+                        <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Project Name</label>
+                      </ActionTooltip>
+                      <input 
+                        value={projectName}
+                        onChange={(e) => setProjectName(e.target.value)}
+                        placeholder="e.g. Genesis Protocol"
+                        className="w-full bg-white/5 border border-white/5 rounded-2xl px-6 py-4 text-xs font-body focus:border-primary/50 focus:bg-white/10 outline-none transition-all"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <ActionTooltip label="Who are we building for?">
+                        <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Target Audience</label>
+                      </ActionTooltip>
+                      <input 
+                        value={targetAudience}
+                        onChange={(e) => setTargetAudience(e.target.value)}
+                        placeholder="e.g. Enterprise SaaS founders"
+                        className="w-full bg-white/5 border border-white/5 rounded-2xl px-6 py-4 text-xs font-body focus:border-primary/50 focus:bg-white/10 outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+                  <Button onClick={() => setCurrentStep(2)} className="w-full h-14 bg-primary text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-lg shadow-primary/20 group">
+                    <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform" />
+                    Initialize Protocol
+                  </Button>
+                </motion.div>
+              )}
+
+              {/* Step 2: Branding */}
+              {currentStep === 2 && (
+                <motion.div 
+                   key="step2" initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
+                   className="space-y-8 pt-4"
+                >
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                       <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Logo Identity</label>
+                       <div className="h-32 w-full rounded-2xl bg-white/5 border border-white/5 p-4 flex items-center justify-center relative overflow-hidden group hover:border-primary/30 transition-all">
+                          {logoUrl ? <img src={logoUrl} className="max-h-full max-w-full object-contain" /> : <div className="flex flex-col items-center gap-2 opacity-30"><Plus className="h-6 w-6" /><span className="text-[8px] uppercase font-bold tracking-widest">Sync Logo</span></div>}
                           <input type="file" onChange={handleLogoUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
                        </div>
                     </div>
-                    <div className="space-y-2">
-                       <div className="flex justify-between items-center">
-                          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Favicon Icon</label>
-                          <span className="text-[8px] text-muted-foreground/40 font-bold uppercase tracking-widest">Max 5MB</span>
-                       </div>
-                       <div className="h-16 w-16 rounded-xl bg-white/5 border border-white/5 p-2 flex items-center justify-center relative overflow-hidden group">
-                          {faviconUrl ? <img src={faviconUrl} className="w-full h-full object-contain" /> : <ImageIcon className="h-4 w-4 opacity-30" />}
+                    <div className="space-y-3">
+                       <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Favicon Asset</label>
+                       <div className="h-20 w-20 rounded-2xl bg-white/5 border border-white/5 p-4 flex items-center justify-center relative overflow-hidden group hover:border-primary/30 transition-all">
+                          {faviconUrl ? <img src={faviconUrl} className="w-full h-full object-contain" /> : <ImageIcon className="h-6 w-6 opacity-30" />}
                           <input type="file" onChange={handleFaviconUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
                        </div>
                     </div>
-                    {isUploading && <p className="text-[8px] text-primary animate-pulse uppercase font-bold text-center">Neural Sync in Progress...</p>}
+                  </div>
+                  <div className="flex gap-3">
+                    <Button variant="ghost" onClick={() => setCurrentStep(1)} className="h-14 px-6 border border-white/5 rounded-2xl text-[10px] uppercase font-bold tracking-widest"><ChevronLeft className="h-4 w-4 mr-2" /> Back</Button>
+                    <Button onClick={() => setCurrentStep(3)} className="flex-1 h-14 bg-primary text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-lg shadow-primary/20 group">
+                      Atmosphere <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </Button>
                   </div>
                 </motion.div>
-              ) : activeTab === "templates" ? (
+              )}
+
+              {/* Step 3: Visual Atmosphere */}
+              {currentStep === 3 && (
                 <motion.div 
-                   key="templates"
-                   initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
-                   className="space-y-6"
+                   key="step3" initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
+                   className="space-y-8 pt-4"
                 >
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">Library</h3>
-                    <div className="flex gap-2">
-                       <button onClick={() => setSubTab('templates')} className={`text-[8px] uppercase font-bold tracking-widest ${subTab === 'templates' ? 'text-primary underline' : 'text-muted-foreground'}`}>Site Presets</button>
-                       <button onClick={() => setSubTab('sections')} className={`text-[8px] uppercase font-bold tracking-widest ${subTab === 'sections' ? 'text-primary underline' : 'text-muted-foreground'}`}>Wix Mode</button>
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                       <div className="flex justify-between items-center px-1">
+                          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Global Theme</label>
+                          <button onClick={handleNeuralThemeSynthesis} className="text-[8px] text-primary font-black uppercase tracking-widest hover:underline">Neural Synth</button>
+                       </div>
+                       <div className="grid grid-cols-2 gap-2">
+                          {Object.values(PRESET_THEMES).map((theme) => (
+                            <button 
+                              key={theme.id}
+                              onClick={() => { setActiveThemeId(theme.id); setActiveTab("themes"); }}
+                              className={`p-3 rounded-2xl border flex flex-col items-center gap-2 transition-all ${activeThemeId === theme.id ? 'bg-primary/10 border-primary shadow-lg shadow-primary/10' : 'border-white/5 bg-white/5 hover:border-white/10'}`}
+                            >
+                               <div className="h-6 w-full rounded-lg" style={{ backgroundColor: theme.primary }} />
+                               <span className="text-[8px] font-bold uppercase tracking-widest">{theme.label}</span>
+                            </button>
+                          ))}
+                       </div>
+                    </div>
+
+                    <div className="space-y-3">
+                       <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest px-1">Typography Pairing</label>
+                       <div className="space-y-2 max-h-[240px] overflow-y-auto no-scrollbar pr-1">
+                          {Object.values(TYPOGRAPHY_PAIRINGS).map((pair) => (
+                            <button 
+                              key={pair.id}
+                              onClick={() => { setActivePairingId(pair.id); setActiveTab("typography"); }}
+                              className={`w-full p-4 rounded-2xl border text-left transition-all ${activePairingId === pair.id ? 'bg-primary/10 border-primary' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}
+                            >
+                               <div className="text-xs font-bold mb-1">{pair.label}</div>
+                               <div className="text-[9px] text-muted-foreground opacity-50 uppercase tracking-widest truncate">{pair.heading.replace('var(--font-heading-', '').replace(')', '')}</div>
+                            </button>
+                          ))}
+                       </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <Button variant="ghost" onClick={() => setCurrentStep(2)} className="h-14 px-6 border border-white/5 rounded-2xl text-[10px] uppercase font-bold tracking-widest"><ChevronLeft className="h-4 w-4 mr-2" /> Back</Button>
+                    <Button onClick={() => setCurrentStep(4)} className="flex-1 h-14 bg-primary text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-lg shadow-primary/20 group">
+                      Synthesis <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Step 4: Synthesis */}
+              {currentStep === 4 && (
+                <motion.div 
+                   key="step4" initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
+                   className="space-y-8 pt-4"
+                >
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <div className="flex gap-2 p-1 bg-white/5 rounded-2xl">
+                         <button onClick={() => setSubTab('templates')} className={`flex-1 py-2 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all ${subTab === 'templates' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-muted-foreground hover:bg-white/5'}`}>Templates</button>
+                         <button onClick={() => setSubTab('sections')} className={`flex-1 py-2 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all ${subTab === 'sections' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-muted-foreground hover:bg-white/5'}`}>Sections</button>
+                      </div>
+
+                      {subTab === 'templates' ? (
+                        <div className="space-y-2 max-h-[300px] overflow-y-auto no-scrollbar pr-1">
+                          {BUSINESS_TEMPLATES.map((tmpl) => (
+                            <button key={tmpl.id} onClick={() => { setPrompt(tmpl.prompt); setStyle(tmpl.style); setFramework(tmpl.framework); }} className="w-full p-4 rounded-2xl border border-white/5 bg-white/5 hover:border-primary/30 hover:bg-primary/5 text-left transition-all group">
+                              <div className="text-[11px] font-bold mb-1 group-hover:text-primary">{tmpl.name}</div>
+                              <p className="text-[9px] text-muted-foreground leading-relaxed">{tmpl.description}</p>
+                            </button>
+                          ))}
+                        </div>
+                       ) : (
+                        <div className="space-y-4">
+                           <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                              {Object.keys(CATEGORICAL_SECTIONS).map((cat) => (
+                                 <button key={cat} onClick={() => setSelectedCategory(cat as any)} className={`px-4 py-2 rounded-xl text-[8px] font-bold uppercase tracking-widest border transition-all ${selectedCategory === cat ? 'bg-primary text-white border-primary' : 'border-white/5 bg-white/5'}`}>{cat}</button>
+                              ))}
+                           </div>
+                           <div className="space-y-2 max-h-[240px] overflow-y-auto no-scrollbar pr-1">
+                              {CATEGORICAL_SECTIONS[selectedCategory].map((section: any) => (
+                                 <button key={section.id} onClick={() => setNodes([ ...nodes, { ...section, id: `node-${Date.now()}` } ])} className="w-full p-4 rounded-2xl border border-white/5 bg-white/5 hover:border-primary/30 flex justify-between items-center group transition-all">
+                                    <span className="text-[10px] font-bold group-hover:text-primary">{section.name}</span>
+                                    <Plus className="h-3 w-3 opacity-30 group-hover:opacity-100" />
+                                 </button>
+                              ))}
+                           </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="pt-4 border-t border-white/5 space-y-3">
+                       <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest px-1">AI Prompt Sequence</label>
+                       <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Describe a custom node..." className="w-full h-24 bg-white/5 border border-white/5 rounded-2xl p-4 text-[11px] outline-none focus:border-primary/50 transition-all resize-none font-body" />
+                       <Button onClick={handleGenerate} disabled={isGenerating || !prompt} className="w-full h-12 bg-accent text-black font-bold uppercase tracking-widest text-[9px] rounded-xl">
+                          {isGenerating ? "Synthesizing..." : "Generate New Node"}
+                       </Button>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <Button variant="ghost" onClick={() => setCurrentStep(3)} className="h-14 px-6 border border-white/5 rounded-2xl text-[10px] uppercase font-bold tracking-widest"><ChevronLeft className="h-4 w-4 mr-2" /> Back</Button>
+                    <Button onClick={() => setCurrentStep(5)} className="flex-1 h-14 bg-primary text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-lg shadow-primary/20 group">
+                      Visual Matrix <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Step 5: Neural Tuning */}
+              {currentStep === 5 && (
+                <motion.div 
+                   key="step5" initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
+                   className="space-y-10 pt-4"
+                >
+                  <div className="space-y-8">
+                    {[
+                      { id: 'blur', label: "Canvas Blur", value: `${blurValue}px`, val: blurValue, onChange: setBlurValue, max: 64, icon: Wind },
+                      { id: 'mesh', label: "Mesh Intensity", value: `${meshIntensity}%`, val: meshIntensity, onChange: setMeshIntensity, max: 100, icon: Sparkles },
+                      { id: 'chroma', label: "Chroma Shift", value: `${chromaShift}°`, val: chromaShift, onChange: setChromaShift, max: 360, icon: RefreshCcw }
+                    ].map((config) => (
+                      <div key={config.id} className="space-y-4">
+                        <div className="flex justify-between items-center group">
+                          <div className="flex items-center gap-3">
+                             <div className="h-8 w-8 rounded-xl bg-white/5 flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors"><config.icon className="h-4 w-4" /></div>
+                             <span className="text-[10px] font-black uppercase tracking-widest">{config.label}</span>
+                          </div>
+                          <span className="text-[10px] text-primary font-bold italic">{config.value}</span>
+                        </div>
+                        <input type="range" min="0" max={config.max} value={config.val} onChange={(e) => config.onChange(parseInt(e.target.value))} className="w-full accent-primary h-1 bg-white/10 rounded-full outline-none" />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-3">
+                    <Button variant="ghost" onClick={() => setCurrentStep(4)} className="h-14 px-6 border border-white/5 rounded-2xl text-[10px] uppercase font-bold tracking-widest"><ChevronLeft className="h-4 w-4 mr-2" /> Back</Button>
+                    <Button onClick={() => setCurrentStep(6)} className="flex-1 h-14 bg-primary text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-lg shadow-primary/20 group">
+                      Final Review <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Step 6: Completion */}
+              {currentStep === 6 && (
+                <motion.div 
+                   key="step6" initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
+                   className="space-y-10 pt-4"
+                >
+                  <div className="space-y-6">
+                    <div className="p-6 glass-dark border border-white/5 rounded-[32px] space-y-6">
+                       <h3 className="text-[10px] uppercase font-black tracking-widest text-center text-primary">Synthesis Metric HUD</h3>
+                       <NeuralInsightHUD matrix={matrixData} />
+                    </div>
+
+                    <div className="space-y-3">
+                       <Button onClick={handleExportStandalone} disabled={isExporting} className="w-full h-16 bg-accent text-black font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-xl shadow-accent/10">
+                          {isExporting ? "Pulsing Data..." : "Export Neural Build"}
+                       </Button>
+                       <Button variant="ghost" onClick={handleExportJSON} className="w-full h-12 text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-white transition-colors">Download Matrix Core (JSON)</Button>
                     </div>
                   </div>
                   
-                  {subTab === 'templates' ? (
-                    <div className="grid grid-cols-1 gap-3">
-                      {BUSINESS_TEMPLATES.map((tmpl) => (
-                        <div key={tmpl.id} onClick={() => { setPrompt(tmpl.prompt); setStyle(tmpl.style); setFramework(tmpl.framework); setActiveTab(null); }} className="p-4 rounded-2xl border border-white/5 bg-white/5 hover:bg-primary/10 transition-all cursor-pointer">
-                          <div className="text-xs font-bold">{tmpl.name}</div>
-                          <p className="text-[9px] text-muted-foreground">{tmpl.description}</p>
-                        </div>
-                      ))}
-                    </div>
-                   ) : (
-                    <div className="space-y-6">
-                       <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                          {Object.keys(CATEGORICAL_SECTIONS).map((cat) => {
-                             const CatIcon = cat === 'HERO' ? Layout : cat === 'SERVICES' ? Layers : cat === 'ABOUT' ? Quote : cat === 'PRICING' ? DollarSign : Sparkles;
-                             return (
-                               <button 
-                                  key={cat}
-                                  onClick={() => setSelectedCategory(cat as any)}
-                                  className={`flex items-center gap-2 whitespace-nowrap px-4 py-2 rounded-xl text-[8px] font-bold uppercase tracking-widest border transition-all ${selectedCategory === cat ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'border-white/5 bg-white/5 text-muted-foreground hover:border-white/10'}`}
-                               >
-                                  <CatIcon className="h-3 w-3" />
-                                  {cat}
-                               </button>
-                             );
-                          })}
-                       </div>
-                       
-                       <div className="grid grid-cols-1 gap-2 max-h-[400px] overflow-y-auto no-scrollbar pb-10">
-                          {CATEGORICAL_SECTIONS[selectedCategory].map((section: any) => (
-                             <div 
-                                key={section.id}
-                                onClick={() => {
-                                   const newNode = { ...section, id: `node-${Date.now()}-${section.id}` };
-                                   setNodes([newNode, ...nodes]);
-                                   setActiveTab(null);
-                                }}
-                                className="glass-dark border border-white/5 p-4 rounded-3xl flex items-center gap-5 cursor-pointer hover:bg-white/10 hover:border-primary/30 transition-all group"
-                             >
-                                <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center group-hover:text-primary transition-colors">
-                                   <Plus className="h-5 w-5" />
-                                </div>
-                                <div>
-                                   <div className="text-[11px] font-bold leading-tight">{section.name}</div>
-                                   <div className="text-[8px] text-muted-foreground uppercase font-bold tracking-widest opacity-40">{section.type}</div>
-                                </div>
-                             </div>
-                          ))}
-                       </div>
-                    </div>
-                  )}
-                </motion.div>
-              ) : (
-                <motion.div key="main" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
-                   {selectedNodeIndex !== null ? (
-                     <div className="space-y-6">
-                        <Button variant="ghost" onClick={() => setSelectedNodeIndex(null)} className="p-0 h-auto text-[10px] uppercase font-bold tracking-widest gap-2 text-muted-foreground hover:text-white">
-                          <ChevronRight className="h-3 w-3 rotate-180" /> Back
-                        </Button>
-                        <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">Node Inspector</h3>
-                        <div className="space-y-4">
-                           <div className="space-y-1">
-                              <label className="text-[9px] font-bold text-muted-foreground uppercase">Heading</label>
-                              <input type="text" value={nodes[selectedNodeIndex]?.heading || ""} onChange={(e) => { const n = [...nodes]; n[selectedNodeIndex].heading = e.target.value; setNodes(n); }} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs outline-none" />
-                           </div>
-                           <div className="space-y-1">
-                              <label className="text-[9px] font-bold text-muted-foreground uppercase">Subheading</label>
-                              <textarea value={nodes[selectedNodeIndex]?.subheading || ""} onChange={(e) => { const n = [...nodes]; n[selectedNodeIndex].subheading = e.target.value; setNodes(n); }} className="w-full h-20 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs outline-none" />
-                           </div>
-                        </div>
-                     </div>
-                   ) : (
-                     <>
-                      <div className="space-y-4">
-                        <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-accent">Synthesis Protocol</h3>
-                        <div className="space-y-2">
-                          {[
-                            { icon: BookOpen, label: "Templates", id: "templates" },
-                            { icon: Palette, label: "Themes", id: "themes" },
-                            { icon: Type, label: "Typography", id: "typography" },
-                            { icon: Briefcase, label: "Branding", id: "branding" },
-                            { icon: ImageIcon, label: "Asset Lab", id: "asset-lab" }
-                          ].map((item, i) => (
-                            <div key={i} onClick={() => setActiveTab(item.id)} className="glass-dark border border-white/5 p-4 rounded-2xl flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-all group">
-                              <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:text-primary transition-colors"><item.icon className="h-5 w-5" /></div>
-                              <div className="text-xs font-bold">{item.label}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="space-y-4 pb-20">
-                        <h3 className="text-[10px] uppercase font-bold text-primary">AI Synthesis</h3>
-                        <form onSubmit={handleGenerate} className="space-y-3">
-                          <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Describe a section..." className="w-full h-24 glass-dark border border-white/10 rounded-2xl p-4 text-xs font-body focus:border-primary/50 outline-none transition-colors" />
-                          <Button type="submit" disabled={isGenerating} className="w-full rounded-xl bg-primary text-white text-[10px] font-bold uppercase tracking-widest h-12">
-                            {isGenerating ? "Synthesizing..." : "Generate Section"}
-                          </Button>
-                        </form>
-                      </div>
-                     </>
-                   )}
+                  <div className="pt-6 border-t border-white/5 space-y-3">
+                    <Button variant="ghost" onClick={() => setCurrentStep(5)} className="w-full h-12 text-[10px] uppercase font-bold tracking-widest gap-2 text-muted-foreground hover:text-white transition-colors">
+                      <CornerUpLeft className="h-4 w-4" /> Go back and re-tune
+                    </Button>
+                    <Button variant="destructive" onClick={handleFlushCanvas} className="w-full bg-red-500/10 text-red-500 border-none h-12 uppercase font-bold tracking-widest text-[9px] rounded-xl hover:bg-red-500/20">
+                      Flush Synthesis Core
+                    </Button>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
+
+          <div className="p-6 border-t border-white/5 relative z-10 bg-background/40 backdrop-blur-md">
+             <Link href="/dashboard" className="w-full h-12 glass border border-white/10 flex items-center justify-center gap-3 rounded-2xl text-[10px] uppercase font-black tracking-[0.2em] text-muted-foreground hover:text-primary hover:border-primary/30 transition-all">
+                <ChevronLeft className="h-4 w-4" /> Return to Command
+             </Link>
+          </div>
         </aside>
 
-        {/* Canvas Workspace */}
-        <main 
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={handleDrop}
-          className="flex-1 bg-black/5 relative p-12 overflow-y-auto" 
-          style={{ filter: `hue-rotate(${chromaShift}deg)` }}
-        >
-          {/* Floating Asset Layer */}
-          {floatingAssets.map(asset => (
-             <FloatingAsset 
-               key={asset.id}
-               id={asset.id}
-               url={asset.url}
-               initialPos={{ x: asset.x, y: asset.y }}
-               initialSize={{ w: asset.w, h: asset.h }}
-               onUpdate={handleUpdateAsset}
-               onDelete={handleDeleteAsset}
-             />
-          ))}
-
-          <div className="max-w-4xl mx-auto space-y-12">
-            <div className="flex gap-4">
-              <div className="glass px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-ping" />
-                Live Canvas
-              </div>
-            </div>
-
-            <div className={`space-y-12 pb-32 transition-all duration-700 ${isIsometric ? 'perspective-isometry' : ''}`}
-                 style={isIsometric ? { transform: 'rotateX(20deg) rotateY(-10deg) scale(0.9)', transformStyle: 'preserve-3d' } : {}}>
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={nodes.map(n => n.id)} strategy={verticalListSortingStrategy}>
-                  <AnimatePresence mode="popLayout">
-                    {nodes.length === 0 ? (
-                      <div className="glass-card min-h-[400px] flex flex-col items-center justify-center text-center p-12 space-y-4 border border-dashed border-white/10 opacity-40">
-                         <Plus className="h-12 w-12" />
-                         <p className="text-xl font-heading italic">Awaiting Synthesis Sequence</p>
-                      </div>
-                    ) : (
-                      nodes.map((node, i) => (
-                        <SortableNode key={node.id} id={node.id} index={i} isIsometric={isIsometric}>
-                          <motion.div 
-                            layout 
-                            initial={{ opacity: 0, y: 20 }} 
-                            animate={{ opacity: 1, y: 0 }} 
-                            exit={{ opacity: 0, scale: 0.95 }} 
-                            transition={{ duration: 0.4 }} 
-                            className="relative group"
-                          >
-                            <div className="absolute -left-20 top-0 h-full flex flex-col items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-50">
-                               <Button variant="ghost" size="icon" className="h-10 w-10 text-red-500 rounded-full glass" onClick={() => setNodes(nodes.filter(n => n.id !== node.id))}>
-                                 <Trash2 className="h-4 w-4" />
-                               </Button>
-                               <Button variant="ghost" size="icon" className="h-10 w-10 text-primary rounded-full glass" onClick={() => { setSelectedNodeIndex(i); setActiveTab(null); }}>
-                                 <Settings2 className="h-4 w-4" />
-                               </Button>
+        {/* Main Neural Canvas Area */}
+        <main className="flex-1 relative flex flex-col bg-background overflow-hidden" style={{ filter: `hue-rotate(${chromaShift}deg)` }}>
+          {/* Synthesis Rail (Universal Navigator) */}
+          <div className="h-24 glass-dark border-b border-white/5 flex items-center px-10 relative z-40 bg-background/50 backdrop-blur-xl">
+             <div className="flex items-center justify-between w-full max-w-[1400px] mx-auto">
+                <div className="flex items-center gap-12">
+                   {STEPS.map((step, idx) => {
+                     const isActive = currentStep === step.id;
+                     const isCompleted = currentStep > step.id;
+                     const Icon = step.icon;
+                     
+                     return (
+                       <div 
+                         key={step.id} 
+                         onClick={() => setCurrentStep(step.id)}
+                         className={`flex items-center gap-3 cursor-pointer group relative transition-all ${isActive ? 'opacity-100 scale-105' : 'opacity-30 hover:opacity-100'}`}
+                       >
+                          <div className={`h-11 w-11 rounded-[1.25rem] flex items-center justify-center border transition-all duration-500 ${isActive ? 'bg-primary border-primary shadow-[0_0_30px_rgba(var(--primary),0.3)] text-white rotate-6' : isCompleted ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-white/5 border-white/5 text-muted-foreground'}`}>
+                             {isCompleted ? <CheckCircle2 className="h-5 w-5" /> : <Icon className={`h-5 w-5 ${isActive ? 'animate-pulse' : ''}`} />}
+                          </div>
+                          <div className="hidden xl:block">
+                             <div className={`text-[9px] font-black uppercase tracking-[0.2em] transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>{step.label}</div>
+                             <div className="text-[10px] font-bold text-white/50">{step.title}</div>
+                          </div>
+                          {idx < STEPS.length - 1 && (
+                            <div className="absolute -right-8 top-1/2 -translate-y-1/2 hidden 2xl:block">
+                               <div className="w-4 h-[1px] bg-white/10" />
                             </div>
-                             <RenderNode 
-                               node={node} 
-                               idx={i} 
-                               onContentChange={(updates) => handleContentChange(i, updates)} 
-                             />
-                          </motion.div>
-                        </SortableNode>
-                      ))
-                    )}
-                  </AnimatePresence>
-                </SortableContext>
-              </DndContext>
+                          )}
+                          {isActive && (
+                            <motion.div layoutId="railIndicator" className="absolute -bottom-6 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent blur-[1px]" />
+                          )}
+                       </div>
+                     );
+                   })}
+                </div>
+
+                <div className="flex items-center gap-6">
+                   <div className="flex flex-col items-end">
+                      <span className="text-[8px] font-black uppercase tracking-[0.2em] text-primary/40">Neural Integrity</span>
+                      <span className="text-xs font-bold font-mono text-primary">{matrixData?.performance.score || 98}%</span>
+                   </div>
+                   <div className="h-8 w-[1px] bg-white/5" />
+                   <ActionTooltip label="Toggle Isometric Visualization">
+                      <Button variant="ghost" size="icon" onClick={() => setIsIsometric(!isIsometric)} className={`h-10 w-10 rounded-xl transition-all ${isIsometric ? 'bg-primary/20 text-primary border border-primary/20' : 'hover:bg-white/5 text-muted-foreground'}`}>
+                        <Maximize2 className="h-4 w-4" />
+                      </Button>
+                   </ActionTooltip>
+                </div>
+             </div>
+          </div>
+
+          <div className="flex-1 relative overflow-auto no-scrollbar scroll-smooth">
+            <div className={`transition-all duration-1000 w-full min-h-full p-20 ${isIsometric ? 'perspective-isometry bg-primary/5' : ''}`}>
+               {/* Floating Asset Layer (Handled by Step 4/5 logic) */}
+               {floatingAssets.map(asset => (
+                  <FloatingAsset 
+                    key={asset.id}
+                    id={asset.id}
+                    url={asset.url}
+                    initialPos={{ x: asset.x, y: asset.y }}
+                    initialSize={{ w: asset.w, h: asset.h }}
+                    onUpdate={handleUpdateAsset}
+                    onDelete={handleDeleteAsset}
+                  />
+               ))}
+
+               <div className="max-w-5xl mx-auto">
+                 <div className="flex justify-center mb-16">
+                    <div className="glass px-8 py-3 rounded-full border border-white/5 flex items-center gap-4 shadow-2xl">
+                       <div className="flex items-center gap-2">
+                          <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40 italic">Active Neural Core</span>
+                       </div>
+                       <div className="h-4 w-[1px] bg-white/10" />
+                       <div className="text-[10px] font-bold uppercase tracking-widest text-primary truncate max-w-[200px]">{projectName}</div>
+                    </div>
+                 </div>
+
+                 <div className="space-y-12 pb-64">
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                      <SortableContext items={nodes.map(n => n.id)} strategy={verticalListSortingStrategy}>
+                        <AnimatePresence mode="popLayout">
+                          {nodes.length === 0 ? (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card min-h-[500px] flex flex-col items-center justify-center text-center p-12 space-y-6 border border-dashed border-white/10 relative overflow-hidden group">
+                                <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                <div className="h-20 w-20 rounded-[2rem] bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-2xl relative z-10">
+                                   <Cpu className="h-10 w-10 animate-pulse" />
+                                </div>
+                                <div className="space-y-2 relative z-10">
+                                   <h3 className="text-2xl font-heading font-black italic tracking-tight text-white/90">Awaiting Synthesis Sequence</h3>
+                                   <p className="text-xs text-muted-foreground/60 max-w-sm mx-auto leading-relaxed">The neural manifold is receptive. Advance to Step 4 to begin component emission or select a site template.</p>
+                                </div>
+                                <Button onClick={() => setCurrentStep(4)} variant="outline" className="h-12 px-8 border-primary/30 text-primary font-bold uppercase tracking-widest text-[9px] rounded-full hover:bg-primary/20 relative z-10 transition-all">
+                                   Initialize Step 4
+                                </Button>
+                            </motion.div>
+                          ) : (
+                            nodes.map((node, i) => (
+                              <SortableNode key={node.id} id={node.id} index={i} isIsometric={isIsometric}>
+                                <motion.div 
+                                  layout 
+                                  initial={{ opacity: 0, y: 40 }} 
+                                  animate={{ opacity: 1, y: 0 }} 
+                                  exit={{ opacity: 0, scale: 0.9, filter: 'blur(20px)' }} 
+                                  transition={{ type: "spring", damping: 25, stiffness: 120 }} 
+                                  className="relative group/node"
+                                >
+                                  {/* Node Controls Overlay */}
+                                  <div className="absolute -left-24 top-0 h-full flex flex-col items-center gap-3 opacity-0 group-hover/node:opacity-100 transition-all duration-500 translate-x-4 group-hover/node:translate-x-0 z-50">
+                                     <ActionTooltip label="Delete Node">
+                                        <Button 
+                                          variant="ghost" 
+                                          size="icon" 
+                                          className="h-10 w-10 text-red-500/50 hover:text-red-500 rounded-2xl glass hover:bg-red-500/10 border-none transition-all" 
+                                          onClick={() => setNodes(nodes.filter(n => n.id !== node.id))}
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                     </ActionTooltip>
+                                     <ActionTooltip label="Edit Content">
+                                        <Button 
+                                          variant="ghost" 
+                                          size="icon" 
+                                          className="h-10 w-10 text-primary rounded-2xl glass hover:bg-primary/20 border-none transition-all" 
+                                          onClick={() => { setSelectedNodeIndex(i); setCurrentStep(4); }}
+                                        >
+                                          <Settings2 className="h-4 w-4" />
+                                        </Button>
+                                     </ActionTooltip>
+                                  </div>
+
+                                  <RenderNode 
+                                    node={node} 
+                                    idx={i} 
+                                    onContentChange={(updates) => handleContentChange(i, updates)} 
+                                  />
+                                </motion.div>
+                              </SortableNode>
+                            ))
+                          )}
+                        </AnimatePresence>
+                      </SortableContext>
+                    </DndContext>
+                 </div>
+               </div>
             </div>
           </div>
         </main>
-
-        {/* Global Toolbar */}
-        <aside className="w-80 glass border-l border-white/5 p-8 space-y-12 relative z-20">
-          <div className="space-y-6">
-            <h3 className="text-[10px] uppercase font-bold text-muted-foreground">Neural Matrix</h3>
-            <NeuralInsightHUD matrix={matrixData} />
-          </div>
-
-          <div className="space-y-6">
-            <h3 className="text-[10px] uppercase font-bold text-muted-foreground">Appearance</h3>
-            {[
-              { id: 'blur', label: "Blur", value: `${blurValue}px`, val: blurValue, onChange: setBlurValue, max: 64 },
-              { id: 'mesh', label: "Mesh", value: `${meshIntensity}%`, val: meshIntensity, onChange: setMeshIntensity, max: 100 },
-              { id: 'chroma', label: "Hue", value: `${chromaShift}°`, val: chromaShift, onChange: setChromaShift, max: 360 }
-            ].map((config) => (
-              <div key={config.id} className="space-y-2">
-                <div className="flex justify-between text-[10px] font-bold">
-                  <span className="uppercase">{config.label}</span>
-                  <span className="text-primary">{config.value}</span>
-                </div>
-                <input type="range" min="0" max={config.max} value={config.val} onChange={(e) => config.onChange(parseInt(e.target.value))} className="w-full accent-primary h-1 bg-white/10 rounded-full outline-none" />
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-auto space-y-4">
-             <Button onClick={handleSyncMatrix} className="w-full bg-primary/20 text-primary border border-primary/20 hover:bg-primary/30 h-12 uppercase font-bold tracking-widest text-[10px]">
-               {isSyncing ? "Syncing..." : "Sync Matrix"}
-             </Button>
-             <Button onClick={handleExportStandalone} disabled={isExporting} className="w-full bg-accent text-black hover:bg-accent/80 h-12 uppercase font-bold tracking-widest text-[10px]">
-               {isExporting ? "Exporting..." : "Export Standalone"}
-             </Button>
-             <Button variant="outline" onClick={handleExportJSON} className="w-full border-white/10 bg-white/5 h-12 uppercase font-bold tracking-widest text-[10px]">Export JSON</Button>
-             <Button variant="destructive" onClick={handleFlushCanvas} className="w-full bg-red-500/10 text-red-500 border-none h-12 uppercase font-bold tracking-widest text-[10px]">Flush Canvas</Button>
-          </div>
-        </aside>
       </div>
 
       <AriaCoPilot 
