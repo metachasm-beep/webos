@@ -993,103 +993,106 @@ export default function BuilderPage() {
                         <div className="text-[10px] font-bold uppercase tracking-widest text-primary truncate max-w-[200px]">{projectName}</div>
                      </div>
                    </motion.div>
+                     <div className="space-y-12 pb-64 relative">
+                        {/* Persistent Neural Substrate (Always Visible) */}
+                        <div className="flex justify-center items-center pointer-events-none mb-12">
+                           <div className="relative h-96 w-96 flex items-center justify-center pointer-events-auto">
+                              <div className="absolute inset-x-0 bottom-0 top-0 bg-primary/5 rounded-full blur-[120px] animate-pulse pointer-events-none" />
+                              
+                              <AnimatePresence>
+                                {/* Cumulative Draggable Units */}
+                                <motion.div 
+                                  drag dragMomentum={false} 
+                                  initial={{ opacity: 0, scale: 0.8 }} 
+                                  animate={{ opacity: 1, scale: 1 }} 
+                                  className="absolute z-20 cursor-move"
+                                >
+                                    {(logoUrl || currentStep >= 2) ? (
+                                       <div className="relative h-44 w-44 flex items-center justify-center">
+                                          <div className="absolute inset-0 border border-primary/20 border-t-primary rounded-full animate-spin [animation-duration:3s]" />
+                                          <div className="absolute inset-4 border border-primary/10 border-b-primary/50 rounded-full animate-spin [animation-direction:reverse] [animation-duration:5s]" />
+                                          {logoStatus === 'error' ? (
+                                             <AlertCircle className="h-12 w-12 text-red-500 animate-pulse" />
+                                          ) : logoUrl ? (
+                                             <img src={logoUrl} className="h-24 w-24 object-contain relative z-10" />
+                                          ) : (
+                                             <Sparkles className="h-12 w-12 text-primary/40 animate-pulse" />
+                                          )}
+                                       </div>
+                                    ) : (
+                                       <div className="h-40 w-40 rounded-3xl border border-primary/40 bg-primary/10 flex items-center justify-center animate-pulse">
+                                          <Target className="h-20 w-20 text-primary" />
+                                       </div>
+                                    )}
+                                </motion.div>
 
-                 <div className="space-y-12 pb-64">
-                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                      <SortableContext items={nodes.map(n => n.id)} strategy={verticalListSortingStrategy}>
-                        <AnimatePresence mode="popLayout">
-                          {nodes.length === 0 ? (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card min-h-[700px] flex flex-col items-center justify-center text-center p-12 space-y-8 border border-dashed border-white/10 relative overflow-hidden group">
-                                <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                                
-                                <div className="relative h-96 w-96 flex items-center justify-center">
-                                   <div className="absolute inset-x-0 bottom-0 top-0 bg-primary/5 rounded-full blur-[120px] animate-pulse pointer-events-none" />
-                                   
-                                   <AnimatePresence>
-                                     {/* Cumulative Draggable Units */}
-                                     <motion.div 
-                                       drag dragMomentum={false} 
-                                       initial={{ opacity: 0, scale: 0.8 }} 
-                                       animate={{ opacity: 1, scale: 1 }} 
-                                       className="absolute z-20 cursor-move"
-                                     >
-                                         {(logoUrl || currentStep >= 2) ? (
-                                            <div className="relative h-44 w-44 flex items-center justify-center">
-                                               <div className="absolute inset-0 border border-primary/20 border-t-primary rounded-full animate-spin [animation-duration:3s]" />
-                                               <div className="absolute inset-4 border border-primary/10 border-b-primary/50 rounded-full animate-spin [animation-direction:reverse] [animation-duration:5s]" />
-                                               {logoStatus === 'error' ? (
-                                                  <AlertCircle className="h-12 w-12 text-red-500 animate-pulse" />
-                                               ) : logoUrl ? (
-                                                  <img src={logoUrl} className="h-24 w-24 object-contain relative z-10" />
-                                               ) : (
-                                                  <Sparkles className="h-12 w-12 text-primary/40 animate-pulse" />
-                                               )}
-                                            </div>
-                                         ) : (
-                                            <div className="h-40 w-40 rounded-3xl border border-primary/40 bg-primary/10 flex items-center justify-center animate-pulse">
-                                               <Target className="h-20 w-20 text-primary" />
-                                            </div>
-                                         )}
-                                     </motion.div>
+                                {(activeThemeId || activePairingId) && (
+                                   <motion.div 
+                                     drag dragMomentum={false} 
+                                     initial={{ opacity: 0, x: 200 }} 
+                                     animate={{ opacity: 1, x: 240 }} 
+                                     className="absolute z-30 cursor-move"
+                                   >
+                                      <div className="relative flex flex-col items-center gap-6">
+                                         <div className="grid grid-cols-2 gap-2 p-4 h-40 w-40 glass rounded-[2.5rem] relative overflow-hidden border border-white/10 shadow-2xl">
+                                            <div className="rounded-2xl animate-pulse" style={{ backgroundColor: (PRESET_THEMES as any)[activeThemeId]?.primary || '#ccc' }} />
+                                            <div className="rounded-2xl [animation-delay:0.2s] animate-pulse" style={{ backgroundColor: (PRESET_THEMES as any)[activeThemeId]?.accent || '#888' }} />
+                                            <div className="bg-white/10 rounded-2xl [animation-delay:0.4s] animate-pulse" />
+                                            <div className="rounded-2xl [animation-delay:0.6s] animate-pulse opacity-50" style={{ backgroundColor: (PRESET_THEMES as any)[activeThemeId]?.primary || '#ccc' }} />
+                                         </div>
+                                         <div className="glass px-4 py-2 rounded-full border border-white/10 shadow-2xl backdrop-blur-md">
+                                            <p className="text-[9px] text-primary font-mono tracking-widest uppercase">
+                                               {(PRESET_THEMES as any)[activeThemeId]?.label || 'Standard'} + {(TYPOGRAPHY_PAIRINGS as any)[activePairingId]?.label || 'Default'}
+                                            </p>
+                                         </div>
+                                      </div>
+                                   </motion.div>
+                                )}
 
-                                     {(activeThemeId || activePairingId) && (
-                                        <motion.div 
-                                          drag dragMomentum={false} 
-                                          initial={{ opacity: 0, x: 200 }} 
-                                          animate={{ opacity: 1, x: 240 }} 
-                                          className="absolute z-30 cursor-move"
-                                        >
-                                           <div className="relative flex flex-col items-center gap-6">
-                                              <div className="grid grid-cols-2 gap-2 p-4 h-40 w-40 glass rounded-[2.5rem] relative overflow-hidden border border-white/10 shadow-2xl">
-                                                 <div className="rounded-2xl animate-pulse" style={{ backgroundColor: (PRESET_THEMES as any)[activeThemeId]?.primary || '#ccc' }} />
-                                                 <div className="rounded-2xl [animation-delay:0.2s] animate-pulse" style={{ backgroundColor: (PRESET_THEMES as any)[activeThemeId]?.accent || '#888' }} />
-                                                 <div className="bg-white/10 rounded-2xl [animation-delay:0.4s] animate-pulse" />
-                                                 <div className="rounded-2xl [animation-delay:0.6s] animate-pulse opacity-50" style={{ backgroundColor: (PRESET_THEMES as any)[activeThemeId]?.primary || '#ccc' }} />
-                                              </div>
-                                              <div className="glass px-4 py-2 rounded-full border border-white/10 shadow-2xl backdrop-blur-md">
-                                                 <p className="text-[9px] text-primary font-mono tracking-widest uppercase">
-                                                    {(PRESET_THEMES as any)[activeThemeId]?.label || 'Standard'} + {(TYPOGRAPHY_PAIRINGS as any)[activePairingId]?.label || 'Default'}
-                                                 </p>
-                                              </div>
-                                           </div>
-                                        </motion.div>
-                                     )}
+                                {projectName && (
+                                   <motion.div 
+                                     drag dragMomentum={false} 
+                                     initial={{ opacity: 0, y: -220 }} 
+                                     animate={{ opacity: 1, y: -180 }} 
+                                     className="absolute z-40 cursor-move"
+                                   >
+                                      <div className="glass px-6 py-3 rounded-2xl border border-primary/30 shadow-2xl backdrop-blur-md">
+                                         <h3 className="text-xl font-heading font-black italic tracking-tight text-primary uppercase">{projectName}</h3>
+                                         <p className="text-[8px] text-white/40 font-mono tracking-widest uppercase text-center mt-1">Project Foundation Synced</p>
+                                      </div>
+                                   </motion.div>
+                                )}
+                              </AnimatePresence>
+                           </div>
+                        </div>
 
-                                     {projectName && (
-                                        <motion.div 
-                                          drag dragMomentum={false} 
-                                          initial={{ opacity: 0, y: -220 }} 
-                                          animate={{ opacity: 1, y: -160 }} 
-                                          className="absolute z-40 cursor-move"
-                                        >
-                                           <div className="glass px-6 py-3 rounded-2xl border border-primary/30 shadow-2xl backdrop-blur-md">
-                                              <h3 className="text-xl font-heading font-black italic tracking-tight text-primary uppercase">{projectName}</h3>
-                                              <p className="text-[8px] text-white/40 font-mono tracking-widest uppercase text-center mt-1">Project Foundation Synced</p>
-                                           </div>
-                                        </motion.div>
-                                     )}
-                                     
-                                     {currentStep >= 4 && (
-                                        <motion.div 
-                                          drag dragMomentum={false} 
-                                          initial={{ opacity: 0, y: 220 }} 
-                                          animate={{ opacity: 1, y: 200 }} 
-                                          className="absolute z-50 cursor-move"
-                                        >
-                                           <div className="flex flex-col items-center gap-4">
-                                              <div className="h-24 w-24 rounded-3xl bg-primary/20 flex items-center justify-center text-primary border border-primary/20 shadow-2xl backdrop-blur-md">
-                                                 <Cpu className="h-10 w-10 animate-pulse" />
-                                              </div>
-                                              <Button onClick={() => setCurrentStep(4)} variant="outline" className="h-10 px-6 border-primary/30 text-primary font-bold uppercase tracking-widest text-[8px] rounded-full hover:bg-primary/20 transition-all opacity-60 hover:opacity-100">
-                                                 Activate Synthesis
-                                              </Button>
-                                           </div>
-                                        </motion.div>
-                                     )}
-                                   </AnimatePresence>
-                                </div>
-                            </motion.div>
-                          ) : (
+                        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                          <SortableContext items={nodes.map(n => n.id)} strategy={verticalListSortingStrategy}>
+                            <AnimatePresence mode="popLayout">
+                              {nodes.length === 0 ? (
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center text-center p-12 space-y-8 relative overflow-hidden group">
+                                    <div className="space-y-6 flex flex-col items-center">
+                                       <div className="glass px-8 py-4 rounded-3xl border border-dashed border-white/10 flex flex-col items-center gap-4">
+                                          <h3 className="text-2xl font-heading font-black italic tracking-tight text-white/90">Awaiting Synthesis Sequence</h3>
+                                          <p className="text-xs text-muted-foreground/60 max-w-sm mx-auto leading-relaxed italic">The neural manifold is receptive. Advance to Step 4 to begin component emission.</p>
+                                       </div>
+                                       
+                                       {currentStep >= 4 && (
+                                          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                                             <div className="flex flex-col items-center gap-4">
+                                                <div className="h-24 w-24 rounded-3xl bg-primary/20 flex items-center justify-center text-primary border border-primary/20 shadow-2xl backdrop-blur-md">
+                                                   <Cpu className="h-10 w-10 animate-pulse" />
+                                                </div>
+                                                <Button onClick={() => setCurrentStep(4)} variant="outline" className="h-10 px-6 border-primary/30 text-primary font-bold uppercase tracking-widest text-[8px] rounded-full hover:bg-primary/20 transition-all opacity-60 hover:opacity-100">
+                                                   Activate Synthesis
+                                                </Button>
+                                             </div>
+                                          </motion.div>
+                                       )}
+                                    </div>
+                                </motion.div>
+                              ) : (
+
                             nodes.map((node, i) => (
                               <SortableNode key={node.id} id={node.id} index={i} isIsometric={isIsometric}>
                                 <motion.div 
