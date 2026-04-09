@@ -979,7 +979,7 @@ export default function BuilderPage() {
           </div>
 
           <div className="flex-1 relative overflow-auto no-scrollbar scroll-smooth">
-            <div className={`transition-all duration-1000 w-full min-h-full p-20 relative ${isIsometric ? 'perspective-isometry bg-primary/5' : ''}`}>
+            <div className={`transition-all duration-1000 w-full min-h-full p-10 relative ${isIsometric ? 'perspective-isometry bg-primary/5' : ''}`}>
                {/* Effect Substrate (Background Mesh) */}
                <div className="absolute inset-0 overflow-hidden pointer-events-none">
                   <div className="mesh-gradient" />
@@ -998,8 +998,8 @@ export default function BuilderPage() {
                   />
                ))}
 
-               <div className="max-w-5xl mx-auto">
-                 <div className="flex justify-center mb-16">
+                <div className="max-w-5xl mx-auto">
+                  <div className="flex justify-center mb-8">
                     <div className="glass px-8 py-3 rounded-full border border-white/5 flex items-center gap-4 shadow-2xl">
                        <div className="flex items-center gap-2">
                           <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
@@ -1028,9 +1028,9 @@ export default function BuilderPage() {
                                            <Target className="h-16 w-16 text-primary" />
                                         </div>
                                         <div className="space-y-2">
-                                           <h3 className="text-2xl font-heading font-black italic tracking-tight text-white/90">Manifold Initialization</h3>
-                                           <p className="text-[10px] text-primary/60 font-mono tracking-widest uppercase">Awaiting Project Parameters</p>
-                                        </div>
+                                            <h3 className="text-2xl font-heading font-black italic tracking-tight text-white/90">{projectName || "Manifold Initialization"}</h3>
+                                            <p className="text-[10px] text-primary/60 font-mono tracking-widest uppercase">{projectName ? "Project Context Synced" : "Awaiting Project Parameters"}</p>
+                                         </div>
                                      </div>
                                    )}
 
@@ -1062,19 +1062,21 @@ export default function BuilderPage() {
                                    )}
 
                                    {currentStep === 3 && (
-                                     <div className="relative z-10 flex flex-col items-center gap-6">
-                                        <div className="grid grid-cols-2 gap-2 p-4 h-40 w-40 glass rounded-[2.5rem] relative overflow-hidden">
-                                           <div className="bg-primary rounded-2xl animate-pulse" />
-                                           <div className="bg-accent rounded-2xl [animation-delay:0.2s] animate-pulse" />
-                                           <div className="bg-white/10 rounded-2xl [animation-delay:0.4s] animate-pulse" />
-                                           <div className="bg-primary/50 rounded-2xl [animation-delay:0.6s] animate-pulse" />
-                                        </div>
-                                        <div className="space-y-2">
-                                           <h3 className="text-2xl font-heading font-black italic tracking-tight text-white/90">Atmosphere Infusion</h3>
-                                           <p className="text-[10px] text-primary/60 font-mono tracking-widest uppercase">Select Global Design Tokens</p>
-                                        </div>
-                                     </div>
-                                   )}
+                                      <div className="relative z-10 flex flex-col items-center gap-6">
+                                         <div className="grid grid-cols-2 gap-2 p-4 h-40 w-40 glass rounded-[2.5rem] relative overflow-hidden">
+                                            <div className="rounded-2xl animate-pulse" style={{ backgroundColor: PRESET_THEMES[activeThemeId].primary }} />
+                                            <div className="rounded-2xl [animation-delay:0.2s] animate-pulse" style={{ backgroundColor: PRESET_THEMES[activeThemeId].accent }} />
+                                            <div className="bg-white/10 rounded-2xl [animation-delay:0.4s] animate-pulse" />
+                                            <div className="rounded-2xl [animation-delay:0.6s] animate-pulse opacity-50" style={{ backgroundColor: PRESET_THEMES[activeThemeId].primary }} />
+                                         </div>
+                                         <div className="space-y-2">
+                                            <h3 className="text-2xl font-heading font-black italic tracking-tight text-white/90">Atmosphere Infusion</h3>
+                                            <p className="text-[10px] text-primary/60 font-mono tracking-widest uppercase">
+                                               {PRESET_THEMES[activeThemeId].label} + {TYPOGRAPHY_PAIRINGS[activePairingId].label}
+                                            </p>
+                                         </div>
+                                      </div>
+                                    )}
 
                                    {currentStep >= 4 && (
                                      <div className="relative z-10 flex flex-col items-center gap-6">
