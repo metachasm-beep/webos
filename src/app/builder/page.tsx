@@ -1057,6 +1057,20 @@ export default function BuilderPage() {
                                                logoStatus === 'error' ? (logoError || "Protocol Failed") :
                                                logoUrl ? "DNA Synchronized" : "Awaiting Asset Injection"}
                                            </p>
+                                           {logoStatus === 'error' && (
+                                              <div className="pt-2">
+                                                 <Link 
+                                                   href="#supabase-guide" 
+                                                   onClick={(e) => {
+                                                      e.preventDefault();
+                                                      alert("Check your Supabase Dashboard: \n1. Go to Settings -> API\n2. Add http://localhost:3000 to 'Allowed Search Origins'\n3. Ensure 'branding' bucket is Public.");
+                                                   }}
+                                                   className="text-[8px] text-primary font-black uppercase tracking-widest hover:underline flex items-center gap-1"
+                                                 >
+                                                    Fix Connection <ChevronRight className="h-2 w-2" />
+                                                 </Link>
+                                              </div>
+                                           )}
                                         </div>
                                      </div>
                                    )}

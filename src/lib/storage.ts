@@ -1,10 +1,27 @@
 import { supabase } from './supabase';
 
 export async function uploadBrandAsset(file: File, path: string) {
-  // Check for placeholder credentials
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  // Masked diagnostic log
+  console.log("Neural Registry Diagnostics:", { 
+    endpoint: supabaseUrl ? `${supabaseUrl.substring(0, 12)}...` : 'MISSING',
+    key_synced: !!supabaseAnonKey,
+    protocol: window.location.protocol
+  });
+
   if (!supabaseUrl || supabaseUrl.includes("placeholder-neural-registry")) {
     throw new Error("Neural Credentials Missing. Please check your .env.local configuration.");
+  }
+
+  // Pre-flight connectivity check
+  try {
+    const preflight = await fetch(supabaseUrl, { method: 'HEAD', mode: 'no-cors' });
+    console.log("Neural Link Status: SIGNAL DETECTED");
+  } catch (err) {
+    console.warn("Neural Link Signal Lost. This is likely a CORS block or network filter.");
+    throw new Error("Synthesis Blocked: Ensure localhost is allowed in Supabase CORS settings.");
   }
 
   // Cap at 5MB
@@ -22,7 +39,7 @@ export async function uploadBrandAsset(file: File, path: string) {
       });
 
     if (error) {
-      console.error("Supabase Storage Error:", error);
+      console.error("Supabase Storage Error Details:", error);
       if (error.message.includes("bucket not found")) {
         throw new Error("Neural Bucket 'branding' not found. Please initialize storage.");
       }
@@ -42,9 +59,8 @@ export async function uploadBrandAsset(file: File, path: string) {
   } catch (err: any) {
     console.error("Neural Storage Process Failure:", err);
     
-    // Detect generic "Failed to fetch" which is often a network/CORS issue
     if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
-      throw new Error("Neural Link Severed: Browser failed to reach Supabase. Check CORS settings or network connectivity.");
+      throw new Error("Neural Link Severed: Check CORS or browser network interceptors.");
     }
     
     throw new Error(err.message || "Unknown synthesis storage error.");
