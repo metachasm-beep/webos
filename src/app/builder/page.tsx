@@ -156,6 +156,10 @@ export default function BuilderPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
+  const [logoStatus, setLogoStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
+  const [faviconStatus, setFaviconStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
+  const [logoError, setLogoError] = useState<string | null>(null);
+  const [faviconError, setFaviconError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
   const [isMounted, setIsMounted] = useState(false);
@@ -358,14 +362,20 @@ export default function BuilderPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     const uploadId = projectId || `temp-${Date.now()}`;
+    setLogoStatus('uploading');
+    setLogoError(null);
     setIsUploadingLogo(true);
     try {
       console.log("Neural Logo Upload Initialized:", file.name);
       const url = await uploadBrandAsset(file, `${uploadId}/logo-${Date.now()}`);
       console.log("Neural Asset Synced:", url);
       setLogoUrl(url);
-    } catch (err) {
+      setLogoStatus('success');
+      setTimeout(() => setLogoStatus('idle'), 3000);
+    } catch (err: any) {
       console.error("Logo Upload Failure.", err);
+      setLogoStatus('error');
+      setLogoError(err.message || "Synthesis Protocol Error");
     } finally {
       setIsUploadingLogo(false);
     }
@@ -375,14 +385,20 @@ export default function BuilderPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     const uploadId = projectId || `temp-${Date.now()}`;
+    setFaviconStatus('uploading');
+    setFaviconError(null);
     setIsUploadingFavicon(true);
     try {
       console.log("Neural Favicon Upload Initialized:", file.name);
       const url = await uploadBrandAsset(file, `${uploadId}/favicon-${Date.now()}`);
       console.log("Neural Asset Synced:", url);
       setFaviconUrl(url);
-    } catch (err) {
+      setFaviconStatus('success');
+      setTimeout(() => setFaviconStatus('idle'), 3000);
+    } catch (err: any) {
       console.error("Favicon Upload Failure.", err);
+      setFaviconStatus('error');
+      setFaviconError(err.message || "Synthesis Protocol Error");
     } finally {
       setIsUploadingFavicon(false);
     }
@@ -623,12 +639,23 @@ export default function BuilderPage() {
                     <div className="space-y-6">
                        <div className="space-y-3">
                           <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Logo Identity</label>
-                          <ActionTooltip label="Sync your brand's core visual DNA. Selection will appear instantly.">
-                            <div className="h-44 w-full rounded-2xl bg-white/5 border border-white/5 p-4 flex items-center justify-center relative overflow-hidden group hover:border-primary/40 transition-all cursor-pointer">
-                               {isUploadingLogo ? (
+                          <ActionTooltip label={logoStatus === 'error' ? `Error: ${logoError}` : "Sync your brand's core visual DNA. Selection will appear instantly."}>
+                            <div className={`h-44 w-full rounded-2xl bg-white/5 border p-4 flex items-center justify-center relative overflow-hidden group transition-all cursor-pointer ${logoStatus === 'error' ? 'border-red-500/50 bg-red-500/5' : logoStatus === 'success' ? 'border-green-500/50 bg-green-500/5' : 'border-white/5 hover:border-primary/40'}`}>
+                               {logoStatus === 'uploading' ? (
                                   <div className="flex flex-col items-center gap-3 animate-pulse">
                                      <RefreshCcw className="h-8 w-8 text-primary animate-spin" />
                                      <span className="text-[9px] uppercase font-black tracking-[0.2em] text-primary">Scanning DNA...</span>
+                                  </div>
+                               ) : logoStatus === 'success' ? (
+                                  <div className="flex flex-col items-center gap-3 text-green-500">
+                                     <CheckCircle2 className="h-8 w-8" />
+                                     <span className="text-[9px] uppercase font-black tracking-[0.2em]">Synthesis Complete</span>
+                                  </div>
+                               ) : logoStatus === 'error' ? (
+                                  <div className="flex flex-col items-center gap-3 text-red-500 p-4 text-center">
+                                     <AlertCircle className="h-8 w-8" />
+                                     <span className="text-[9px] uppercase font-black tracking-[0.2em]">Protocol Failed</span>
+                                     <p className="text-[7px] opacity-60 uppercase leading-relaxed">{logoError}</p>
                                   </div>
                                ) : logoUrl ? (
                                   <div className="relative h-full w-full flex items-center justify-center">
@@ -646,17 +673,21 @@ export default function BuilderPage() {
                                      <span className="text-[9px] uppercase font-black tracking-[0.2em]">Initialize Logo</span>
                                   </div>
                                )}
-                               <input type="file" onChange={handleLogoUpload} className="absolute inset-0 opacity-0 cursor-pointer z-30" disabled={isUploadingLogo} title="" />
+                               <input type="file" onChange={handleLogoUpload} className="absolute inset-0 opacity-0 cursor-pointer z-30" disabled={logoStatus === 'uploading'} title="" />
                             </div>
                           </ActionTooltip>
                        </div>
 
                        <div className="space-y-3">
                           <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Favicon Asset</label>
-                          <ActionTooltip label="Specify the browser tab iconography for this synthesis.">
-                            <div className="h-24 w-24 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center relative overflow-hidden group hover:border-primary/40 transition-all cursor-pointer">
-                               {isUploadingFavicon ? (
+                          <ActionTooltip label={faviconStatus === 'error' ? `Error: ${faviconError}` : "Specify the browser tab iconography for this synthesis."}>
+                            <div className={`h-24 w-24 rounded-2xl bg-white/5 border flex items-center justify-center relative overflow-hidden group transition-all cursor-pointer ${faviconStatus === 'error' ? 'border-red-500/50 bg-red-500/5' : faviconStatus === 'success' ? 'border-green-500/50 bg-green-500/5' : 'border-white/5 hover:border-primary/40'}`}>
+                               {faviconStatus === 'uploading' ? (
                                   <RefreshCcw className="h-6 w-6 text-primary animate-spin" />
+                               ) : faviconStatus === 'success' ? (
+                                  <CheckCircle2 className="h-6 w-6 text-green-500" />
+                               ) : faviconStatus === 'error' ? (
+                                  <AlertCircle className="h-6 w-6 text-red-500" />
                                ) : faviconUrl ? (
                                   <div className="relative h-full w-full flex items-center justify-center">
                                      <img src={faviconUrl} className="w-12 h-12 object-contain relative z-10" />
@@ -668,7 +699,7 @@ export default function BuilderPage() {
                                ) : (
                                   <ImageIcon className="h-8 w-8 opacity-30 group-hover:opacity-100 transition-all" />
                                )}
-                               <input type="file" onChange={handleFaviconUpload} className="absolute inset-0 opacity-0 cursor-pointer z-30" disabled={isUploadingFavicon} title="" />
+                               <input type="file" onChange={handleFaviconUpload} className="absolute inset-0 opacity-0 cursor-pointer z-30" disabled={faviconStatus === 'uploading'} title="" />
                             </div>
                           </ActionTooltip>
                        </div>
@@ -1005,13 +1036,15 @@ export default function BuilderPage() {
                                    {currentStep === 2 && (
                                      <div className="relative z-10 flex flex-col items-center gap-6">
                                         <div className="relative h-40 w-40 flex items-center justify-center">
-                                           <div className="absolute inset-0 border-2 border-primary/20 border-t-primary rounded-full animate-spin [animation-duration:3s]" />
-                                           <div className="absolute inset-4 border border-primary/10 border-b-primary/50 rounded-full animate-spin [animation-direction:reverse] [animation-duration:5s]" />
-                                           {logoUrl ? <img src={logoUrl} className="h-20 w-20 object-contain relative z-10" /> : <Sparkles className="h-12 w-12 text-primary opacity-30" />}
+                                           <div className={`absolute inset-0 border-2 border-primary/20 border-t-primary rounded-full animate-spin [animation-duration:3s] ${(logoStatus === 'uploading' || faviconStatus === 'uploading') ? 'border-primary opacity-100' : 'opacity-40'}`} />
+                                           <div className={`absolute inset-4 border border-primary/10 border-b-primary/50 rounded-full animate-spin [animation-direction:reverse] [animation-duration:5s] ${(logoStatus === 'uploading' || faviconStatus === 'uploading') ? 'opacity-100' : 'opacity-40'}`} />
+                                           {logoUrl ? <img src={logoUrl} className="h-20 w-20 object-contain relative z-10" /> : <Sparkles className={`h-12 w-12 text-primary ${(logoStatus === 'uploading' || faviconStatus === 'uploading') ? 'animate-pulse opacity-100' : 'opacity-30'}`} />}
                                         </div>
                                         <div className="space-y-2">
                                            <h3 className="text-2xl font-heading font-black italic tracking-tight text-white/90">Identity Synthesis</h3>
-                                           <p className="text-[10px] text-primary/60 font-mono tracking-widest uppercase">{logoUrl ? "DNA Synchronized" : "Awaiting Asset Injection"}</p>
+                                           <p className="text-[10px] text-primary/60 font-mono tracking-widest uppercase">
+                                              {(logoStatus === 'uploading' || faviconStatus === 'uploading') ? "Processing DNA..." : logoUrl ? "DNA Synchronized" : "Awaiting Asset Injection"}
+                                           </p>
                                         </div>
                                      </div>
                                    )}

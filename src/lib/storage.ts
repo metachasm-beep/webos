@@ -15,17 +15,26 @@ export async function uploadBrandAsset(file: File, path: string) {
         cacheControl: '3600',
       });
 
-    if (error) throw error;
+    if (error) {
+      if (error.message.includes("bucket not found")) {
+        throw new Error("Neural Bucket 'branding' not found. Please initialize storage.");
+      }
+      throw error;
+    }
     
     // Get public URL
     const { data: publicUrlData } = supabase.storage
       .from('branding')
       .getPublicUrl(path);
 
+    if (!publicUrlData.publicUrl) {
+      throw new Error("Failed to generate public neural link.");
+    }
+
     return publicUrlData.publicUrl;
-  } catch (err) {
+  } catch (err: any) {
     console.error("Neural Storage Upload Failure.", err);
-    throw err;
+    throw new Error(err.message || "Unknown synthesis storage error.");
   }
 }
 
