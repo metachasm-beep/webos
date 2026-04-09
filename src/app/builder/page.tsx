@@ -538,7 +538,7 @@ export default function BuilderPage() {
     <div className="min-h-screen bg-background flex flex-col font-body selection:bg-primary/30 text-foreground overflow-hidden">
       <Navbar />
 
-      <div className="flex-1 flex min-h-0 overflow-hidden relative pt-[69px]">
+      <div className="flex-1 flex min-h-0 overflow-hidden relative pt-[79px]">
         {/* Unified Background Substrate */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
           <Squares 
