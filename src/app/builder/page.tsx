@@ -362,16 +362,16 @@ export default function BuilderPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     const uploadId = projectId || `temp-${Date.now()}`;
+    const flatPath = `logo-${uploadId}-${Date.now()}`;
     setLogoStatus('uploading');
     setLogoError(null);
     setIsUploadingLogo(true);
     try {
-      console.log("Neural Logo Upload Initialized:", file.name);
-      const url = await uploadBrandAsset(file, `${uploadId}/logo-${Date.now()}`);
+      console.log("Neural Logo Upload Initialized:", file.name, "Path:", flatPath);
+      const url = await uploadBrandAsset(file, flatPath);
       console.log("Neural Asset Synced:", url);
       setLogoUrl(url);
       setLogoStatus('success');
-      setTimeout(() => setLogoStatus('idle'), 3000);
     } catch (err: any) {
       console.error("Logo Upload Failure.", err);
       setLogoStatus('error');
@@ -385,16 +385,16 @@ export default function BuilderPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     const uploadId = projectId || `temp-${Date.now()}`;
+    const flatPath = `favicon-${uploadId}-${Date.now()}`;
     setFaviconStatus('uploading');
     setFaviconError(null);
     setIsUploadingFavicon(true);
     try {
-      console.log("Neural Favicon Upload Initialized:", file.name);
-      const url = await uploadBrandAsset(file, `${uploadId}/favicon-${Date.now()}`);
+      console.log("Neural Favicon Upload Initialized:", file.name, "Path:", flatPath);
+      const url = await uploadBrandAsset(file, flatPath);
       console.log("Neural Asset Synced:", url);
       setFaviconUrl(url);
       setFaviconStatus('success');
-      setTimeout(() => setFaviconStatus('idle'), 3000);
     } catch (err: any) {
       console.error("Favicon Upload Failure.", err);
       setFaviconStatus('error');
@@ -1036,14 +1036,25 @@ export default function BuilderPage() {
                                    {currentStep === 2 && (
                                      <div className="relative z-10 flex flex-col items-center gap-6">
                                         <div className="relative h-40 w-40 flex items-center justify-center">
-                                           <div className={`absolute inset-0 border-2 border-primary/20 border-t-primary rounded-full animate-spin [animation-duration:3s] ${(logoStatus === 'uploading' || faviconStatus === 'uploading') ? 'border-primary opacity-100' : 'opacity-40'}`} />
-                                           <div className={`absolute inset-4 border border-primary/10 border-b-primary/50 rounded-full animate-spin [animation-direction:reverse] [animation-duration:5s] ${(logoStatus === 'uploading' || faviconStatus === 'uploading') ? 'opacity-100' : 'opacity-40'}`} />
-                                           {logoUrl ? <img src={logoUrl} className="h-20 w-20 object-contain relative z-10" /> : <Sparkles className={`h-12 w-12 text-primary ${(logoStatus === 'uploading' || faviconStatus === 'uploading') ? 'animate-pulse opacity-100' : 'opacity-30'}`} />}
+                                           <div className={`absolute inset-0 border-2 border-primary/20 border-t-primary rounded-full animate-spin [animation-duration:3s] ${(logoStatus === 'uploading' || faviconStatus === 'uploading') ? 'border-primary opacity-100' : (logoStatus === 'error' || faviconStatus === 'error') ? 'border-red-500 opacity-60' : 'opacity-40'}`} />
+                                           <div className={`absolute inset-4 border border-primary/10 border-b-primary/50 rounded-full animate-spin [animation-direction:reverse] [animation-duration:5s] ${(logoStatus === 'uploading' || faviconStatus === 'uploading') ? 'opacity-100' : (logoStatus === 'error' || faviconStatus === 'error') ? 'opacity-20' : 'opacity-40'}`} />
+                                           
+                                           {logoStatus === 'error' || faviconStatus === 'error' ? (
+                                              <AlertCircle className="h-12 w-12 text-red-500 animate-pulse" />
+                                           ) : logoUrl ? (
+                                              <img src={logoUrl} className="h-20 w-20 object-contain relative z-10" />
+                                           ) : (
+                                              <Sparkles className={`h-12 w-12 text-primary ${(logoStatus === 'uploading' || faviconStatus === 'uploading') ? 'animate-pulse opacity-100' : 'opacity-30'}`} />
+                                           )}
                                         </div>
                                         <div className="space-y-2">
-                                           <h3 className="text-2xl font-heading font-black italic tracking-tight text-white/90">Identity Synthesis</h3>
-                                           <p className="text-[10px] text-primary/60 font-mono tracking-widest uppercase">
-                                              {(logoStatus === 'uploading' || faviconStatus === 'uploading') ? "Processing DNA..." : logoUrl ? "DNA Synchronized" : "Awaiting Asset Injection"}
+                                           <h3 className={`text-2xl font-heading font-black italic tracking-tight ${logoStatus === 'error' ? 'text-red-400' : 'text-white/90'}`}>
+                                              {logoStatus === 'error' ? "Synthesis Collision" : "Identity Synthesis"}
+                                           </h3>
+                                           <p className={`text-[10px] font-mono tracking-widest uppercase ${logoStatus === 'error' ? 'text-red-500/60' : 'text-primary/60'}`}>
+                                              {logoStatus === 'uploading' ? "Processing DNA..." : 
+                                               logoStatus === 'error' ? (logoError || "Protocol Failed") :
+                                               logoUrl ? "DNA Synchronized" : "Awaiting Asset Injection"}
                                            </p>
                                         </div>
                                      </div>
