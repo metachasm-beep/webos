@@ -620,45 +620,68 @@ export default function BuilderPage() {
                    key="step2" initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
                    className="space-y-8 pt-4"
                 >
-                  <div className="space-y-6">
-                    <div className="space-y-3">
-                       <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Logo Identity</label>
-                       <div className="h-32 w-full rounded-2xl bg-white/5 border border-white/5 p-4 flex items-center justify-center relative overflow-hidden group hover:border-primary/30 transition-all">
-                          {isUploadingLogo ? (
-                             <div className="flex flex-col items-center gap-2 animate-pulse">
-                                <RefreshCcw className="h-6 w-6 text-primary animate-spin" />
-                                <span className="text-[8px] uppercase font-bold tracking-[0.2em] text-primary">Synthesizing Asset...</span>
-                             </div>
-                          ) : logoUrl ? (
-                             <img src={logoUrl} className="max-h-full max-w-full object-contain" />
-                          ) : (
-                             <div className="flex flex-col items-center gap-2 opacity-30 group-hover:opacity-100 transition-opacity">
-                                <Plus className="h-6 w-6" />
-                                <span className="text-[8px] uppercase font-bold tracking-widest">Sync Logo</span>
-                             </div>
-                          )}
-                          <input type="file" onChange={handleLogoUpload} className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed" disabled={isUploadingLogo} />
+                    <div className="space-y-6">
+                       <div className="space-y-3">
+                          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Logo Identity</label>
+                          <ActionTooltip label="Sync your brand's core visual DNA. Selection will appear instantly.">
+                            <div className="h-44 w-full rounded-2xl bg-white/5 border border-white/5 p-4 flex items-center justify-center relative overflow-hidden group hover:border-primary/40 transition-all cursor-pointer">
+                               {isUploadingLogo ? (
+                                  <div className="flex flex-col items-center gap-3 animate-pulse">
+                                     <RefreshCcw className="h-8 w-8 text-primary animate-spin" />
+                                     <span className="text-[9px] uppercase font-black tracking-[0.2em] text-primary">Scanning DNA...</span>
+                                  </div>
+                               ) : logoUrl ? (
+                                  <div className="relative h-full w-full flex items-center justify-center">
+                                     <img src={logoUrl} className="max-h-full max-w-full object-contain relative z-10" />
+                                     <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full opacity-40 scale-75" />
+                                     <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity z-20 backdrop-blur-sm rounded-xl">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-primary">Replace DNA</span>
+                                     </div>
+                                  </div>
+                               ) : (
+                                  <div className="flex flex-col items-center gap-3 opacity-30 group-hover:opacity-100 transition-all duration-500 scale-90 group-hover:scale-100">
+                                     <div className="h-14 w-14 rounded-full border border-dashed border-white/30 flex items-center justify-center">
+                                        <Plus className="h-6 w-6" />
+                                     </div>
+                                     <span className="text-[9px] uppercase font-black tracking-[0.2em]">Initialize Logo</span>
+                                  </div>
+                               )}
+                               <input type="file" onChange={handleLogoUpload} className="absolute inset-0 opacity-0 cursor-pointer z-30" disabled={isUploadingLogo} title="" />
+                            </div>
+                          </ActionTooltip>
+                       </div>
+
+                       <div className="space-y-3">
+                          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Favicon Asset</label>
+                          <ActionTooltip label="Specify the browser tab iconography for this synthesis.">
+                            <div className="h-24 w-24 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center relative overflow-hidden group hover:border-primary/40 transition-all cursor-pointer">
+                               {isUploadingFavicon ? (
+                                  <RefreshCcw className="h-6 w-6 text-primary animate-spin" />
+                               ) : faviconUrl ? (
+                                  <div className="relative h-full w-full flex items-center justify-center">
+                                     <img src={faviconUrl} className="w-12 h-12 object-contain relative z-10" />
+                                     <div className="absolute inset-0 bg-primary/10 blur-xl opacity-40" />
+                                     <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity z-20 backdrop-blur-sm">
+                                        <RefreshCcw className="h-4 w-4 text-primary" />
+                                     </div>
+                                  </div>
+                               ) : (
+                                  <ImageIcon className="h-8 w-8 opacity-30 group-hover:opacity-100 transition-all" />
+                               )}
+                               <input type="file" onChange={handleFaviconUpload} className="absolute inset-0 opacity-0 cursor-pointer z-30" disabled={isUploadingFavicon} title="" />
+                            </div>
+                          </ActionTooltip>
                        </div>
                     </div>
-                    <div className="space-y-3">
-                       <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Favicon Asset</label>
-                       <div className="h-20 w-20 rounded-2xl bg-white/5 border border-white/5 p-4 flex items-center justify-center relative overflow-hidden group hover:border-primary/30 transition-all">
-                          {isUploadingFavicon ? (
-                             <RefreshCcw className="h-4 w-4 text-primary animate-spin" />
-                          ) : faviconUrl ? (
-                             <img src={faviconUrl} className="w-full h-full object-contain" />
-                          ) : (
-                             <ImageIcon className="h-6 w-6 opacity-30 group-hover:opacity-100 transition-opacity" />
-                          )}
-                          <input type="file" onChange={handleFaviconUpload} className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed" disabled={isUploadingFavicon} />
-                       </div>
-                    </div>
-                  </div>
                   <div className="flex gap-3">
-                    <Button variant="ghost" onClick={() => setCurrentStep(1)} className="h-14 px-6 border border-white/5 rounded-2xl text-[10px] uppercase font-bold tracking-widest"><ChevronLeft className="h-4 w-4 mr-2" /> Back</Button>
-                    <Button onClick={() => setCurrentStep(3)} className="flex-1 h-14 bg-primary text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-lg shadow-primary/20 group">
-                      Atmosphere <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
+                    <ActionTooltip label="Return to project context.">
+                      <Button variant="ghost" onClick={() => setCurrentStep(1)} className="h-14 px-6 border border-white/5 rounded-2xl text-[10px] uppercase font-bold tracking-widest"><ChevronLeft className="h-4 w-4 mr-2" /> Back</Button>
+                    </ActionTooltip>
+                    <ActionTooltip label="Advance to Atmosphere selection.">
+                      <Button onClick={() => setCurrentStep(3)} className="flex-1 h-14 bg-primary text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-lg shadow-primary/20 group">
+                        Atmosphere <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </ActionTooltip>
                   </div>
                 </motion.div>
               )}
@@ -706,10 +729,14 @@ export default function BuilderPage() {
                     </div>
                   </div>
                   <div className="flex gap-3">
-                    <Button variant="ghost" onClick={() => setCurrentStep(2)} className="h-14 px-6 border border-white/5 rounded-2xl text-[10px] uppercase font-bold tracking-widest"><ChevronLeft className="h-4 w-4 mr-2" /> Back</Button>
-                    <Button onClick={() => setCurrentStep(4)} className="flex-1 h-14 bg-primary text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-lg shadow-primary/20 group">
-                      Synthesis <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
+                    <ActionTooltip label="Revert to Identity step.">
+                      <Button variant="ghost" onClick={() => setCurrentStep(2)} className="h-14 px-6 border border-white/5 rounded-2xl text-[10px] uppercase font-bold tracking-widest"><ChevronLeft className="h-4 w-4 mr-2" /> Back</Button>
+                    </ActionTooltip>
+                    <ActionTooltip label="Proceed to Synthesis Labs.">
+                      <Button onClick={() => setCurrentStep(4)} className="flex-1 h-14 bg-primary text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-lg shadow-primary/20 group">
+                        Synthesis Labs <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </ActionTooltip>
                   </div>
                 </motion.div>
               )}
@@ -764,10 +791,14 @@ export default function BuilderPage() {
                     </div>
                   </div>
                   <div className="flex gap-3">
-                    <Button variant="ghost" onClick={() => setCurrentStep(3)} className="h-14 px-6 border border-white/5 rounded-2xl text-[10px] uppercase font-bold tracking-widest"><ChevronLeft className="h-4 w-4 mr-2" /> Back</Button>
-                    <Button onClick={() => setCurrentStep(5)} className="flex-1 h-14 bg-primary text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-lg shadow-primary/20 group">
-                      Visual Matrix <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
+                    <ActionTooltip label="Return to Atmosphere settings.">
+                      <Button variant="ghost" onClick={() => setCurrentStep(3)} className="h-14 px-6 border border-white/5 rounded-2xl text-[10px] uppercase font-bold tracking-widest"><ChevronLeft className="h-4 w-4 mr-2" /> Back</Button>
+                    </ActionTooltip>
+                    <ActionTooltip label="Proceed to Neural Tuning.">
+                      <Button onClick={() => setCurrentStep(5)} className="flex-1 h-14 bg-primary text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-lg shadow-primary/20 group">
+                        Visual Matrix <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </ActionTooltip>
                   </div>
                 </motion.div>
               )}
@@ -780,27 +811,35 @@ export default function BuilderPage() {
                 >
                   <div className="space-y-8">
                     {[
-                      { id: 'blur', label: "Canvas Blur", value: `${blurValue}px`, val: blurValue, onChange: setBlurValue, max: 64, icon: Wind },
-                      { id: 'mesh', label: "Mesh Intensity", value: `${meshIntensity}%`, val: meshIntensity, onChange: setMeshIntensity, max: 100, icon: Sparkles },
-                      { id: 'chroma', label: "Chroma Shift", value: `${chromaShift}°`, val: chromaShift, onChange: setChromaShift, max: 360, icon: RefreshCcw }
+                      { id: 'blur', label: "Canvas Blur", value: `${blurValue}px`, val: blurValue, onChange: setBlurValue, max: 64, icon: Wind, tooltip: "Adjust the radial diffusion of the neural workspace." },
+                      { id: 'mesh', label: "Mesh Intensity", value: `${meshIntensity}%`, val: meshIntensity, onChange: setMeshIntensity, max: 100, icon: Sparkles, tooltip: "Synthesize background energy markers." },
+                      { id: 'chroma', label: "Chroma Shift", value: `${chromaShift}°`, val: chromaShift, onChange: setChromaShift, max: 360, icon: RefreshCcw, tooltip: "Rotate the manifold's color spectrum." }
                     ].map((config) => (
                       <div key={config.id} className="space-y-4">
                         <div className="flex justify-between items-center group">
-                          <div className="flex items-center gap-3">
-                             <div className="h-8 w-8 rounded-xl bg-white/5 flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors"><config.icon className="h-4 w-4" /></div>
-                             <span className="text-[10px] font-black uppercase tracking-widest">{config.label}</span>
-                          </div>
+                          <ActionTooltip label={config.tooltip}>
+                            <div className="flex items-center gap-3 cursor-help">
+                               <div className="h-8 w-8 rounded-xl bg-white/5 flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors"><config.icon className="h-4 w-4" /></div>
+                               <span className="text-[10px] font-black uppercase tracking-widest">{config.label}</span>
+                            </div>
+                          </ActionTooltip>
                           <span className="text-[10px] text-primary font-bold italic">{config.value}</span>
                         </div>
-                        <input type="range" min="0" max={config.max} value={config.val} onChange={(e) => config.onChange(parseInt(e.target.value))} className="w-full accent-primary h-1 bg-white/10 rounded-full outline-none" />
+                        <ActionTooltip label={`Slide to adjust ${config.label.toLowerCase()}.`}>
+                           <input type="range" min="0" max={config.max} value={config.val} onChange={(e) => config.onChange(parseInt(e.target.value))} className="w-full accent-primary h-1 bg-white/10 rounded-full outline-none cursor-pointer" />
+                        </ActionTooltip>
                       </div>
                     ))}
                   </div>
                   <div className="flex gap-3">
-                    <Button variant="ghost" onClick={() => setCurrentStep(4)} className="h-14 px-6 border border-white/5 rounded-2xl text-[10px] uppercase font-bold tracking-widest"><ChevronLeft className="h-4 w-4 mr-2" /> Back</Button>
-                    <Button onClick={() => setCurrentStep(6)} className="flex-1 h-14 bg-primary text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-lg shadow-primary/20 group">
-                      Final Review <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
+                    <ActionTooltip label="Return to Synthesis Labs.">
+                      <Button variant="ghost" onClick={() => setCurrentStep(4)} className="h-14 px-6 border border-white/5 rounded-2xl text-[10px] uppercase font-bold tracking-widest"><ChevronLeft className="h-4 w-4 mr-2" /> Back</Button>
+                    </ActionTooltip>
+                    <ActionTooltip label="Proceed to Final Review.">
+                      <Button onClick={() => setCurrentStep(6)} className="flex-1 h-14 bg-primary text-white font-bold uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-lg shadow-primary/20 group">
+                        Final Review <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </ActionTooltip>
                   </div>
                 </motion.div>
               )}
@@ -839,14 +878,23 @@ export default function BuilderPage() {
           </div>
 
           <div className="p-6 border-t border-white/5 relative z-10 bg-background/40 backdrop-blur-md">
-             <Link href="/dashboard" className="w-full h-12 glass border border-white/10 flex items-center justify-center gap-3 rounded-2xl text-[10px] uppercase font-black tracking-[0.2em] text-muted-foreground hover:text-primary hover:border-primary/30 transition-all">
-                <ChevronLeft className="h-4 w-4" /> Return to Command
-             </Link>
+             <ActionTooltip label="Exit Synthesis and return to the Command Dashboard.">
+                <Link href="/dashboard" className="w-full h-12 glass border border-white/10 flex items-center justify-center gap-3 rounded-2xl text-[10px] uppercase font-black tracking-[0.2em] text-muted-foreground hover:text-primary hover:border-primary/30 transition-all">
+                   <ChevronLeft className="h-4 w-4" /> Return to Command
+                </Link>
+             </ActionTooltip>
           </div>
         </aside>
 
         {/* Main Neural Canvas Area */}
-        <main className="flex-1 relative flex flex-col bg-background overflow-hidden" style={{ filter: `hue-rotate(${chromaShift}deg)` }}>
+        <main 
+          className="flex-1 relative flex flex-col bg-background overflow-hidden" 
+          style={{ 
+            filter: `hue-rotate(${chromaShift}deg)`,
+            '--canvas-blur': `${blurValue}px`,
+            '--mesh-opacity': `${meshIntensity / 100}`
+          } as any}
+        >
           {/* Synthesis Rail (Universal Navigator) */}
           <div className="h-24 glass-dark border-b border-white/5 flex items-center px-10 relative z-40 bg-background/50 backdrop-blur-xl">
              <div className="flex items-center justify-between w-full max-w-[1400px] mx-auto">
@@ -857,27 +905,28 @@ export default function BuilderPage() {
                      const Icon = step.icon;
                      
                      return (
-                       <div 
-                         key={step.id} 
-                         onClick={() => setCurrentStep(step.id)}
-                         className={`flex items-center gap-3 cursor-pointer group relative transition-all ${isActive ? 'opacity-100 scale-105' : 'opacity-30 hover:opacity-100'}`}
-                       >
-                          <div className={`h-11 w-11 rounded-[1.25rem] flex items-center justify-center border transition-all duration-500 ${isActive ? 'bg-primary border-primary shadow-[0_0_30px_rgba(var(--primary),0.3)] text-white rotate-6' : isCompleted ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-white/5 border-white/5 text-muted-foreground'}`}>
-                             {isCompleted ? <CheckCircle2 className="h-5 w-5" /> : <Icon className={`h-5 w-5 ${isActive ? 'animate-pulse' : ''}`} />}
-                          </div>
-                          <div className="hidden xl:block">
-                             <div className={`text-[9px] font-black uppercase tracking-[0.2em] transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>{step.label}</div>
-                             <div className="text-[10px] font-bold text-white/50">{step.title}</div>
-                          </div>
-                          {idx < STEPS.length - 1 && (
-                            <div className="absolute -right-8 top-1/2 -translate-y-1/2 hidden 2xl:block">
-                               <div className="w-4 h-[1px] bg-white/10" />
+                       <ActionTooltip key={step.id} label={`${step.description}`}>
+                         <div 
+                           onClick={() => setCurrentStep(step.id)}
+                           className={`flex items-center gap-3 cursor-pointer group relative transition-all ${isActive ? 'opacity-100 scale-105' : 'opacity-30 hover:opacity-100'}`}
+                         >
+                            <div className={`h-11 w-11 rounded-[1.25rem] flex items-center justify-center border transition-all duration-500 ${isActive ? 'bg-primary border-primary shadow-[0_0_30px_rgba(var(--primary),0.3)] text-white rotate-6' : isCompleted ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-white/5 border-white/5 text-muted-foreground'}`}>
+                               {isCompleted ? <CheckCircle2 className="h-5 w-5" /> : <Icon className={`h-5 w-5 ${isActive ? 'animate-pulse' : ''}`} />}
                             </div>
-                          )}
-                          {isActive && (
-                            <motion.div layoutId="railIndicator" className="absolute -bottom-6 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent blur-[1px]" />
-                          )}
-                       </div>
+                            <div className="hidden xl:block">
+                               <div className={`text-[9px] font-black uppercase tracking-[0.2em] transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>{step.label}</div>
+                               <div className="text-[10px] font-bold text-white/50">{step.title}</div>
+                            </div>
+                            {idx < STEPS.length - 1 && (
+                              <div className="absolute -right-8 top-1/2 -translate-y-1/2 hidden 2xl:block">
+                                 <div className="w-4 h-[1px] bg-white/10" />
+                              </div>
+                            )}
+                            {isActive && (
+                              <motion.div layoutId="railIndicator" className="absolute -bottom-6 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent blur-[1px]" />
+                            )}
+                         </div>
+                       </ActionTooltip>
                      );
                    })}
                 </div>
@@ -898,7 +947,12 @@ export default function BuilderPage() {
           </div>
 
           <div className="flex-1 relative overflow-auto no-scrollbar scroll-smooth">
-            <div className={`transition-all duration-1000 w-full min-h-full p-20 ${isIsometric ? 'perspective-isometry bg-primary/5' : ''}`}>
+            <div className={`transition-all duration-1000 w-full min-h-full p-20 relative ${isIsometric ? 'perspective-isometry bg-primary/5' : ''}`}>
+               {/* Effect Substrate (Background Mesh) */}
+               <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                  <div className="mesh-gradient" />
+               </div>
+
                {/* Floating Asset Layer (Handled by Step 4/5 logic) */}
                {floatingAssets.map(asset => (
                   <FloatingAsset 
@@ -929,18 +983,71 @@ export default function BuilderPage() {
                       <SortableContext items={nodes.map(n => n.id)} strategy={verticalListSortingStrategy}>
                         <AnimatePresence mode="popLayout">
                           {nodes.length === 0 ? (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card min-h-[500px] flex flex-col items-center justify-center text-center p-12 space-y-6 border border-dashed border-white/10 relative overflow-hidden group">
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card min-h-[600px] flex flex-col items-center justify-center text-center p-12 space-y-8 border border-dashed border-white/10 relative overflow-hidden group">
                                 <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                                <div className="h-20 w-20 rounded-[2rem] bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-2xl relative z-10">
-                                   <Cpu className="h-10 w-10 animate-pulse" />
+                                
+                                <div className="relative h-64 w-64 flex items-center justify-center">
+                                   {/* Dynamic Step Visualization */}
+                                   <div className="absolute inset-0 bg-primary/5 rounded-full blur-[100px] animate-pulse" />
+                                   
+                                   {currentStep === 1 && (
+                                     <div className="relative z-10 flex flex-col items-center gap-6">
+                                        <div className="h-32 w-32 rounded-3xl border border-primary/40 bg-primary/10 flex items-center justify-center animate-pulse">
+                                           <Target className="h-16 w-16 text-primary" />
+                                        </div>
+                                        <div className="space-y-2">
+                                           <h3 className="text-2xl font-heading font-black italic tracking-tight text-white/90">Manifold Initialization</h3>
+                                           <p className="text-[10px] text-primary/60 font-mono tracking-widest uppercase">Awaiting Project Parameters</p>
+                                        </div>
+                                     </div>
+                                   )}
+
+                                   {currentStep === 2 && (
+                                     <div className="relative z-10 flex flex-col items-center gap-6">
+                                        <div className="relative h-40 w-40 flex items-center justify-center">
+                                           <div className="absolute inset-0 border-2 border-primary/20 border-t-primary rounded-full animate-spin [animation-duration:3s]" />
+                                           <div className="absolute inset-4 border border-primary/10 border-b-primary/50 rounded-full animate-spin [animation-direction:reverse] [animation-duration:5s]" />
+                                           {logoUrl ? <img src={logoUrl} className="h-20 w-20 object-contain relative z-10" /> : <Sparkles className="h-12 w-12 text-primary opacity-30" />}
+                                        </div>
+                                        <div className="space-y-2">
+                                           <h3 className="text-2xl font-heading font-black italic tracking-tight text-white/90">Identity Synthesis</h3>
+                                           <p className="text-[10px] text-primary/60 font-mono tracking-widest uppercase">{logoUrl ? "DNA Synchronized" : "Awaiting Asset Injection"}</p>
+                                        </div>
+                                     </div>
+                                   )}
+
+                                   {currentStep === 3 && (
+                                     <div className="relative z-10 flex flex-col items-center gap-6">
+                                        <div className="grid grid-cols-2 gap-2 p-4 h-40 w-40 glass rounded-[2.5rem] relative overflow-hidden">
+                                           <div className="bg-primary rounded-2xl animate-pulse" />
+                                           <div className="bg-accent rounded-2xl [animation-delay:0.2s] animate-pulse" />
+                                           <div className="bg-white/10 rounded-2xl [animation-delay:0.4s] animate-pulse" />
+                                           <div className="bg-primary/50 rounded-2xl [animation-delay:0.6s] animate-pulse" />
+                                        </div>
+                                        <div className="space-y-2">
+                                           <h3 className="text-2xl font-heading font-black italic tracking-tight text-white/90">Atmosphere Infusion</h3>
+                                           <p className="text-[10px] text-primary/60 font-mono tracking-widest uppercase">Select Global Design Tokens</p>
+                                        </div>
+                                     </div>
+                                   )}
+
+                                   {currentStep >= 4 && (
+                                     <div className="relative z-10 flex flex-col items-center gap-6">
+                                        <div className="h-32 w-32 rounded-[2.5rem] bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-2xl relative z-10">
+                                           <Cpu className="h-12 w-12 animate-pulse" />
+                                        </div>
+                                        <div className="space-y-2">
+                                           <h3 className="text-2xl font-heading font-black italic tracking-tight text-white/90">Awaiting Synthesis Sequence</h3>
+                                           <p className="text-xs text-muted-foreground/60 max-w-sm mx-auto leading-relaxed italic">The neural manifold is receptive. Advance to Step 4 to begin component emission.</p>
+                                        </div>
+                                        <ActionTooltip label="Trigger the generator or select a preset to begin.">
+                                          <Button onClick={() => setCurrentStep(4)} variant="outline" className="h-12 px-8 border-primary/30 text-primary font-bold uppercase tracking-widest text-[9px] rounded-full hover:bg-primary/20 relative z-10 transition-all">
+                                             Activate Component Engine
+                                          </Button>
+                                        </ActionTooltip>
+                                     </div>
+                                   )}
                                 </div>
-                                <div className="space-y-2 relative z-10">
-                                   <h3 className="text-2xl font-heading font-black italic tracking-tight text-white/90">Awaiting Synthesis Sequence</h3>
-                                   <p className="text-xs text-muted-foreground/60 max-w-sm mx-auto leading-relaxed">The neural manifold is receptive. Advance to Step 4 to begin component emission or select a site template.</p>
-                                </div>
-                                <Button onClick={() => setCurrentStep(4)} variant="outline" className="h-12 px-8 border-primary/30 text-primary font-bold uppercase tracking-widest text-[9px] rounded-full hover:bg-primary/20 relative z-10 transition-all">
-                                   Initialize Step 4
-                                </Button>
                             </motion.div>
                           ) : (
                             nodes.map((node, i) => (
