@@ -538,24 +538,23 @@ export default function BuilderPage() {
     <div className="min-h-screen bg-background flex flex-col font-body selection:bg-primary/30 text-foreground overflow-hidden">
       <Navbar />
 
-      <div className="flex-1 flex pt-24 min-h-0 overflow-hidden">
-        <Squares 
-          direction="diagonal"
-          speed={0.5}
-          squareSize={40}
-          borderColor="rgba(255, 255, 255, 0.03)"
-          hoverFillColor="rgba(59, 130, 246, 0.1)"
-        />
-      </div>
-      <div 
-        className="mesh-gradient transition-opacity duration-1000" 
-        style={{ 
-          opacity: 'var(--mesh-opacity, 0.3)',
-          filter: `blur(var(--canvas-blur, 32px)) hue-rotate(var(--chroma-shift, 0deg))`
-        }}
-      />
-      
-      <div className="flex-1 flex pt-16">
+      <div className="flex-1 flex min-h-0 overflow-hidden relative pt-16">
+        {/* Unified Background Substrate */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+          <Squares 
+            direction="diagonal"
+            speed={0.5}
+            squareSize={40}
+            borderColor="rgba(255, 255, 255, 0.03)"
+            hoverFillColor="rgba(59, 130, 246, 0.1)"
+          />
+          <div 
+            className="mesh-gradient absolute inset-0 transition-opacity duration-1000 opacity-[var(--mesh-opacity,0.3)]" 
+            style={{ 
+              filter: `blur(var(--canvas-blur, 32px)) hue-rotate(var(--chroma-shift, 0deg))`
+            }}
+          />
+        </div>
         {/* Sidebar Panel */}
         <aside className="w-85 glass border-r border-white/5 flex flex-col relative z-20 overflow-hidden">
             {/* Plasma Background for Sidebar */}
